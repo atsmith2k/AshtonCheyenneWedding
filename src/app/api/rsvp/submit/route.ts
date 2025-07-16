@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { rsvpSchema, validateRSVPDeadline, validateOrigin, validateTimestamp, securityHeaders } from '@/lib/validation'
 import { encrypt } from '@/lib/crypto'
+import { z } from 'zod'
 
 export async function POST(request: NextRequest) {
   try {
