@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { 
   Image as ImageIcon, 
@@ -39,11 +39,7 @@ export default function MediaManagement() {
   const [selectedPhotos, setSelectedPhotos] = useState<string[]>([])
   const [viewingPhoto, setViewingPhoto] = useState<Photo | null>(null)
 
-  useEffect(() => {
-    fetchPhotos()
-  }, [filter])
-
-  const fetchPhotos = async () => {
+  const fetchPhotos = useCallback(async () => {
     try {
       const params = new URLSearchParams()
       if (filter === 'pending') params.append('approved', 'false')
@@ -60,7 +56,11 @@ export default function MediaManagement() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filter])
+
+  useEffect(() => {
+    fetchPhotos()
+  }, [fetchPhotos])
 
   const handleApprovePhoto = async (photoId: string) => {
     try {

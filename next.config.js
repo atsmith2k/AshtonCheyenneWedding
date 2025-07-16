@@ -11,7 +11,7 @@ const nextConfig = {
   env: {
     CUSTOM_KEY: 'ashton-cheyenne-wedding',
   },
-  // Security headers
+  // Security headers for production
   async headers() {
     return [
       {
@@ -30,8 +30,16 @@ const nextConfig = {
             value: 'strict-origin-when-cross-origin',
           },
           {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=()',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
           },
         ],
       },

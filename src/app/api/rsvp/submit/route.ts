@@ -1,24 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { z } from 'zod'
-
-// RSVP validation schema
-const rsvpSchema = z.object({
-  guestId: z.string().uuid(),
-  attending: z.enum(['attending', 'not_attending']),
-  mealPreference: z.enum(['chicken', 'beef', 'fish', 'vegetarian', 'vegan', 'kids_meal']).optional(),
-  dietaryRestrictions: z.string().max(500).optional(),
-  childrenAttending: z.boolean().optional(),
-  plusOneName: z.string().max(100).optional(),
-  plusOneMeal: z.enum(['chicken', 'beef', 'fish', 'vegetarian', 'vegan', 'kids_meal']).optional(),
-  specialNotes: z.string().max(1000).optional()
-})
+import { rsvpSchema, validateRSVPDeadline, validateOrigin, validateTimestamp, securityHeaders } from '@/lib/validation'
+import { encrypt } from '@/lib/crypto'
 
 export async function POST(request: NextRequest) {
   try {
+    // Security validations
+    if (!validateOrigin(request)) {
+      return NextResponse.json(
+        { error: 'Invalid request origin' },
+        { status: 403, headers: securityHeaders }
+      )
+    }
+
+    // Check RSVP deadline
+    const deadlineCheck = validateRSVPDeadline()
+    if (!deadlineCheck.isValid) {
+      return NextResponse.json(
+        { error: deadlineCheck.message },
+        { status: 400, headers: securityHeaders }
+      )
+    }
+
     const body = await request.json()
-    
-    // Validate request data
+
+    // Validate timestamp to prevent replay attacks
+    if (!validateTimestamp(body.timestamp)) {
+      return NextResponse.json(
+        { error: 'Request expired' },
+        { status: 400, headers: securityHeaders }
+      )
+    }
+
+    // Validate and sanitize request data
     const validatedData = rsvpSchema.parse(body)
 
     // Check if guest exists
@@ -35,7 +49,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Prepare update data
+    // Prepare update data with encryption for sensitive fields
     const updateData: any = {
       rsvp_status: validatedData.attending,
       rsvp_submitted_at: new Date().toISOString(),
@@ -48,13 +62,15 @@ export async function POST(request: NextRequest) {
         updateData.meal_preference = validatedData.mealPreference
       }
       if (validatedData.dietaryRestrictions) {
-        updateData.dietary_restrictions = validatedData.dietaryRestrictions
+        // Encrypt sensitive dietary information
+        updateData.dietary_restrictions = encrypt(validatedData.dietaryRestrictions)
       }
       if (validatedData.childrenAttending !== undefined) {
         updateData.children_attending = validatedData.childrenAttending
       }
       if (validatedData.specialNotes) {
-        updateData.special_notes = validatedData.specialNotes
+        // Encrypt special notes
+        updateData.special_notes = encrypt(validatedData.specialNotes)
       }
 
       // Handle plus-one if allowed

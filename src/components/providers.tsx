@@ -73,15 +73,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       // Check if user is admin - now done server-side only
       // We'll need to make an API call to check admin status securely
-      const response = await fetch('/api/auth/check-admin', {
-        method: 'GET',
-        credentials: 'include'
-      })
+      let userIsAdmin = false
 
-      if (response.ok) {
-        const { isAdmin: userIsAdmin } = await response.json()
-        setIsAdmin(userIsAdmin)
-      } else {
+      try {
+        const response = await fetch('/api/auth/check-admin', {
+          method: 'GET',
+          credentials: 'include'
+        })
+
+        if (response.ok) {
+          const { isAdmin } = await response.json()
+          userIsAdmin = isAdmin
+          setIsAdmin(userIsAdmin)
+        } else {
+          setIsAdmin(false)
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error)
         setIsAdmin(false)
       }
 
