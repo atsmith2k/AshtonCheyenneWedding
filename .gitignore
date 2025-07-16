@@ -51,3 +51,6 @@ logs
 
 # Supabase
 .supabase
+
+# Documentation (moved to keep repo clean for production)
+docs/
