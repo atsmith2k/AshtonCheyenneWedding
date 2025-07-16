@@ -3,6 +3,13 @@ import { supabaseAdmin } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
     const formData = await request.formData()
     const file = formData.get('file') as File
     const guestId = formData.get('guestId') as string

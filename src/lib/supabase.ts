@@ -1,37 +1,75 @@
 import { createClient } from '@supabase/supabase-js'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import type { Database } from '@/types/database'
+import { logEnvironmentStatus, requireValidEnvironment } from './env-validation'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
+// Log environment status in development
+if (process.env.NODE_ENV === 'development') {
+  logEnvironmentStatus()
 }
 
-// Client-side Supabase client
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+// Validate environment variables
+requireValidEnvironment()
 
-// Server-side Supabase client - moved to separate server file to avoid client-side import issues
+// Environment variable validation with better error messages
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-// Client component Supabase client
+// Client-side Supabase client with explicit configuration
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  }
+})
+
+// Client component Supabase client with explicit environment variables
 export const createClientSupabaseClient = () => {
-  return createClientComponentClient<Database>()
+  // Validate environment variables are available on client-side
+  if (typeof window !== 'undefined') {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Supabase environment variables not available on client-side:', {
+        url: !!supabaseUrl,
+        anonKey: !!supabaseAnonKey
+      })
+      throw new Error('Supabase configuration error: Missing environment variables on client-side')
+    }
+  }
+
+  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    }
+  })
 }
 
 // Admin Supabase client with service role key (server-side only)
-export const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseServiceKey, {
+if (!supabaseServiceKey && typeof window === 'undefined') {
+  console.warn('SUPABASE_SERVICE_ROLE_KEY is not set. Admin functions will not work.')
+}
+
+export const supabaseAdmin = supabaseServiceKey ? createClient<Database>(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false
   }
-})
+}) : null
 
 // Helper function to check if user is admin
 export async function isAdmin(email: string): Promise<boolean> {
   const adminEmails = process.env.ADMIN_EMAIL?.split(',').map(email => email.trim()) || []
   return adminEmails.includes(email)
+}
+
+// Helper function to get admin client with validation
+function getAdminClient() {
+  if (!supabaseAdmin) {
+    throw new Error('Admin client not available. SUPABASE_SERVICE_ROLE_KEY is required for admin operations.')
+  }
+  return supabaseAdmin
 }
 
 // Helper function to generate invitation code
@@ -77,7 +115,7 @@ export async function getGuestByInvitationCode(code: string) {
   return data
 }
 
-// Helper function to update guest RSVP
+// Helper function to updat guest RSVP
 export async function updateGuestRSVP(guestId: string, rsvpData: {
   rsvp_status: 'attending' | 'not_attending'
   meal_preference?: string

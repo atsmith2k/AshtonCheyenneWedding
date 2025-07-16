@@ -6,6 +6,14 @@ import { z } from 'zod'
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if admin client is available
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500, headers: securityHeaders }
+      )
+    }
+
     // Security validations
     if (!validateOrigin(request)) {
       return NextResponse.json(
