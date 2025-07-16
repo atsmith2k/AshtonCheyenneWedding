@@ -71,10 +71,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const loadUserData = async (user: User) => {
     try {
-      // Check if user is admin
-      const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.split(',').map(email => email.trim()) || []
-      const userIsAdmin = adminEmails.includes(user.email || '')
-      setIsAdmin(userIsAdmin)
+      // Check if user is admin - now done server-side only
+      // We'll need to make an API call to check admin status securely
+      const response = await fetch('/api/auth/check-admin', {
+        method: 'GET',
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        const { isAdmin: userIsAdmin } = await response.json()
+        setIsAdmin(userIsAdmin)
+      } else {
+        setIsAdmin(false)
+      }
 
       // If not admin, try to load guest data
       if (!userIsAdmin) {

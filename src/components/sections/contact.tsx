@@ -2,8 +2,12 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/components/providers'
-import { MessageCircle, Send, Heart } from 'lucide-react'
+import { MessageCircle, Send, Heart, Check } from 'lucide-react'
 
 export function Contact() {
   const { user, guest } = useAuth()
@@ -56,31 +60,32 @@ export function Contact() {
   }
 
   return (
-    <section id="contact" className="py-20 bg-white">
-      <div className="container mx-auto px-4">
+    <section id="contact" className="wedding-section bg-background">
+      <div className="wedding-container">
         <div className="text-center mb-16 animate-fade-in">
-          <h2 className="font-serif text-4xl md:text-5xl text-neutral-800 mb-4">
+          <h2 className="wedding-heading">
             Contact Us
           </h2>
-          <p className="text-xl text-neutral-600 mb-6">
+          <p className="wedding-subheading">
             Have questions? We'd love to hear from you!
           </p>
-          <div className="w-24 h-1 bg-primary-500 mx-auto" />
+          <div className="wedding-divider" />
         </div>
 
         <div className="max-w-4xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12">
             {/* Contact Info */}
             <div className="animate-slide-up">
-              <div className="wedding-card p-8">
-                <MessageCircle className="w-12 h-12 text-primary-500 mb-6" />
-                <h3 className="font-serif text-2xl text-neutral-800 mb-4">
-                  Get in Touch
-                </h3>
-                <p className="text-neutral-600 mb-6">
-                  Whether you have questions about the wedding details, need help with your RSVP, 
-                  or just want to share your excitement with us, we're here to help!
-                </p>
+              <Card className="bg-card/80 backdrop-blur-sm border-border/50">
+                <CardContent className="p-8">
+                  <MessageCircle className="w-12 h-12 text-primary mb-6" />
+                  <CardTitle className="font-serif text-2xl text-card-foreground mb-4">
+                    Get in Touch
+                  </CardTitle>
+                  <p className="text-muted-foreground mb-6">
+                    Whether you have questions about the wedding details, need help with your RSVP,
+                    or just want to share your excitement with us, we're here to help!
+                  </p>
                 
                 <div className="space-y-4">
                   <div>
@@ -96,127 +101,136 @@ export function Contact() {
                   </div>
                   
                   <div>
-                    <h4 className="font-medium text-neutral-800 mb-2">Response Time:</h4>
-                    <p className="text-sm text-neutral-600">
-                      We typically respond within 24-48 hours. For urgent matters, 
+                    <h4 className="font-medium text-card-foreground mb-2">Response Time:</h4>
+                    <p className="text-sm text-muted-foreground">
+                      We typically respond within 24-48 hours. For urgent matters,
                       please mark your message as urgent.
                     </p>
                   </div>
                 </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Contact Form */}
             <div className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
               {!user || !guest ? (
-                <div className="wedding-card p-8 text-center">
-                  <Heart className="w-16 h-16 text-primary-300 mx-auto mb-6" />
-                  <h3 className="font-serif text-2xl text-neutral-800 mb-4">
-                    Please Sign In
-                  </h3>
-                  <p className="text-neutral-600 mb-8">
-                    To send us a message, please enter your invitation code first.
-                  </p>
-                  <Button variant="wedding" size="lg" asChild>
-                    <a href="/invitation">Enter Invitation Code</a>
-                  </Button>
-                </div>
-              ) : submitted ? (
-                <div className="wedding-card p-8 text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Send className="w-8 h-8 text-green-600" />
-                  </div>
-                  <h3 className="font-serif text-2xl text-neutral-800 mb-4">
-                    Message Sent!
-                  </h3>
-                  <p className="text-neutral-600 mb-6">
-                    Thank you for reaching out! We'll get back to you soon.
-                  </p>
-                  <Button
-                    variant="outline"
-                    onClick={() => setSubmitted(false)}
-                  >
-                    Send Another Message
-                  </Button>
-                </div>
-              ) : (
-                <div className="wedding-card p-8">
-                  <h3 className="font-serif text-2xl text-neutral-800 mb-6">
-                    Send us a Message
-                  </h3>
-                  
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                      <label className="block text-sm font-medium text-neutral-700 mb-3">
-                        Subject *
-                      </label>
-                      <select
-                        value={formData.subject}
-                        onChange={(e) => handleInputChange('subject', e.target.value)}
-                        className="wedding-input"
-                        required
-                      >
-                        <option value="">Please select a topic...</option>
-                        <option value="rsvp">RSVP Questions</option>
-                        <option value="venue">Venue & Directions</option>
-                        <option value="accommodations">Accommodations</option>
-                        <option value="dress_code">Dress Code</option>
-                        <option value="dietary">Dietary Requirements</option>
-                        <option value="plus_one">Plus-One Questions</option>
-                        <option value="registry">Gift Registry</option>
-                        <option value="general">General Question</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-neutral-700 mb-3">
-                        Message *
-                      </label>
-                      <textarea
-                        value={formData.message}
-                        onChange={(e) => handleInputChange('message', e.target.value)}
-                        className="wedding-input"
-                        rows={6}
-                        placeholder="Please share your question or message..."
-                        required
-                      />
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        id="urgent"
-                        checked={formData.isUrgent}
-                        onChange={(e) => handleInputChange('isUrgent', e.target.checked)}
-                        className="w-4 h-4 text-primary-600 border-neutral-300 rounded focus:ring-primary-500"
-                      />
-                      <label htmlFor="urgent" className="text-sm text-neutral-700">
-                        This is urgent (we'll prioritize your message)
-                      </label>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      variant="wedding"
-                      size="lg"
-                      className="w-full"
-                      disabled={!formData.subject || !formData.message || isSubmitting}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                          Sending Message...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4 mr-2" />
-                          Send Message
-                        </>
-                      )}
+                <Card className="text-center bg-card/80 backdrop-blur-sm border-border/50">
+                  <CardContent className="p-8">
+                    <Heart className="w-16 h-16 text-primary/60 mx-auto mb-6" />
+                    <CardTitle className="font-serif text-2xl text-card-foreground mb-4">
+                      Please Sign In
+                    </CardTitle>
+                    <p className="text-muted-foreground mb-8">
+                      To send us a message, please enter your invitation code first.
+                    </p>
+                    <Button variant="wedding" size="lg" asChild>
+                      <a href="/invitation">Enter Invitation Code</a>
                     </Button>
-                  </form>
-                </div>
+                  </CardContent>
+                </Card>
+              ) : submitted ? (
+                <Card className="text-center bg-card/80 backdrop-blur-sm border-border/50">
+                  <CardContent className="p-8">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Check className="w-8 h-8 text-green-600" />
+                    </div>
+                    <CardTitle className="font-serif text-2xl text-card-foreground mb-4">
+                      Message Sent!
+                    </CardTitle>
+                    <p className="text-muted-foreground mb-6">
+                      Thank you for reaching out! We'll get back to you soon.
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => setSubmitted(false)}
+                    >
+                      Send Another Message
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="bg-card/80 backdrop-blur-sm border-border/50">
+                  <CardHeader>
+                    <CardTitle className="font-serif text-2xl text-card-foreground">
+                      Send us a Message
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      <div className="space-y-2">
+                        <Label htmlFor="subject" className="text-sm font-medium text-card-foreground">
+                          Subject *
+                        </Label>
+                        <select
+                          id="subject"
+                          value={formData.subject}
+                          onChange={(e) => handleInputChange('subject', e.target.value)}
+                          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                          required
+                        >
+                          <option value="">Please select a topic...</option>
+                          <option value="rsvp">RSVP Questions</option>
+                          <option value="venue">Venue & Directions</option>
+                          <option value="accommodations">Accommodations</option>
+                          <option value="dress_code">Dress Code</option>
+                          <option value="dietary">Dietary Requirements</option>
+                          <option value="plus_one">Plus-One Questions</option>
+                          <option value="registry">Gift Registry</option>
+                          <option value="general">General Question</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="message" className="text-sm font-medium text-card-foreground">
+                          Message *
+                        </Label>
+                        <Textarea
+                          id="message"
+                          value={formData.message}
+                          onChange={(e) => handleInputChange('message', e.target.value)}
+                          rows={6}
+                          placeholder="Please share your question or message..."
+                          required
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          id="urgent"
+                          checked={formData.isUrgent}
+                          onChange={(e) => handleInputChange('isUrgent', e.target.checked)}
+                          className="w-4 h-4 text-primary border-input rounded focus:ring-primary"
+                        />
+                        <Label htmlFor="urgent" className="text-sm text-card-foreground">
+                          This is urgent (we'll prioritize your message)
+                        </Label>
+                      </div>
+
+                      <Button
+                        type="submit"
+                        variant="wedding"
+                        size="lg"
+                        className="w-full"
+                        disabled={!formData.subject || !formData.message || isSubmitting}
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                            Sending Message...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4 mr-2" />
+                            Send Message
+                          </>
+                        )}
+                      </Button>
+                    </form>
+                  </CardContent>
+                </Card>
               )}
             </div>
           </div>
@@ -224,20 +238,22 @@ export function Contact() {
 
         {/* Footer */}
         <div className="mt-20 text-center animate-fade-in">
-          <div className="wedding-card p-8 max-w-2xl mx-auto">
-            <Heart className="w-8 h-8 text-primary-500 mx-auto mb-4" />
-            <h3 className="font-serif text-xl text-neutral-800 mb-4">
-              Thank You
-            </h3>
-            <p className="text-neutral-600">
-              We're so grateful to have you as part of our special day. 
-              Your presence means the world to us, and we can't wait to celebrate together!
-            </p>
-            <div className="mt-6 text-sm text-neutral-500">
-              With love,<br />
-              <span className="font-script text-lg text-primary-600">Ashton & Cheyenne</span>
-            </div>
-          </div>
+          <Card className="max-w-2xl mx-auto bg-card/80 backdrop-blur-sm border-border/50">
+            <CardContent className="p-8">
+              <Heart className="w-8 h-8 text-primary mx-auto mb-4" />
+              <CardTitle className="font-serif text-xl text-card-foreground mb-4">
+                Thank You
+              </CardTitle>
+              <p className="text-muted-foreground">
+                We're so grateful to have you as part of our special day.
+                Your presence means the world to us, and we can't wait to celebrate together!
+              </p>
+              <div className="mt-6 text-sm text-muted-foreground">
+                With love,<br />
+                <span className="font-script text-lg text-primary">Ashton & Cheyenne</span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </section>

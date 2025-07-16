@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { 
-  Users, 
-  UserCheck, 
-  UserX, 
-  Clock, 
-  Mail, 
-  Image, 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import {
+  Users,
+  UserCheck,
+  UserX,
+  Clock,
+  Mail,
+  Image,
   MessageCircle,
   TrendingUp,
   Calendar,
@@ -95,12 +97,12 @@ export default function AdminDashboard() {
     }
   }
 
-  const StatCard = ({ 
-    title, 
-    value, 
-    icon: Icon, 
+  const StatCard = ({
+    title,
+    value,
+    icon: Icon,
     color = 'primary',
-    subtitle 
+    subtitle
   }: {
     title: string
     value: string | number
@@ -108,40 +110,44 @@ export default function AdminDashboard() {
     color?: string
     subtitle?: string
   }) => (
-    <div className="wedding-card p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm font-medium text-neutral-600">{title}</p>
-          <p className="text-2xl font-bold text-neutral-800">{value}</p>
-          {subtitle && (
-            <p className="text-xs text-neutral-500 mt-1">{subtitle}</p>
-          )}
+    <Card className="bg-card/80 backdrop-blur-sm border-border/50">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            <p className="text-2xl font-bold text-card-foreground">{value}</p>
+            {subtitle && (
+              <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
+            )}
+          </div>
+          <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+            <Icon className="w-6 h-6 text-primary" />
+          </div>
         </div>
-        <div className={`w-12 h-12 bg-${color}-100 rounded-lg flex items-center justify-center`}>
-          <Icon className={`w-6 h-6 text-${color}-600`} />
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 
   if (loading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-neutral-800">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="wedding-card p-6 animate-pulse">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <div className="h-4 bg-neutral-200 rounded w-20" />
-                  <div className="h-8 bg-neutral-200 rounded w-16" />
+            <Card key={i} className="animate-pulse bg-card/80 backdrop-blur-sm border-border/50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-2">
+                    <div className="h-4 bg-muted rounded w-20" />
+                    <div className="h-8 bg-muted rounded w-16" />
+                  </div>
+                  <div className="w-12 h-12 bg-muted rounded-lg" />
                 </div>
-                <div className="w-12 h-12 bg-neutral-200 rounded-lg" />
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </div>
@@ -153,8 +159,8 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-800">Dashboard</h1>
-          <p className="text-neutral-600">Welcome back! Here's what's happening with your wedding.</p>
+          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground">Welcome back! Here's what's happening with your wedding.</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline">

@@ -2,6 +2,11 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuth } from '@/components/providers'
 import { Check, X, Heart } from 'lucide-react'
 
@@ -11,9 +16,10 @@ export function RSVP() {
     attending: '',
     mealPreference: '',
     dietaryRestrictions: '',
+    childrenAttending: false,
     plusOneName: '',
     plusOneMeal: '',
-    notes: ''
+    specialNotes: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -35,9 +41,10 @@ export function RSVP() {
           attending: formData.attending === 'yes' ? 'attending' : 'not_attending',
           mealPreference: formData.mealPreference || undefined,
           dietaryRestrictions: formData.dietaryRestrictions || undefined,
+          childrenAttending: formData.childrenAttending,
           plusOneName: formData.plusOneName || undefined,
           plusOneMeal: formData.plusOneMeal || undefined,
-          notes: formData.notes || undefined
+          specialNotes: formData.specialNotes || undefined
         })
       })
 
@@ -75,31 +82,33 @@ export function RSVP() {
 
   if (!user || !guest) {
     return (
-      <section id="rsvp" className="py-20 bg-white">
-        <div className="container mx-auto px-4">
+      <section id="rsvp" className="wedding-section bg-background">
+        <div className="wedding-container">
           <div className="text-center mb-16 animate-fade-in">
-            <h2 className="font-serif text-4xl md:text-5xl text-neutral-800 mb-4">
+            <h2 className="wedding-heading">
               RSVP
             </h2>
-            <p className="text-xl text-neutral-600 mb-6">
+            <p className="wedding-subheading">
               Please let us know if you can join us
             </p>
-            <div className="w-24 h-1 bg-primary-500 mx-auto" />
+            <div className="wedding-divider" />
           </div>
 
           <div className="max-w-2xl mx-auto">
-            <div className="wedding-card p-8 text-center">
-              <Heart className="w-16 h-16 text-primary-300 mx-auto mb-6" />
-              <h3 className="font-serif text-2xl text-neutral-800 mb-4">
-                Please Sign In to RSVP
-              </h3>
-              <p className="text-neutral-600 mb-8">
-                To RSVP for Ashton and Cheyenne's wedding, please enter your invitation code.
-              </p>
-              <Button variant="wedding" size="lg" asChild>
-                <a href="/invitation">Enter Invitation Code</a>
-              </Button>
-            </div>
+            <Card className="text-center bg-card/80 backdrop-blur-sm border-border/50">
+              <CardContent className="p-8">
+                <Heart className="w-16 h-16 text-primary/60 mx-auto mb-6" />
+                <CardTitle className="font-serif text-2xl text-card-foreground mb-4">
+                  Please Sign In to RSVP
+                </CardTitle>
+                <p className="text-muted-foreground mb-8">
+                  To RSVP for Ashton and Cheyenne's wedding, please enter your invitation code.
+                </p>
+                <Button variant="wedding" size="lg" asChild>
+                  <a href="/invitation">Enter Invitation Code</a>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
@@ -108,23 +117,25 @@ export function RSVP() {
 
   if (submitted) {
     return (
-      <section id="rsvp" className="py-20 bg-white">
-        <div className="container mx-auto px-4">
+      <section id="rsvp" className="wedding-section bg-background">
+        <div className="wedding-container">
           <div className="max-w-2xl mx-auto">
-            <div className="wedding-card p-8 text-center animate-scale-in">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Check className="w-8 h-8 text-green-600" />
-              </div>
-              <h3 className="font-serif text-2xl text-neutral-800 mb-4">
-                Thank You for Your RSVP!
-              </h3>
-              <p className="text-neutral-600 mb-6">
-                We've received your response and are so excited to celebrate with you!
-              </p>
+            <Card className="text-center animate-scale-in bg-card/80 backdrop-blur-sm border-border/50">
+              <CardContent className="p-8">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Check className="w-8 h-8 text-green-600" />
+                </div>
+                <CardTitle className="font-serif text-2xl text-card-foreground mb-4">
+                  Thank You for Your RSVP!
+                </CardTitle>
+                <p className="text-muted-foreground mb-6">
+                  We've received your response and are so excited to celebrate with you!
+                </p>
               <p className="text-sm text-neutral-500">
                 You can update your RSVP anytime by returning to this page.
               </p>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
@@ -132,28 +143,29 @@ export function RSVP() {
   }
 
   return (
-    <section id="rsvp" className="py-20 bg-white">
-      <div className="container mx-auto px-4">
+    <section id="rsvp" className="wedding-section bg-background">
+      <div className="wedding-container">
         <div className="text-center mb-16 animate-fade-in">
-          <h2 className="font-serif text-4xl md:text-5xl text-neutral-800 mb-4">
+          <h2 className="wedding-heading">
             RSVP
           </h2>
-          <p className="text-xl text-neutral-600 mb-6">
+          <p className="wedding-subheading">
             Please let us know if you can join us
           </p>
-          <div className="w-24 h-1 bg-primary-500 mx-auto" />
+          <div className="wedding-divider" />
         </div>
 
         <div className="max-w-2xl mx-auto">
-          <div className="wedding-card p-8">
-            <div className="mb-8">
-              <h3 className="font-serif text-2xl text-neutral-800 mb-2">
+          <Card className="bg-card/80 backdrop-blur-sm border-border/50">
+            <CardHeader>
+              <CardTitle className="font-serif text-2xl text-card-foreground">
                 Hello, {guest.first_name} {guest.last_name}!
-              </h3>
-              <p className="text-neutral-600">
+              </CardTitle>
+              <p className="text-muted-foreground">
                 We're so excited to potentially celebrate with you. Please fill out the form below.
               </p>
-            </div>
+            </CardHeader>
+            <CardContent>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Attendance */}
@@ -192,73 +204,97 @@ export function RSVP() {
               {/* Meal Preference (only if attending) */}
               {formData.attending === 'yes' && (
                 <>
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="mealPreference" className="text-sm font-medium text-card-foreground">
                       Meal Preference *
-                    </label>
-                    <select
+                    </Label>
+                    <Select
                       value={formData.mealPreference}
-                      onChange={(e) => handleInputChange('mealPreference', e.target.value)}
-                      className="wedding-input"
+                      onValueChange={(value) => handleInputChange('mealPreference', value)}
                       required
                     >
-                      <option value="">Please select...</option>
-                      <option value="chicken">Chicken</option>
-                      <option value="beef">Beef</option>
-                      <option value="fish">Fish</option>
-                      <option value="vegetarian">Vegetarian</option>
-                      <option value="vegan">Vegan</option>
-                      <option value="kids_meal">Kids Meal</option>
-                    </select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Please select..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="chicken">Chicken</SelectItem>
+                        <SelectItem value="beef">Beef</SelectItem>
+                        <SelectItem value="fish">Fish</SelectItem>
+                        <SelectItem value="vegetarian">Vegetarian</SelectItem>
+                        <SelectItem value="vegan">Vegan</SelectItem>
+                        <SelectItem value="kids_meal">Kids Meal</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="dietaryRestrictions" className="text-sm font-medium text-card-foreground">
                       Dietary Restrictions or Allergies
-                    </label>
-                    <textarea
+                    </Label>
+                    <Textarea
+                      id="dietaryRestrictions"
                       value={formData.dietaryRestrictions}
                       onChange={(e) => handleInputChange('dietaryRestrictions', e.target.value)}
-                      className="wedding-input"
                       rows={3}
                       placeholder="Please let us know about any dietary restrictions or allergies..."
                     />
                   </div>
 
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-3">
+                      Children Attendance
+                    </label>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id="childrenAttending"
+                        checked={formData.childrenAttending}
+                        onChange={(e) => setFormData(prev => ({ ...prev, childrenAttending: e.target.checked }))}
+                        className="w-4 h-4 text-primary-600 bg-neutral-100 border-neutral-300 rounded focus:ring-primary-500 focus:ring-2"
+                      />
+                      <label htmlFor="childrenAttending" className="text-sm text-neutral-700">
+                        Children will be attending with me
+                      </label>
+                    </div>
+                  </div>
+
                   {/* Plus One (if allowed) */}
                   {guest.plus_one_allowed && (
                     <>
-                      <div>
-                        <label className="block text-sm font-medium text-neutral-700 mb-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="plusOneName" className="text-sm font-medium text-card-foreground">
                           Plus One Name
-                        </label>
-                        <input
+                        </Label>
+                        <Input
+                          id="plusOneName"
                           type="text"
                           value={formData.plusOneName}
                           onChange={(e) => handleInputChange('plusOneName', e.target.value)}
-                          className="wedding-input"
                           placeholder="Name of your guest"
                         />
                       </div>
 
                       {formData.plusOneName && (
-                        <div>
-                          <label className="block text-sm font-medium text-neutral-700 mb-3">
+                        <div className="space-y-2">
+                          <Label htmlFor="plusOneMeal" className="text-sm font-medium text-card-foreground">
                             Plus One Meal Preference
-                          </label>
-                          <select
+                          </Label>
+                          <Select
                             value={formData.plusOneMeal}
-                            onChange={(e) => handleInputChange('plusOneMeal', e.target.value)}
-                            className="wedding-input"
+                            onValueChange={(value) => handleInputChange('plusOneMeal', value)}
                           >
-                            <option value="">Please select...</option>
-                            <option value="chicken">Chicken</option>
-                            <option value="beef">Beef</option>
-                            <option value="fish">Fish</option>
-                            <option value="vegetarian">Vegetarian</option>
-                            <option value="vegan">Vegan</option>
-                            <option value="kids_meal">Kids Meal</option>
-                          </select>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Please select..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="chicken">Chicken</SelectItem>
+                              <SelectItem value="beef">Beef</SelectItem>
+                              <SelectItem value="fish">Fish</SelectItem>
+                              <SelectItem value="vegetarian">Vegetarian</SelectItem>
+                              <SelectItem value="vegan">Vegan</SelectItem>
+                              <SelectItem value="kids_meal">Kids Meal</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                       )}
                     </>
@@ -266,17 +302,17 @@ export function RSVP() {
                 </>
               )}
 
-              {/* Notes */}
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-3">
-                  Special Notes or Messages
-                </label>
-                <textarea
-                  value={formData.notes}
-                  onChange={(e) => handleInputChange('notes', e.target.value)}
-                  className="wedding-input"
+              {/* Special Notes */}
+              <div className="space-y-2">
+                <Label htmlFor="specialNotes" className="text-sm font-medium text-card-foreground">
+                  Special Notes for Wedding Party
+                </Label>
+                <Textarea
+                  id="specialNotes"
+                  value={formData.specialNotes}
+                  onChange={(e) => handleInputChange('specialNotes', e.target.value)}
                   rows={4}
-                  placeholder="Any special notes, song requests, or messages for the happy couple..."
+                  placeholder="Any special notes, accessibility needs, song requests, or messages for Ashton & Cheyenne..."
                 />
               </div>
 
@@ -300,7 +336,8 @@ export function RSVP() {
                 </Button>
               </div>
             </form>
-          </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </section>

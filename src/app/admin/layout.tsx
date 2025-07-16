@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { isAdminUser } from '@/lib/admin-auth'
 import { AdminSidebar } from '@/components/admin/sidebar'
 import { AdminHeader } from '@/components/admin/header'
 
@@ -9,19 +10,18 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   const supabase = createServerSupabaseClient()
-  
-  // Check if user is authenticated and is admin
+
+  // Check if user is authenticated
   const { data: { session } } = await supabase.auth.getSession()
-  
+
   if (!session) {
     redirect('/admin/login')
   }
 
-  // Check if user is admin (this will be implemented with proper admin check)
-  const adminEmails = process.env.ADMIN_EMAIL?.split(',').map(email => email.trim()) || []
-  const isAdmin = adminEmails.includes(session.user.email || '')
-  
-  if (!isAdmin) {
+  // Use secure server-side admin authentication
+  const userIsAdmin = await isAdminUser()
+
+  if (!userIsAdmin) {
     redirect('/')
   }
 

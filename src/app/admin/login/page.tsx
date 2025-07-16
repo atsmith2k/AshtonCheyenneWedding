@@ -36,12 +36,25 @@ export default function AdminLoginPage() {
       // For now, simulate authentication
       await new Promise(resolve => setTimeout(resolve, 2000))
       
-      // Check if email is in admin list
-      const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAIL?.split(',').map(email => email.trim()) || []
-      if (adminEmails.includes(email.trim())) {
-        router.push('/admin')
+      // Check admin status server-side via API
+      const adminCheckResponse = await fetch('/api/auth/validate-admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email.trim() }),
+        credentials: 'include'
+      })
+
+      if (adminCheckResponse.ok) {
+        const { isAdmin } = await adminCheckResponse.json()
+        if (isAdmin) {
+          router.push('/admin')
+        } else {
+          setError('Access denied. Admin privileges required.')
+        }
       } else {
-        setError('Access denied. Admin privileges required.')
+        setError('Authentication failed. Please try again.')
       }
     } catch (error) {
       setError('Authentication failed. Please try again.')

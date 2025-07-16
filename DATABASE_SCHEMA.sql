@@ -9,6 +9,18 @@ CREATE TYPE rsvp_status AS ENUM ('pending', 'attending', 'not_attending');
 CREATE TYPE message_status AS ENUM ('new', 'responded', 'archived');
 CREATE TYPE meal_option AS ENUM ('chicken', 'beef', 'fish', 'vegetarian', 'vegan', 'kids_meal');
 
+-- Admin Users Table (moved up to resolve dependencies)
+-- Couple and wedding party admin access
+CREATE TABLE admin_users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email TEXT UNIQUE NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    role TEXT DEFAULT 'admin',
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Guest Groups Table
 -- Represents invitation groups (families, couples, individuals)
 CREATE TABLE guest_groups (
@@ -33,10 +45,11 @@ CREATE TABLE guests (
     rsvp_status rsvp_status DEFAULT 'pending',
     meal_preference meal_option,
     dietary_restrictions TEXT,
+    children_attending BOOLEAN DEFAULT FALSE,
     plus_one_allowed BOOLEAN DEFAULT FALSE,
     plus_one_name TEXT,
     plus_one_meal meal_option,
-    notes TEXT,
+    special_notes TEXT, -- For wedding party notes
     rsvp_submitted_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -161,17 +174,7 @@ CREATE TABLE wedding_info_versions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Admin Users Table
--- Couple and wedding party admin access
-CREATE TABLE admin_users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    email TEXT UNIQUE NOT NULL,
-    first_name TEXT NOT NULL,
-    last_name TEXT NOT NULL,
-    role TEXT DEFAULT 'admin',
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
+-- Admin Users Table already created above
 
 -- Email Templates Table
 -- Customizable email templates for invitations and reminders

@@ -8,9 +8,10 @@ const rsvpSchema = z.object({
   attending: z.enum(['attending', 'not_attending']),
   mealPreference: z.enum(['chicken', 'beef', 'fish', 'vegetarian', 'vegan', 'kids_meal']).optional(),
   dietaryRestrictions: z.string().max(500).optional(),
+  childrenAttending: z.boolean().optional(),
   plusOneName: z.string().max(100).optional(),
   plusOneMeal: z.enum(['chicken', 'beef', 'fish', 'vegetarian', 'vegan', 'kids_meal']).optional(),
-  notes: z.string().max(1000).optional()
+  specialNotes: z.string().max(1000).optional()
 })
 
 export async function POST(request: NextRequest) {
@@ -49,8 +50,11 @@ export async function POST(request: NextRequest) {
       if (validatedData.dietaryRestrictions) {
         updateData.dietary_restrictions = validatedData.dietaryRestrictions
       }
-      if (validatedData.notes) {
-        updateData.notes = validatedData.notes
+      if (validatedData.childrenAttending !== undefined) {
+        updateData.children_attending = validatedData.childrenAttending
+      }
+      if (validatedData.specialNotes) {
+        updateData.special_notes = validatedData.specialNotes
       }
 
       // Handle plus-one if allowed

@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Upload, Heart, Download } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge'
+import { Upload, Heart, Download, X } from 'lucide-react'
 import { useAuth } from '@/components/providers'
 
 interface Photo {
@@ -80,17 +83,17 @@ export function PhotoGallery() {
 
   if (loading) {
     return (
-      <section id="photos" className="py-20 bg-neutral-50">
-        <div className="container mx-auto px-4">
+      <section id="photos" className="wedding-section bg-muted/30">
+        <div className="wedding-container">
           <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl md:text-5xl text-neutral-800 mb-4">
+            <h2 className="wedding-heading">
               Photo Gallery
             </h2>
-            <div className="w-24 h-1 bg-primary-500 mx-auto" />
+            <div className="wedding-divider" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="aspect-square bg-neutral-200 rounded-lg animate-pulse" />
+              <div key={i} className="aspect-square bg-muted rounded-lg animate-pulse" />
             ))}
           </div>
         </div>
@@ -99,29 +102,30 @@ export function PhotoGallery() {
   }
 
   return (
-    <section id="photos" className="py-20 bg-neutral-50">
-      <div className="container mx-auto px-4">
+    <section id="photos" className="wedding-section bg-muted/30">
+      <div className="wedding-container">
         <div className="text-center mb-16 animate-fade-in">
-          <h2 className="font-serif text-4xl md:text-5xl text-neutral-800 mb-4">
+          <h2 className="wedding-heading">
             Photo Gallery
           </h2>
-          <p className="text-xl text-neutral-600 mb-6">
+          <p className="wedding-subheading">
             Share your memories with us
           </p>
-          <div className="w-24 h-1 bg-primary-500 mx-auto" />
+          <div className="wedding-divider" />
         </div>
 
         {/* Upload Section */}
         {user && guest && (
           <div className="max-w-2xl mx-auto mb-16">
-            <div className="wedding-card p-8 text-center">
-              <Upload className="w-12 h-12 text-primary-500 mx-auto mb-4" />
-              <h3 className="font-serif text-xl text-neutral-800 mb-4">
-                Share Your Photos
-              </h3>
-              <p className="text-neutral-600 mb-6">
-                Upload your favorite photos from our special day to share with everyone!
-              </p>
+            <Card className="text-center bg-card/80 backdrop-blur-sm border-border/50">
+              <CardContent className="p-8">
+                <Upload className="w-12 h-12 text-primary mx-auto mb-4" />
+                <CardTitle className="font-serif text-xl text-card-foreground mb-4">
+                  Share Your Photos
+                </CardTitle>
+                <p className="text-muted-foreground mb-6">
+                  Upload your favorite photos from our special day to share with everyone!
+                </p>
               <input
                 type="file"
                 multiple
@@ -135,7 +139,8 @@ export function PhotoGallery() {
                   <span className="cursor-pointer">Choose Photos</span>
                 </Button>
               </label>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         )}
 
@@ -143,65 +148,52 @@ export function PhotoGallery() {
         {photos.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
             {photos.map((photo, index) => (
-              <div
+              <Card
                 key={photo.id}
-                className="aspect-square bg-neutral-200 rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-300 animate-slide-up"
+                className="aspect-square overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 animate-slide-up bg-card/80 backdrop-blur-sm border-border/50 group"
                 style={{ animationDelay: `${index * 0.1}s` }}
                 onClick={() => setSelectedPhoto(photo)}
               >
-                <div className="w-full h-full bg-gradient-to-br from-primary-100 to-secondary-100 flex items-center justify-center">
-                  <Heart className="w-8 h-8 text-primary-400" />
+                <div className="w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center group-hover:from-primary/20 group-hover:to-secondary/20 transition-all duration-300">
+                  <Heart className="w-8 h-8 text-primary/60 group-hover:text-primary group-hover:scale-110 transition-all duration-300" />
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         ) : (
-          <div className="text-center py-16">
-            <Heart className="w-16 h-16 text-primary-300 mx-auto mb-6" />
-            <h3 className="font-serif text-2xl text-neutral-800 mb-4">
-              No Photos Yet
-            </h3>
-            <p className="text-neutral-600 max-w-md mx-auto">
-              Be the first to share a photo! Upload your favorite memories to get the gallery started.
-            </p>
-          </div>
+          <Card className="text-center py-16 bg-card/80 backdrop-blur-sm border-border/50">
+            <CardContent className="p-8">
+              <Heart className="w-16 h-16 text-primary/60 mx-auto mb-6" />
+              <CardTitle className="font-serif text-2xl text-card-foreground mb-4">
+                No Photos Yet
+              </CardTitle>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Be the first to share a photo! Upload your favorite memories to get the gallery started.
+              </p>
+            </CardContent>
+          </Card>
         )}
 
         {/* Photo Modal */}
-        {selectedPhoto && (
-          <div 
-            className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
-            onClick={() => setSelectedPhoto(null)}
-          >
-            <div className="max-w-4xl max-h-full bg-white rounded-lg overflow-hidden">
-              <div className="p-4 border-b">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium text-neutral-800">
-                      {selectedPhoto.caption || 'Wedding Photo'}
-                    </h3>
-                    <p className="text-sm text-neutral-600">
-                      Uploaded by {selectedPhoto.uploadedBy}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setSelectedPhoto(null)}
-                    className="text-neutral-500 hover:text-neutral-700"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
+        <Dialog open={!!selectedPhoto} onOpenChange={() => setSelectedPhoto(null)}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle className="text-left">
+                {selectedPhoto?.caption || 'Wedding Photo'}
+              </DialogTitle>
+              <div className="text-left">
+                <Badge variant="secondary" className="text-xs">
+                  Uploaded by {selectedPhoto?.uploadedBy}
+                </Badge>
               </div>
-              <div className="p-4">
-                <div className="aspect-video bg-gradient-to-br from-primary-100 to-secondary-100 rounded-lg flex items-center justify-center">
-                  <Heart className="w-16 h-16 text-primary-400" />
-                </div>
+            </DialogHeader>
+            <div className="mt-4">
+              <div className="aspect-video bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg flex items-center justify-center">
+                <Heart className="w-16 h-16 text-primary/60" />
               </div>
             </div>
-          </div>
-        )}
+          </DialogContent>
+        </Dialog>
       </div>
     </section>
   )
