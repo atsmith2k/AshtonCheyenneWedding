@@ -68,6 +68,19 @@ export async function POST(request: NextRequest) {
 
     console.log(`Using template: ${template.subject}`)
 
+    // Validate Resend API configuration
+    if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 'your_resend_api_key_here') {
+      console.error('❌ Resend API key not configured properly')
+      console.error('🔧 Please set RESEND_API_KEY environment variable')
+      // Still return success to avoid revealing system issues
+      return NextResponse.json(
+        { message: 'If this email is in our guest list, you will receive your invitation code shortly.' },
+        { status: 200 }
+      )
+    }
+
+    console.log(`✅ Resend API key configured: ${process.env.RESEND_API_KEY.substring(0, 10)}...`)
+
     // Prepare template variables
     const baseVariables: EmailTemplateVariables = {
       couple_names: 'Ashton & Cheyenne',
@@ -82,12 +95,36 @@ export async function POST(request: NextRequest) {
       invitation_code: guest.invitation_code
     }
 
+    // Process template variables in the template content
+    const processedSubject = template.subject.replace(/{{couple_names}}/g, guestVariables.couple_names || 'Ashton & Cheyenne')
+
+    let processedHtmlContent = template.html_content
+    let processedTextContent = template.text_content || ''
+
+    // Replace all template variables
+    Object.entries(guestVariables).forEach(([key, value]) => {
+      if (value !== undefined) {
+        const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g')
+        processedHtmlContent = processedHtmlContent.replace(regex, value)
+        processedTextContent = processedTextContent.replace(regex, value)
+      }
+    })
+
+    // Remove any unreplaced variables
+    processedHtmlContent = processedHtmlContent.replace(/{{[^}]+}}/g, '')
+    processedTextContent = processedTextContent.replace(/{{[^}]+}}/g, '')
+
+    console.log(`Sending recovery email to ${guest.email} with subject: ${processedSubject}`)
+
     // Send invitation code via email with timeout and enhanced error handling
+    // Use the same pattern as working admin emails - pass content directly
     try {
       const emailResult = await Promise.race([
         sendEmail({
           to: guest.email,
-          templateType: 'invitation_recovery',
+          subject: processedSubject,
+          htmlContent: processedHtmlContent,
+          textContent: processedTextContent,
           guestId: guest.id,
           variables: guestVariables
         }),
@@ -97,13 +134,16 @@ export async function POST(request: NextRequest) {
       ])
 
       if (emailResult.success) {
-        console.log(`Recovery email sent successfully to ${guest.email}:`, emailResult.messageId)
+        console.log(`✅ Recovery email sent successfully to ${guest.email}:`, emailResult.messageId)
+        console.log(`📧 Email tracking ID: ${emailResult.trackingId}`)
       } else {
-        console.error(`Failed to send recovery email to ${guest.email}:`, emailResult.error)
+        console.error(`❌ Failed to send recovery email to ${guest.email}:`, emailResult.error)
+        console.error(`🔍 Email service error details:`, emailResult)
         // Still return success to avoid revealing email existence
       }
     } catch (emailError) {
-      console.error(`Email send error for ${guest.email}:`, emailError)
+      console.error(`💥 Email send error for ${guest.email}:`, emailError)
+      console.error(`🔍 Full error details:`, emailError instanceof Error ? emailError.stack : emailError)
       // Still return success to avoid revealing email existence
     }
 
