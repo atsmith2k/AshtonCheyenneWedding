@@ -11,7 +11,8 @@ import {
   Image,
   BarChart3,
   Settings,
-  Heart
+  Heart,
+  UserPlus
 } from 'lucide-react'
 
 interface NavigationItem {
@@ -49,6 +50,11 @@ const navigation: NavigationItem[] = [
         href: '/admin/guests/rsvp',
       },
     ],
+  },
+  {
+    name: 'Access Requests',
+    href: '/admin/access-requests',
+    icon: UserPlus,
   },
   {
     name: 'Communications',

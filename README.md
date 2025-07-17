@@ -14,6 +14,7 @@ A beautiful, secure wedding website built with Next.js to celebrate our special 
 
 ### **For Guests**
 - 🎫 **Digital Invitations** - Secure invitation code access
+- 🔑 **Access Requests** - Request access if you don't have an invitation code
 - 📝 **RSVP Management** - Easy online RSVP with meal preferences
 - 📸 **Photo Sharing** - Upload and share wedding memories
 - 💌 **Guest Messages** - Send messages to the couple
@@ -21,6 +22,7 @@ A beautiful, secure wedding website built with Next.js to celebrate our special 
 
 ### **For Couple (Admin)**
 - 👥 **Guest Management** - Comprehensive guest list management
+- 🔐 **Access Request Management** - Review and approve guest access requests
 - 📊 **RSVP Tracking** - Real-time RSVP status and analytics
 - 🖼️ **Photo Moderation** - Review and approve guest photos
 - 💬 **Message Center** - Manage guest communications

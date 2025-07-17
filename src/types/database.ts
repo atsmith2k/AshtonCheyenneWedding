@@ -390,6 +390,56 @@ export interface Database {
           updated_at?: string
         }
       }
+      access_requests: {
+        Row: {
+          id: string
+          name: string
+          email: string
+          phone: string
+          address: string
+          message: string | null
+          status: 'pending' | 'approved' | 'denied'
+          admin_notes: string | null
+          invitation_code: string | null
+          invitation_sent_at: string | null
+          created_at: string
+          updated_at: string
+          approved_by: string | null
+          approved_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          email: string
+          phone: string
+          address: string
+          message?: string | null
+          status?: 'pending' | 'approved' | 'denied'
+          admin_notes?: string | null
+          invitation_code?: string | null
+          invitation_sent_at?: string | null
+          created_at?: string
+          updated_at?: string
+          approved_by?: string | null
+          approved_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          email?: string
+          phone?: string
+          address?: string
+          message?: string | null
+          status?: 'pending' | 'approved' | 'denied'
+          admin_notes?: string | null
+          invitation_code?: string | null
+          invitation_sent_at?: string | null
+          created_at?: string
+          updated_at?: string
+          approved_by?: string | null
+          approved_at?: string | null
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -401,6 +451,7 @@ export interface Database {
       rsvp_status: 'pending' | 'attending' | 'not_attending'
       message_status: 'new' | 'responded' | 'archived'
       meal_option: 'chicken' | 'beef' | 'fish' | 'vegetarian' | 'vegan' | 'kids_meal'
+      access_request_status: 'pending' | 'approved' | 'denied'
     }
   }
 }

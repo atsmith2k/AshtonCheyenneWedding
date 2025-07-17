@@ -351,6 +351,29 @@ export default function LandingPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Request Access Section */}
+        <div className="animate-slide-up mt-8" style={{ animationDelay: '0.6s' }}>
+          <Card className="max-w-md mx-auto bg-card/90 backdrop-blur-sm border-border/50 shadow-lg">
+            <CardContent className="p-6 text-center">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Don't have an invitation code?
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                If you believe you should have access to our wedding website,
+                you can request an invitation code.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => router.push('/request-access')}
+              >
+                Request Access
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Forgot Invitation Code Modal */}

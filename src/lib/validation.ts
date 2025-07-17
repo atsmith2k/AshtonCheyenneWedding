@@ -7,21 +7,21 @@ import { sanitizeText, sanitizeEmail, sanitizePhone, sanitizeDietaryRestrictions
  */
 
 // Custom validation functions
-const sanitizedString = (maxLength: number = 255) => 
+const sanitizedString = (maxLength: number = 255) =>
   z.string()
-    .transform(sanitizeText)
+    .transform((val: string): string => sanitizeText(val))
     .refine(val => val.length <= maxLength, `Must be ${maxLength} characters or less`)
 
 const sanitizedEmail = () =>
   z.string()
     .email('Invalid email format')
-    .transform(sanitizeEmail)
+    .transform((val: string): string => sanitizeEmail(val))
     .refine(val => val.length <= 254, 'Email too long')
 
 const sanitizedPhone = () =>
   z.string()
     .optional()
-    .transform(val => val ? sanitizePhone(val) : '')
+    .transform((val: string | undefined): string => val ? sanitizePhone(val) : '')
     .refine(val => !val || /^[\d+()-\s]{7,20}$/.test(val), 'Invalid phone number format')
 
 // RSVP Form Validation
@@ -193,6 +193,69 @@ export const rateLimitSchema = z.object({
   identifier: z.string(), // IP address or user ID
   timestamp: z.number(),
   count: z.number().default(1)
+})
+
+// Access Request Validation - Simplified without problematic transforms
+export const accessRequestSchema = z.object({
+  name: z.string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must be less than 100 characters'),
+  email: z.string()
+    .email('Invalid email format')
+    .max(254, 'Email too long'),
+  phone: z.string()
+    .min(10, 'Phone number must be at least 10 digits')
+    .max(20, 'Phone number is too long')
+    .regex(/^[\d\s\-\+\(\)\.]+$/, 'Please enter a valid phone number'),
+  address: z.string()
+    .min(10, 'Please provide a complete address')
+    .max(500, 'Address is too long'),
+  message: z.string()
+    .max(1000, 'Message is too long')
+    .optional(),
+  // Security fields
+  timestamp: z.number().optional(),
+  csrfToken: z.string().optional(),
+  honeypot: z.string().optional() // Bot detection
+}).refine(data => {
+  // Honeypot field should be empty (bot detection)
+  if (data.honeypot && data.honeypot.length > 0) {
+    return false
+  }
+  return true
+}, {
+  message: 'Invalid submission'
+}).refine(data => {
+  // Basic timestamp validation (submission within last hour)
+  if (data.timestamp) {
+    const now = Date.now()
+    const submissionTime = data.timestamp
+    const oneHour = 60 * 60 * 1000
+    if (Math.abs(now - submissionTime) > oneHour) {
+      return false
+    }
+  }
+  return true
+}, {
+  message: 'Submission expired, please try again'
+})
+
+// Type definition for access request data
+export type AccessRequestData = z.infer<typeof accessRequestSchema>
+
+// Admin Access Request Management Validation
+export const accessRequestUpdateSchema = z.object({
+  status: z.enum(['pending', 'approved', 'denied']),
+  admin_notes: sanitizedString(1000).optional(),
+  send_invitation: z.boolean().optional().default(false)
+})
+
+// Bulk Access Request Actions
+export const bulkAccessRequestSchema = z.object({
+  request_ids: z.array(z.string().uuid()).min(1, 'At least one request must be selected'),
+  action: z.enum(['approve', 'deny', 'delete']),
+  admin_notes: sanitizedString(1000).optional(),
+  send_invitations: z.boolean().optional().default(false)
 })
 
 // RSVP Deadline Validation
