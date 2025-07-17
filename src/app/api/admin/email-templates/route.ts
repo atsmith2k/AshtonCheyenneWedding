@@ -3,6 +3,9 @@ import { requireAdmin } from '@/lib/admin-auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { z } from 'zod'
 
+// Force dynamic rendering - admin routes use authentication
+export const dynamic = 'force-dynamic'
+
 // Validation schema for email templates
 const emailTemplateSchema = z.object({
   template_type: z.string().min(1, 'Template type is required'),

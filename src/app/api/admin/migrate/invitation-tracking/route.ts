@@ -73,7 +73,7 @@ COMMENT ON COLUMN guests.invitation_sent_at IS 'Timestamp when digital invitatio
 
     // Verify the migration by checking if we can query the new column
     try {
-      const { data: testData, error: testError } = await supabaseAdmin
+      const { data: testData, error: testError } = await supabaseAdmin!
         .from('guests')
         .select('id, invitation_sent_at')
         .limit(1)
@@ -82,8 +82,7 @@ COMMENT ON COLUMN guests.invitation_sent_at IS 'Timestamp when digital invitatio
         return NextResponse.json({
           success: false,
           error: 'Migration verification failed',
-          details: testError.message,
-          results
+          details: testError?.message || 'Unknown error'
         }, { status: 500 })
       }
 
@@ -93,16 +92,15 @@ COMMENT ON COLUMN guests.invitation_sent_at IS 'Timestamp when digital invitatio
       return NextResponse.json({
         success: true,
         message: 'Invitation tracking migration applied successfully',
-        results,
         verification: 'Column access verified'
       })
 
     } catch (verificationError) {
+      const errorMessage = verificationError instanceof Error ? (verificationError as Error).message : 'Unknown error'
       return NextResponse.json({
         success: false,
         error: 'Migration completed but verification failed',
-        details: verificationError instanceof Error ? verificationError.message : 'Unknown error',
-        results
+        details: errorMessage
       }, { status: 500 })
     }
 

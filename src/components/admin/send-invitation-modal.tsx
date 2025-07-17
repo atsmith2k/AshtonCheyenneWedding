@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -56,6 +56,7 @@ interface SendResult {
     guest_name: string
     email: string
     error: string
+    error_category?: string
   }>
   guests_without_email: Array<{
     guest_id: string
@@ -90,16 +91,7 @@ export function SendInvitationModal({
   const guestsAlreadySent = guestsWithEmail.filter(guest => guest.invitation_sent_at)
   const guestsNotSent = guestsWithEmail.filter(guest => !guest.invitation_sent_at)
 
-  useEffect(() => {
-    if (open) {
-      fetchTemplates()
-      setSendResult(null)
-      setShowResults(false)
-      setCustomMessage('')
-    }
-  }, [open])
-
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     setLoadingTemplates(true)
     try {
       const response = await fetch('/api/admin/email-templates')
@@ -129,7 +121,16 @@ export function SendInvitationModal({
     } finally {
       setLoadingTemplates(false)
     }
-  }
+  }, [setLoadingTemplates, setTemplates, setSelectedTemplateId, toast])
+
+  useEffect(() => {
+    if (open) {
+      fetchTemplates()
+      setSendResult(null)
+      setShowResults(false)
+      setCustomMessage('')
+    }
+  }, [open, fetchTemplates])
 
   const handleSendInvitations = async () => {
     if (guestsWithEmail.length === 0) {

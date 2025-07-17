@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
           guest_last_name: guest.last_name,
           guest_full_name: guestName,
           invitation_code: guest.invitation_code,
-          group_name: guest.guest_groups?.group_name || 'Individual Guest'
+          group_name: (guest.guest_groups as any)?.group_name || 'Individual Guest'
         }
 
         // Add custom message if provided
@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
             subject: template.subject,
             htmlContent: emailContent,
             textContent: template.text_content,
-            templateVariables: guestVariables
+            variables: guestVariables
           }),
           new Promise<{ success: false; error: string }>((_, reject) =>
             setTimeout(() => reject(new Error('Email send timeout (30s)')), 30000)
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
 
         if (emailResult.success) {
           // Update guest record with invitation sent timestamp
-          const { error: updateError } = await supabaseAdmin
+          const { error: updateError } = await supabaseAdmin!
             .from('guests')
             .update({
               invitation_sent_at: new Date().toISOString(),
@@ -210,7 +210,7 @@ export async function POST(request: NextRequest) {
 
         // Categorize errors for better reporting
         let errorCategory = 'unknown'
-        let errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 
         if (errorMessage.includes('timeout')) {
           errorCategory = 'timeout'

@@ -4,6 +4,9 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { sendBulkEmails } from '@/lib/email-service'
 import { z } from 'zod'
 
+// Force dynamic rendering - admin routes use authentication
+export const dynamic = 'force-dynamic'
+
 // Validation schema for email campaigns
 const emailCampaignSchema = z.object({
   name: z.string().min(1, 'Campaign name is required'),
