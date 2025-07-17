@@ -19,10 +19,11 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        // Wedding-specific variants
-        wedding: "bg-gradient-to-r from-wedding-rose-500 to-wedding-sage-500 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200",
-        elegant: "bg-wedding-champagne-500 text-wedding-champagne-900 shadow-sm hover:bg-wedding-champagne-600 transition-colors duration-200",
-        romantic: "bg-gradient-to-r from-wedding-rose-400 to-wedding-rose-600 text-white shadow-md hover:shadow-lg transition-all duration-200",
+        // Wedding-specific variants with new color palette
+        wedding: "bg-gradient-to-r from-wedding-periwinkle-400 to-wedding-light-sky-blue-400 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200",
+        elegant: "bg-wedding-silver-400 text-wedding-cool-gray-800 shadow-sm hover:bg-wedding-silver-500 transition-colors duration-200",
+        romantic: "bg-gradient-to-r from-wedding-rose-quartz-400 to-wedding-periwinkle-400 text-white shadow-md hover:shadow-lg transition-all duration-200",
+        dreamy: "bg-gradient-to-r from-wedding-light-sky-blue-300 to-wedding-periwinkle-300 text-wedding-cool-gray-800 shadow-md hover:shadow-lg transition-all duration-200",
       },
       size: {
         default: "h-9 px-4 py-2",
