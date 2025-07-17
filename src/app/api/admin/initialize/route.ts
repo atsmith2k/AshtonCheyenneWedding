@@ -17,16 +17,9 @@ export async function POST(request: NextRequest) {
     // 1. Create admin users with authentication accounts
     const adminUsers = [
       {
-        email: 'your-actual-email@gmail.com', // Replace with your real email
-        password: 'WeddingAdmin2024!', // Change this password after first login
+        email: 'atsmith2k@gmail.com', // Replace with your real email
+        password: '12345', // Change this password after first login
         first_name: 'Ashton',
-        last_name: 'Smith',
-        role: 'admin'
-      },
-      {
-        email: 'cheyenne-actual-email@gmail.com', // Replace with Cheyenne's real email
-        password: 'WeddingAdmin2024!', // Change this password after first login
-        first_name: 'Cheyenne',
         last_name: 'Smith',
         role: 'admin'
       }

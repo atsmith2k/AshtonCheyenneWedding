@@ -152,11 +152,28 @@ export async function logAdminAction(action: string, details?: any): Promise<voi
   try {
     const adminUser = await getCurrentAdminUser()
     if (!adminUser) return
-    
-    console.log(`[ADMIN ACTION] ${adminUser.email}: ${action}`, details || '')
-    
-    // TODO: Implement proper audit logging to database
-    // This could be enhanced to store in a dedicated audit_logs table
+
+    const timestamp = new Date().toISOString()
+    const logEntry = {
+      timestamp,
+      adminId: adminUser.id,
+      adminEmail: adminUser.email,
+      action,
+      details: details || {},
+      userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'Server',
+      ipAddress: 'Unknown' // Could be enhanced to capture real IP
+    }
+
+    // Console logging for immediate debugging
+    console.log(`[ADMIN ACTION] ${timestamp} - ${adminUser.email}: ${action}`, details || '')
+
+    // Enhanced logging with structured data
+    console.log('[AUDIT TRAIL]', JSON.stringify(logEntry, null, 2))
+
+    // TODO: Store in database audit_logs table
+    // This would require creating an audit_logs table and API endpoint
+    // For now, we're using enhanced console logging with structured data
+
   } catch (error) {
     console.error('Error logging admin action:', error)
   }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { AdminAuthProvider, useAdminAuth } from '@/components/admin-auth-provider'
 import { AdminSidebar } from '@/components/admin/sidebar'
 import { AdminHeader } from '@/components/admin/header'
+import { Toaster } from '@/components/ui/toaster'
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -44,6 +45,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+      <Toaster />
     </div>
   )
 }
