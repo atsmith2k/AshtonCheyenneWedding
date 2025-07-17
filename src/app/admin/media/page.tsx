@@ -1,19 +1,23 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { 
-  Image as ImageIcon, 
-  Upload, 
-  Check, 
-  X, 
-  Eye, 
+import { OptimizedImage } from '@/components/ui/image-optimized'
+import { MobileInput, MobileSelect, MobileCheckbox } from '@/components/mobile/mobile-form-controls'
+import { useMobileDetection } from '@/hooks/use-mobile-detection'
+import {
+  Image as ImageIcon,
+  Upload,
+  Check,
+  X,
+  Eye,
   Trash2,
   Star,
   Folder,
   Filter,
-  Download
+  Download,
+  Grid,
+  List
 } from 'lucide-react'
 
 interface Photo {
@@ -34,11 +38,13 @@ interface Photo {
 }
 
 export default function MediaManagement() {
+  const { isMobile, isTouchDevice } = useMobileDetection()
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved'>('all')
   const [selectedPhotos, setSelectedPhotos] = useState<string[]>([])
   const [viewingPhoto, setViewingPhoto] = useState<Photo | null>(null)
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>(isMobile ? 'grid' : 'grid')
 
   const fetchPhotos = useCallback(async () => {
     try {

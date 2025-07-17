@@ -5,11 +5,14 @@ import { useRouter } from 'next/navigation'
 import { AdminAuthProvider, useAdminAuth } from '@/components/admin-auth-provider'
 import { AdminSidebar } from '@/components/admin/sidebar'
 import { AdminHeader } from '@/components/admin/header'
+import { MobileAdminHeader } from '@/components/admin/mobile-admin-header'
+import { useMobileDetection } from '@/hooks/use-mobile-detection'
 import { Toaster } from '@/components/ui/toaster'
 
 function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { isLoading, isAuthenticated, isAdmin } = useAdminAuth()
+  const { isMobile } = useMobileDetection()
 
   useEffect(() => {
     if (!isLoading) {
@@ -38,10 +41,17 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      <AdminHeader />
+      {/* Mobile header */}
+      <MobileAdminHeader />
+
+      {/* Desktop header */}
+      {!isMobile && <AdminHeader />}
+
       <div className="flex">
-        <AdminSidebar />
-        <main className="flex-1 p-6">
+        {/* Desktop sidebar */}
+        {!isMobile && <AdminSidebar />}
+
+        <main className={`flex-1 ${isMobile ? 'p-4' : 'p-6'}`}>
           {children}
         </main>
       </div>

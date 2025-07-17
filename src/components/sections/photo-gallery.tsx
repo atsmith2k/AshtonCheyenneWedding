@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Badge } from '@/components/ui/badge'
-import { Upload, Heart, Download, X } from 'lucide-react'
+import { PhotoGalleryMobile } from '@/components/ui/photo-gallery-mobile'
+import { OptimizedImage } from '@/components/ui/image-optimized'
+import { useMobileDetection } from '@/hooks/use-mobile-detection'
+import { Upload, Heart, Camera, Plus } from 'lucide-react'
 import { useAuth } from '@/components/providers'
 
 interface Photo {
@@ -18,9 +19,11 @@ interface Photo {
 
 export function PhotoGallery() {
   const { user, guest } = useAuth()
+  const { isMobile, isTouchDevice } = useMobileDetection()
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   useEffect(() => {
     // This will be replaced with actual Supabase data fetching
@@ -51,10 +54,26 @@ export function PhotoGallery() {
   const handlePhotoUpload = async (files: FileList | null) => {
     if (!files || !user || !guest) return
 
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i]
+    setUploading(true)
+    setUploadProgress(0)
 
-      try {
+    try {
+      const totalFiles = files.length
+
+      for (let i = 0; i < totalFiles; i++) {
+        const file = files[i]
+
+        // Validate file
+        if (!file.type.startsWith('image/')) {
+          console.error('Invalid file type:', file.type)
+          continue
+        }
+
+        if (file.size > 10 * 1024 * 1024) { // 10MB limit
+          console.error('File too large:', file.size)
+          continue
+        }
+
         const formData = new FormData()
         formData.append('file', file)
         formData.append('guestId', guest.id)
@@ -71,13 +90,20 @@ export function PhotoGallery() {
         }
 
         console.log('Photo uploaded successfully:', result.data)
-        // Refresh photos list
-        // You could add a state update here to show the uploaded photo
 
-      } catch (error) {
-        console.error('Error uploading photo:', error)
-        // You could add error handling here to show user-friendly error messages
+        // Update progress
+        setUploadProgress(((i + 1) / totalFiles) * 100)
       }
+
+      // Refresh photos list after all uploads
+      // You could add a state update here to show the uploaded photos
+
+    } catch (error) {
+      console.error('Error uploading photos:', error)
+      // You could add error handling here to show user-friendly error messages
+    } finally {
+      setUploading(false)
+      setUploadProgress(0)
     }
   }
 
@@ -118,27 +144,70 @@ export function PhotoGallery() {
         {user && guest && (
           <div className="max-w-2xl mx-auto mb-16">
             <Card className="text-center bg-card/80 backdrop-blur-sm border-border/50">
-              <CardContent className="p-8">
-                <Upload className="w-12 h-12 text-primary mx-auto mb-4" />
-                <CardTitle className="font-serif text-xl text-card-foreground mb-4">
+              <CardContent className={`${isMobile ? 'p-6' : 'p-8'}`}>
+                <div className="flex items-center justify-center mb-4">
+                  <div className="relative">
+                    <Camera className="w-12 h-12 text-primary" />
+                    {uploading && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <CardTitle className={`font-serif text-card-foreground mb-4 ${isMobile ? 'text-lg' : 'text-xl'}`}>
                   Share Your Photos
                 </CardTitle>
-                <p className="text-muted-foreground mb-6">
+
+                <p className={`text-muted-foreground mb-6 ${isMobile ? 'text-sm' : ''}`}>
                   Upload your favorite photos from our special day to share with everyone!
                 </p>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={(e) => handlePhotoUpload(e.target.files)}
-                className="hidden"
-                id="photo-upload"
-              />
-              <label htmlFor="photo-upload">
-                <Button variant="wedding" size="lg" asChild>
-                  <span className="cursor-pointer">Choose Photos</span>
-                </Button>
-              </label>
+
+                {uploading && (
+                  <div className="mb-4">
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div
+                        className="bg-primary h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Uploading... {Math.round(uploadProgress)}%
+                    </p>
+                  </div>
+                )}
+
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => handlePhotoUpload(e.target.files)}
+                  className="hidden"
+                  id="photo-upload"
+                  disabled={uploading}
+                />
+
+                <label htmlFor="photo-upload">
+                  <Button
+                    variant="wedding"
+                    size={isMobile ? "default" : "lg"}
+                    className={`cursor-pointer ${isTouchDevice ? 'min-h-[48px]' : ''}`}
+                    disabled={uploading}
+                    asChild
+                  >
+                    <span className="flex items-center gap-2">
+                      <Plus className="w-4 h-4" />
+                      {uploading ? 'Uploading...' : 'Choose Photos'}
+                    </span>
+                  </Button>
+                </label>
+
+                {isMobile && (
+                  <p className="text-xs text-muted-foreground mt-4">
+                    Tap to select multiple photos from your gallery
+                  </p>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -146,28 +215,23 @@ export function PhotoGallery() {
 
         {/* Photo Grid */}
         {photos.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
-            {photos.map((photo, index) => (
-              <Card
-                key={photo.id}
-                className="aspect-square overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 animate-slide-up bg-card/80 backdrop-blur-sm border-border/50 group"
-                style={{ animationDelay: `${index * 0.1}s` }}
-                onClick={() => setSelectedPhoto(photo)}
-              >
-                <div className="w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center group-hover:from-primary/20 group-hover:to-secondary/20 transition-all duration-300">
-                  <Heart className="w-8 h-8 text-primary/60 group-hover:text-primary group-hover:scale-110 transition-all duration-300" />
-                </div>
-              </Card>
-            ))}
-          </div>
+          <PhotoGalleryMobile
+            photos={photos}
+            columns={{
+              mobile: 2,
+              tablet: 3,
+              desktop: 4
+            }}
+            className="max-w-6xl mx-auto"
+          />
         ) : (
           <Card className="text-center py-16 bg-card/80 backdrop-blur-sm border-border/50">
-            <CardContent className="p-8">
+            <CardContent className={`${isMobile ? 'p-6' : 'p-8'}`}>
               <Heart className="w-16 h-16 text-primary/60 mx-auto mb-6" />
-              <CardTitle className="font-serif text-2xl text-card-foreground mb-4">
+              <CardTitle className={`font-serif text-card-foreground mb-4 ${isMobile ? 'text-xl' : 'text-2xl'}`}>
                 No Photos Yet
               </CardTitle>
-              <p className="text-muted-foreground max-w-md mx-auto">
+              <p className={`text-muted-foreground max-w-md mx-auto ${isMobile ? 'text-sm' : ''}`}>
                 Be the first to share a photo! Upload your favorite memories to get the gallery started.
               </p>
             </CardContent>

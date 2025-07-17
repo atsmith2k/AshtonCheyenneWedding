@@ -5,17 +5,15 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
+import { MobileInput, MobileTextarea, MobileSelect, MobileRadioGroup, MobileCheckbox } from '@/components/mobile/mobile-form-controls'
+import { useMobileDetection } from '@/hooks/use-mobile-detection'
 import { Check, X, Heart, Users } from 'lucide-react'
 import WeddingNavigation from '@/components/wedding-navigation'
 
 export default function RSVPPage() {
   const router = useRouter()
   const { user, guest, isLoading } = useAuth()
+  const { isMobile, isTouchDevice } = useMobileDetection()
   const [formData, setFormData] = useState({
     attending: '',
     mealPreference: '',
@@ -27,6 +25,7 @@ export default function RSVPPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     // If user is not authenticated, redirect to landing page
@@ -46,9 +45,42 @@ export default function RSVPPage() {
     }
   }, [guest])
 
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }))
+    }
+  }
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!formData.attending) {
+      newErrors.attending = 'Please let us know if you will be attending'
+    }
+
+    if (formData.attending === 'yes' && !formData.mealPreference) {
+      newErrors.mealPreference = 'Please select your meal preference'
+    }
+
+    if (guest?.plus_one_allowed && formData.attending === 'yes' && formData.plusOneName && !formData.plusOneMeal) {
+      newErrors.plusOneMeal = 'Please select meal preference for your plus one'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!guest || !formData.attending) return
+    if (!guest || !validateForm()) return
 
     setIsSubmitting(true)
 
@@ -165,96 +197,80 @@ export default function RSVPPage() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Attendance */}
-                <div className="space-y-3">
-                  <Label className="text-base font-medium">
-                    Will you be attending our wedding? *
-                  </Label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Button
-                      type="button"
-                      variant={formData.attending === 'yes' ? 'wedding' : 'outline'}
-                      className="h-16 flex flex-col items-center justify-center"
-                      onClick={() => setFormData(prev => ({ ...prev, attending: 'yes' }))}
-                    >
-                      <Check className="w-6 h-6 mb-1" />
-                      Yes, I'll be there!
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={formData.attending === 'no' ? 'destructive' : 'outline'}
-                      className="h-16 flex flex-col items-center justify-center"
-                      onClick={() => setFormData(prev => ({ ...prev, attending: 'no' }))}
-                    >
-                      <X className="w-6 h-6 mb-1" />
-                      Sorry, can't make it
-                    </Button>
-                  </div>
-                </div>
+                <MobileRadioGroup
+                  label="Will you be attending our wedding?"
+                  required
+                  value={formData.attending}
+                  onValueChange={(value) => handleInputChange('attending', value)}
+                  error={errors.attending}
+                  options={[
+                    {
+                      value: 'yes',
+                      label: "Yes, I'll be there!",
+                      description: "We can't wait to celebrate with you"
+                    },
+                    {
+                      value: 'no',
+                      label: "Sorry, can't make it",
+                      description: "We'll miss you but understand"
+                    }
+                  ]}
+                />
 
                 {formData.attending === 'yes' && (
                   <>
                     {/* Meal Preference */}
-                    <div className="space-y-2">
-                      <Label htmlFor="meal">Meal Preference</Label>
-                      <Select value={formData.mealPreference} onValueChange={(value) => 
-                        setFormData(prev => ({ ...prev, mealPreference: value }))
-                      }>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your meal preference" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="chicken">Chicken</SelectItem>
-                          <SelectItem value="beef">Beef</SelectItem>
-                          <SelectItem value="fish">Fish</SelectItem>
-                          <SelectItem value="vegetarian">Vegetarian</SelectItem>
-                          <SelectItem value="vegan">Vegan</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <MobileSelect
+                      label="Meal Preference"
+                      required
+                      placeholder="Select your meal preference"
+                      value={formData.mealPreference}
+                      onValueChange={(value) => handleInputChange('mealPreference', value)}
+                      error={errors.mealPreference}
+                    >
+                      <SelectItem value="chicken">Herb-Roasted Chicken</SelectItem>
+                      <SelectItem value="beef">Grilled Beef Tenderloin</SelectItem>
+                      <SelectItem value="fish">Pan-Seared Salmon</SelectItem>
+                      <SelectItem value="vegetarian">Vegetarian Pasta Primavera</SelectItem>
+                      <SelectItem value="vegan">Vegan Mediterranean Bowl</SelectItem>
+                    </MobileSelect>
 
                     {/* Dietary Restrictions */}
-                    <div className="space-y-2">
-                      <Label htmlFor="dietary">Dietary Restrictions or Allergies</Label>
-                      <Textarea
-                        id="dietary"
-                        value={formData.dietaryRestrictions}
-                        onChange={(e) => setFormData(prev => ({ ...prev, dietaryRestrictions: e.target.value }))}
-                        placeholder="Please let us know about any dietary restrictions or allergies..."
-                        rows={3}
-                      />
-                    </div>
+                    <MobileTextarea
+                      label="Dietary Restrictions or Allergies"
+                      placeholder="Please let us know about any dietary restrictions or allergies..."
+                      value={formData.dietaryRestrictions}
+                      onChange={(e) => handleInputChange('dietaryRestrictions', e.target.value)}
+                      helperText="This helps our caterers prepare the perfect meal for you"
+                    />
 
                     {/* Plus One */}
                     {guest.plus_one_allowed && (
-                      <div className="space-y-4">
-                        <Label className="text-base font-medium">Plus One Information</Label>
-                        <div className="space-y-2">
-                          <Label htmlFor="plusOneName">Guest Name</Label>
-                          <Input
-                            id="plusOneName"
-                            value={formData.plusOneName}
-                            onChange={(e) => setFormData(prev => ({ ...prev, plusOneName: e.target.value }))}
-                            placeholder="Full name of your guest"
-                          />
-                        </div>
+                      <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                        <h3 className="text-base font-medium text-foreground">Plus One Information</h3>
+
+                        <MobileInput
+                          label="Guest Name"
+                          placeholder="Full name of your guest"
+                          value={formData.plusOneName}
+                          onChange={(e) => handleInputChange('plusOneName', e.target.value)}
+                          helperText="Let us know who will be joining you"
+                        />
+
                         {formData.plusOneName && (
-                          <div className="space-y-2">
-                            <Label htmlFor="plusOneMeal">Guest Meal Preference</Label>
-                            <Select value={formData.plusOneMeal} onValueChange={(value) => 
-                              setFormData(prev => ({ ...prev, plusOneMeal: value }))
-                            }>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select meal preference for your guest" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="chicken">Chicken</SelectItem>
-                                <SelectItem value="beef">Beef</SelectItem>
-                                <SelectItem value="fish">Fish</SelectItem>
-                                <SelectItem value="vegetarian">Vegetarian</SelectItem>
-                                <SelectItem value="vegan">Vegan</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
+                          <MobileSelect
+                            label="Guest Meal Preference"
+                            placeholder="Select meal preference for your guest"
+                            value={formData.plusOneMeal}
+                            onValueChange={(value) => handleInputChange('plusOneMeal', value)}
+                            error={errors.plusOneMeal}
+                          >
+                            <SelectItem value="chicken">Herb-Roasted Chicken</SelectItem>
+                            <SelectItem value="beef">Grilled Beef Tenderloin</SelectItem>
+                            <SelectItem value="fish">Pan-Seared Salmon</SelectItem>
+                            <SelectItem value="vegetarian">Vegetarian Pasta Primavera</SelectItem>
+                            <SelectItem value="vegan">Vegan Mediterranean Bowl</SelectItem>
+                          </MobileSelect>
                         )}
                       </div>
                     )}
@@ -262,34 +278,39 @@ export default function RSVPPage() {
                 )}
 
                 {/* Special Notes */}
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Special Notes or Messages</Label>
-                  <Textarea
-                    id="notes"
-                    value={formData.specialNotes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, specialNotes: e.target.value }))}
-                    placeholder="Any special requests, messages, or questions for us..."
-                    rows={4}
-                  />
-                </div>
+                <MobileTextarea
+                  label="Special Notes or Messages"
+                  placeholder="Any special requests, messages, or questions for us..."
+                  value={formData.specialNotes}
+                  onChange={(e) => handleInputChange('specialNotes', e.target.value)}
+                  helperText="Share anything special you'd like us to know"
+                />
 
                 {/* Submit Button */}
-                <Button
-                  type="submit"
-                  variant="wedding"
-                  size="lg"
-                  className="w-full"
-                  disabled={!formData.attending || isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      Submitting...
-                    </>
-                  ) : (
-                    'Submit RSVP'
+                <div className="pt-6">
+                  <Button
+                    type="submit"
+                    variant="wedding"
+                    size="lg"
+                    className={`w-full ${isTouchDevice ? 'min-h-[56px]' : ''} font-medium`}
+                    disabled={!formData.attending || isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                        Submitting...
+                      </>
+                    ) : (
+                      'Submit RSVP'
+                    )}
+                  </Button>
+
+                  {isMobile && (
+                    <p className="text-xs text-muted-foreground text-center mt-3">
+                      Your RSVP will be saved and you can update it anytime
+                    </p>
                   )}
-                </Button>
+                </div>
               </form>
             </CardContent>
           </Card>

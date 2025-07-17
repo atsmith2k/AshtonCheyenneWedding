@@ -9,6 +9,12 @@ const config: Config = {
   ],
   theme: {
   	extend: {
+  		screens: {
+  			'xs': '475px',
+  			'3xl': '1600px',
+  			'touch': { 'raw': '(hover: none) and (pointer: coarse)' },
+  			'no-touch': { 'raw': '(hover: hover) and (pointer: fine)' },
+  		},
   		colors: {
   			// shadcn/ui semantic colors
   			primary: {
@@ -192,11 +198,24 @@ const config: Config = {
   		spacing: {
   			'18': '4.5rem',
   			'88': '22rem',
-  			'128': '32rem'
+  			'128': '32rem',
+  			'touch': '44px', // Minimum touch target size
+  			'touch-lg': '48px', // Larger touch target
+  			'touch-xl': '56px', // Extra large touch target
   		},
   		maxWidth: {
   			'8xl': '88rem',
   			'9xl': '96rem'
+  		},
+  		minHeight: {
+  			'touch': '44px',
+  			'touch-lg': '48px',
+  			'touch-xl': '56px',
+  		},
+  		minWidth: {
+  			'touch': '44px',
+  			'touch-lg': '48px',
+  			'touch-xl': '56px',
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
