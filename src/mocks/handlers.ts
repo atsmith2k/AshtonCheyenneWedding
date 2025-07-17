@@ -9,24 +9,24 @@ import {
 } from '../test-utils'
 
 // Mock data stores
-let mockGuests = [
+const mockGuests = [
   createMockGuest({ id: 'guest-1', invitation_code: 'ABC123' }),
   createMockGuest({ id: 'guest-2', invitation_code: 'DEF456', first_name: 'Jane', last_name: 'Smith' })
 ]
 
-let mockRSVPs = [
+const mockRSVPs = [
   createMockRSVP({ id: 'rsvp-1', guest_id: 'guest-1' })
 ]
 
-let mockPhotos = [
+const mockPhotos = [
   createMockPhoto({ id: 'photo-1', guest_id: 'guest-1' })
 ]
 
-let mockMessages = [
+const mockMessages = [
   createMockMessage({ id: 'message-1', guest_id: 'guest-1' })
 ]
 
-let mockEmailTemplates = [
+const mockEmailTemplates = [
   createMockEmailTemplate({ id: 'template-1', type: 'invitation' })
 ]
 
@@ -82,8 +82,9 @@ export const handlers = [
       id: `guest-${Date.now()}`,
       ...body
     })
-    mockGuests.push(newGuest)
-    
+    // In a real app, this would persist to database
+    // For testing, we'll just return the created guest
+
     return HttpResponse.json(mockApiResponse(newGuest), { status: 201 })
   }),
 
@@ -105,8 +106,8 @@ export const handlers = [
       id: `rsvp-${Date.now()}`,
       ...body
     })
-    mockRSVPs.push(newRSVP)
-    
+    // In a real app, this would persist to database
+
     return HttpResponse.json(mockApiResponse(newRSVP), { status: 201 })
   }),
 
@@ -126,14 +127,14 @@ export const handlers = [
     const formData = await request.formData()
     const file = formData.get('photo') as File
     const guestId = formData.get('guestId') as string
-    
+
     if (!file || !guestId) {
       return HttpResponse.json(
         mockApiResponse('Missing required fields', false),
         { status: 400 }
       )
     }
-    
+
     const newPhoto = createMockPhoto({
       id: `photo-${Date.now()}`,
       guest_id: guestId,
@@ -141,8 +142,8 @@ export const handlers = [
       file_size: file.size,
       mime_type: file.type
     })
-    mockPhotos.push(newPhoto)
-    
+    // In a real app, this would persist to database
+
     return HttpResponse.json(mockApiResponse(newPhoto), { status: 201 })
   }),
 
@@ -160,17 +161,17 @@ export const handlers = [
 
   http.patch('/api/admin/photos/:id', async ({ params, request }) => {
     const body = await request.json() as any
-    const photoIndex = mockPhotos.findIndex(p => p.id === params.id)
-    
-    if (photoIndex === -1) {
+    const photo = mockPhotos.find(p => p.id === params.id)
+
+    if (!photo) {
       return HttpResponse.json(
         mockApiResponse('Photo not found', false),
         { status: 404 }
       )
     }
-    
-    mockPhotos[photoIndex] = { ...mockPhotos[photoIndex], ...body }
-    return HttpResponse.json(mockApiResponse(mockPhotos[photoIndex]))
+
+    const updatedPhoto = { ...photo, ...body }
+    return HttpResponse.json(mockApiResponse(updatedPhoto))
   }),
 
   // Message endpoints
@@ -180,8 +181,8 @@ export const handlers = [
       id: `message-${Date.now()}`,
       ...body
     })
-    mockMessages.push(newMessage)
-    
+    // In a real app, this would persist to database
+
     return HttpResponse.json(mockApiResponse(newMessage), { status: 201 })
   }),
 
