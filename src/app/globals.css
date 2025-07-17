@@ -15,88 +15,102 @@
     @apply bg-background text-foreground;
   }
   :root {
-    /* Wedding-themed elegant color palette */
+    /* New elegant color palette - Silver, Rose Quartz, Periwinkle, Light Sky Blue, Cool Gray */
     --background: 0 0% 100%;
-    --foreground: 345 8% 15%;
+    --foreground: 232 13% 35%; /* Darker Cool Gray for better readability */
     --card: 0 0% 100%;
-    --card-foreground: 345 8% 15%;
+    --card-foreground: 232 13% 35%;
     --popover: 0 0% 100%;
-    --popover-foreground: 345 8% 15%;
+    --popover-foreground: 232 13% 35%;
 
-    /* Primary: Elegant Rose */
-    --primary: 345 65% 55%;
-    --primary-foreground: 0 0% 98%;
+    /* Primary: Periwinkle - Main brand color */
+    --primary: 231 30% 74%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Sage Green */
-    --secondary: 150 25% 85%;
-    --secondary-foreground: 150 25% 25%;
+    /* Secondary: Rose Quartz - Complementary */
+    --secondary: 257 9% 69%;
+    --secondary-foreground: 232 13% 35%;
 
-    /* Muted: Warm Neutral */
-    --muted: 30 15% 96%;
-    --muted-foreground: 30 8% 45%;
+    /* Muted: Silver - Neutral backgrounds */
+    --muted: 345 3% 70%;
+    --muted-foreground: 232 13% 55%;
 
-    /* Accent: Champagne Gold */
-    --accent: 45 85% 88%;
-    --accent-foreground: 45 85% 25%;
+    /* Accent: Light Sky Blue - Highlights */
+    --accent: 208 79% 79%;
+    --accent-foreground: 232 13% 35%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 60 9.1% 97.8%;
 
-    /* Borders and inputs with warm tones */
-    --border: 30 15% 90%;
-    --input: 30 15% 92%;
-    --ring: 345 65% 55%;
+    /* Borders and inputs with new palette */
+    --border: 345 3% 85%;
+    --input: 345 3% 90%;
+    --ring: 231 30% 74%;
 
-    /* Chart colors for admin dashboard */
-    --chart-1: 345 65% 55%;
-    --chart-2: 150 45% 45%;
-    --chart-3: 45 85% 65%;
-    --chart-4: 280 45% 65%;
-    --chart-5: 200 45% 65%;
+    /* Chart colors using new palette */
+    --chart-1: 231 30% 74%; /* Periwinkle */
+    --chart-2: 257 9% 69%;  /* Rose Quartz */
+    --chart-3: 208 79% 79%; /* Light Sky Blue */
+    --chart-4: 345 3% 70%;  /* Silver */
+    --chart-5: 232 13% 55%; /* Cool Gray */
 
     --radius: 0.75rem;
+
+    /* Direct color palette access */
+    --silver: #b5b1b2;
+    --rose-quartz: #ada9b7;
+    --periwinkle: #a9afd1;
+    --light-sky-blue: #a1cdf4;
+    --cool-gray: #7c809b;
   }
   .dark {
-    /* Dark mode with elegant wedding theme */
-    --background: 345 15% 8%;
-    --foreground: 30 15% 95%;
-    --card: 345 15% 10%;
-    --card-foreground: 30 15% 95%;
-    --popover: 345 15% 10%;
-    --popover-foreground: 30 15% 95%;
+    /* Dark mode with new elegant color palette */
+    --background: 232 13% 8%;
+    --foreground: 345 3% 90%;
+    --card: 232 13% 10%;
+    --card-foreground: 345 3% 90%;
+    --popover: 232 13% 10%;
+    --popover-foreground: 345 3% 90%;
 
-    /* Primary: Softer Rose for dark mode */
-    --primary: 345 55% 65%;
-    --primary-foreground: 345 15% 8%;
+    /* Primary: Darker Periwinkle for dark mode */
+    --primary: 231 30% 65%;
+    --primary-foreground: 232 13% 8%;
 
-    /* Secondary: Muted Sage */
-    --secondary: 150 15% 20%;
-    --secondary-foreground: 150 25% 85%;
+    /* Secondary: Darker Rose Quartz */
+    --secondary: 257 9% 35%;
+    --secondary-foreground: 345 3% 85%;
 
-    /* Muted: Dark Warm */
-    --muted: 345 10% 15%;
-    --muted-foreground: 30 8% 65%;
+    /* Muted: Dark Silver */
+    --muted: 232 13% 15%;
+    --muted-foreground: 345 3% 70%;
 
-    /* Accent: Muted Gold */
-    --accent: 45 35% 25%;
-    --accent-foreground: 45 85% 88%;
+    /* Accent: Darker Light Sky Blue */
+    --accent: 208 79% 45%;
+    --accent-foreground: 345 3% 90%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 60 9.1% 97.8%;
 
-    --border: 345 10% 18%;
-    --input: 345 10% 18%;
-    --ring: 345 55% 65%;
+    --border: 232 13% 18%;
+    --input: 232 13% 18%;
+    --ring: 231 30% 65%;
 
-    --chart-1: 345 55% 65%;
-    --chart-2: 150 35% 55%;
-    --chart-3: 45 65% 75%;
-    --chart-4: 280 35% 75%;
-    --chart-5: 200 35% 75%;
+    --chart-1: 231 30% 65%; /* Darker Periwinkle */
+    --chart-2: 257 9% 55%;  /* Darker Rose Quartz */
+    --chart-3: 208 79% 65%; /* Darker Light Sky Blue */
+    --chart-4: 345 3% 50%;  /* Darker Silver */
+    --chart-5: 232 13% 65%; /* Lighter Cool Gray */
+
+    /* Direct color palette access (same in dark mode) */
+    --silver: #b5b1b2;
+    --rose-quartz: #ada9b7;
+    --periwinkle: #a9afd1;
+    --light-sky-blue: #a1cdf4;
+    --cool-gray: #7c809b;
   }
 }
 
-/* Enhanced wedding-themed styles with shadcn/ui integration */
+/* Enhanced wedding-themed styles with new color palette */
 .wedding-gradient {
   background: linear-gradient(135deg, hsl(var(--primary) / 0.1) 0%, hsl(var(--secondary) / 0.1) 100%);
 }
@@ -114,6 +128,83 @@
     hsl(var(--background)) 50%,
     hsl(var(--secondary) / 0.05) 100%);
 }
+
+/* New gradient utilities using the full color palette */
+.gradient-full {
+  background: linear-gradient(135deg,
+    hsl(345, 3%, 70%) 0%,     /* Silver */
+    hsl(257, 9%, 69%) 25%,    /* Rose Quartz */
+    hsl(231, 30%, 74%) 50%,   /* Periwinkle */
+    hsl(208, 79%, 79%) 75%,   /* Light Sky Blue */
+    hsl(232, 13%, 55%) 100%   /* Cool Gray */
+  );
+}
+
+.gradient-subtle {
+  background: linear-gradient(135deg,
+    hsl(345, 3%, 70%, 0.1) 0%,     /* Silver */
+    hsl(257, 9%, 69%, 0.1) 25%,    /* Rose Quartz */
+    hsl(231, 30%, 74%, 0.1) 50%,   /* Periwinkle */
+    hsl(208, 79%, 79%, 0.1) 75%,   /* Light Sky Blue */
+    hsl(232, 13%, 55%, 0.1) 100%   /* Cool Gray */
+  );
+}
+
+/* Complete gradient collection from your color strategy */
+.gradient-top {
+  background: linear-gradient(0deg, #b5b1b2, #ada9b7, #a9afd1, #a1cdf4, #7c809b);
+}
+
+.gradient-right {
+  background: linear-gradient(90deg, #b5b1b2, #ada9b7, #a9afd1, #a1cdf4, #7c809b);
+}
+
+.gradient-bottom {
+  background: linear-gradient(180deg, #b5b1b2, #ada9b7, #a9afd1, #a1cdf4, #7c809b);
+}
+
+.gradient-left {
+  background: linear-gradient(270deg, #b5b1b2, #ada9b7, #a9afd1, #a1cdf4, #7c809b);
+}
+
+.gradient-top-right {
+  background: linear-gradient(45deg, #b5b1b2, #ada9b7, #a9afd1, #a1cdf4, #7c809b);
+}
+
+.gradient-bottom-right {
+  background: linear-gradient(135deg, #b5b1b2, #ada9b7, #a9afd1, #a1cdf4, #7c809b);
+}
+
+.gradient-top-left {
+  background: linear-gradient(225deg, #b5b1b2, #ada9b7, #a9afd1, #a1cdf4, #7c809b);
+}
+
+.gradient-bottom-left {
+  background: linear-gradient(315deg, #b5b1b2, #ada9b7, #a9afd1, #a1cdf4, #7c809b);
+}
+
+.gradient-radial {
+  background: radial-gradient(#b5b1b2, #ada9b7, #a9afd1, #a1cdf4, #7c809b);
+}
+
+/* Utility classes for direct color access */
+.bg-silver { background-color: var(--silver); }
+.bg-rose-quartz { background-color: var(--rose-quartz); }
+.bg-periwinkle { background-color: var(--periwinkle); }
+.bg-light-sky-blue { background-color: var(--light-sky-blue); }
+.bg-cool-gray { background-color: var(--cool-gray); }
+
+.text-silver { color: var(--silver); }
+.text-rose-quartz { color: var(--rose-quartz); }
+.text-periwinkle { color: var(--periwinkle); }
+.text-light-sky-blue { color: var(--light-sky-blue); }
+.text-cool-gray { color: var(--cool-gray); }
+
+.border-silver { border-color: var(--silver); }
+.border-rose-quartz { border-color: var(--rose-quartz); }
+.border-periwinkle { border-color: var(--periwinkle); }
+.border-light-sky-blue { border-color: var(--light-sky-blue); }
+.border-cool-gray { border-color: var(--cool-gray); }
 
 /* Enhanced animation utilities */
 .animate-fade-in {
@@ -137,13 +228,14 @@
   50% { transform: translateY(-10px); }
 }
 
-/* Rich text editor styles with shadcn/ui integration */
+/* Rich text editor styles with new color palette */
 .tox-tinymce {
   border-radius: 0.5rem !important;
+  border-color: hsl(var(--border)) !important;
 }
 
 .tox .tox-toolbar__primary {
-  background: #f8fafc !important;
+  background: hsl(var(--muted)) !important;
 }
 
 /* Photo upload styles with shadcn/ui integration */
