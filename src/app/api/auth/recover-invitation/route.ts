@@ -50,20 +50,114 @@ export async function POST(request: NextRequest) {
     console.log(`Found guest: ${guest.first_name} ${guest.last_name} (ID: ${guest.id})`)
 
     // Verify the invitation_recovery template exists
-    const { data: template, error: templateError } = await supabaseAdmin
+    let template
+    const { data: existingTemplate, error: templateError } = await supabaseAdmin
       .from('email_templates')
       .select('*')
       .eq('template_type', 'invitation_recovery')
       .eq('is_active', true)
       .single()
 
-    if (templateError || !template) {
-      console.error('Invitation recovery template not found or inactive:', templateError)
-      // Still return success to avoid revealing system issues
-      return NextResponse.json(
-        { message: 'If this email is in our guest list, you will receive your invitation code shortly.' },
-        { status: 200 }
-      )
+    if (templateError || !existingTemplate) {
+      console.warn('⚠️ Invitation recovery template not found, attempting to create it:', templateError)
+
+      // Try to create the missing template automatically
+      const recoveryTemplate = {
+        template_type: 'invitation_recovery',
+        subject: 'Your Wedding Invitation Code - {{couple_names}}',
+        html_content: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 30px;">
+              <h1 style="color: #ec4899; font-family: 'Georgia', serif; font-size: 28px;">
+                {{couple_names}}
+              </h1>
+              <p style="color: #6b7280; font-size: 16px; margin: 0;">
+                Wedding Invitation Code
+              </p>
+            </div>
+
+            <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+              Hi {{guest_first_name}},
+            </p>
+
+            <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+              You requested your invitation code for our wedding website. Here it is:
+            </p>
+
+            <div style="background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%); padding: 30px; border-radius: 12px; text-align: center; margin: 30px 0; border: 2px solid #ec4899;">
+              <h2 style="color: #be185d; font-size: 24px; letter-spacing: 3px; margin: 0; font-family: 'Courier New', monospace;">
+                {{invitation_code}}
+              </h2>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="{{website_url}}/landing"
+                 style="background: #ec4899; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                Access Wedding Website
+              </a>
+            </div>
+
+            <p style="color: #374151; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+              Use this code to access our wedding website and submit your RSVP. We can't wait to celebrate with you!
+            </p>
+
+            <div style="text-align: center; color: #6b7280; font-size: 14px; margin-top: 40px;">
+              <p>
+                With love,<br>
+                <strong style="color: #ec4899;">{{couple_names}}</strong> ❤️
+              </p>
+            </div>
+          </div>
+        `,
+        text_content: `
+          {{couple_names}} - Wedding Invitation Code
+
+          Hi {{guest_first_name}},
+
+          You requested your invitation code for our wedding website. Here it is:
+
+          Invitation Code: {{invitation_code}}
+
+          Use this code to access our wedding website: {{website_url}}/landing
+
+          We can't wait to celebrate with you!
+
+          With love,
+          {{couple_names}}
+        `,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+
+      try {
+        const { data: newTemplate, error: createError } = await supabaseAdmin
+          .from('email_templates')
+          .insert(recoveryTemplate)
+          .select()
+          .single()
+
+        if (createError) {
+          console.error('❌ Failed to create recovery template:', createError)
+          // Still return success to avoid revealing system issues
+          return NextResponse.json(
+            { message: 'If this email is in our guest list, you will receive your invitation code shortly.' },
+            { status: 200 }
+          )
+        }
+
+        template = newTemplate
+        console.log('✅ Successfully created missing invitation_recovery template')
+      } catch (createError) {
+        console.error('❌ Exception creating recovery template:', createError)
+        // Still return success to avoid revealing system issues
+        return NextResponse.json(
+          { message: 'If this email is in our guest list, you will receive your invitation code shortly.' },
+          { status: 200 }
+        )
+      }
+    } else {
+      template = existingTemplate
     }
 
     console.log(`Using template: ${template.subject}`)
