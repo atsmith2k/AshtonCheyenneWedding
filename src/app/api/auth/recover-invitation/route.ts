@@ -188,6 +188,19 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ Resend API key configured: ${process.env.RESEND_API_KEY.substring(0, 10)}...`)
 
+    // Validate Resend API configuration
+    if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 'your_resend_api_key_here') {
+      console.error('❌ Resend API key not configured properly')
+      console.error('🔧 Please set RESEND_API_KEY environment variable')
+      // Still return success to avoid revealing system issues
+      return NextResponse.json(
+        { message: 'If this email is in our guest list, you will receive your invitation code shortly.' },
+        { status: 200 }
+      )
+    }
+
+    console.log(`✅ Resend API key configured: ${process.env.RESEND_API_KEY.substring(0, 10)}...`);
+    
     // Prepare template variables
     const baseVariables: EmailTemplateVariables = {
       couple_names: 'Ashton & Cheyenne',
