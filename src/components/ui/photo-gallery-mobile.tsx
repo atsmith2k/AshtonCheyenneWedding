@@ -45,7 +45,7 @@ export function PhotoGalleryMobile({
   const modalImageRef = useRef<HTMLDivElement>(null)
 
   // Touch gestures for modal
-  const modalGestureRef = useTouchGestures({
+  const modalGestureRef = useTouchGestures<HTMLDivElement>({
     onSwipeLeft: () => navigatePhoto('next'),
     onSwipeRight: () => navigatePhoto('prev'),
     onPinch: (newScale) => {
@@ -93,6 +93,14 @@ export function PhotoGalleryMobile({
     setPosition({ x: 0, y: 0 })
   }, [currentIndex, photos])
 
+  const handleZoom = useCallback((zoomIn: boolean) => {
+    const newScale = zoomIn ? Math.min(3, scale * 1.5) : Math.max(0.5, scale / 1.5)
+    setScale(newScale)
+    if (newScale === 1) {
+      setPosition({ x: 0, y: 0 })
+    }
+  }, [scale])
+
   // Keyboard navigation for desktop
   useEffect(() => {
     if (!selectedPhoto || isMobile) return
@@ -131,14 +139,6 @@ export function PhotoGalleryMobile({
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [selectedPhoto, isMobile, navigatePhoto, closePhoto, handleZoom])
-
-  const handleZoom = useCallback((zoomIn: boolean) => {
-    const newScale = zoomIn ? Math.min(3, scale * 1.5) : Math.max(0.5, scale / 1.5)
-    setScale(newScale)
-    if (newScale === 1) {
-      setPosition({ x: 0, y: 0 })
-    }
-  }, [scale])
 
   const handleShare = useCallback(async (photo: Photo) => {
     if (navigator.share) {

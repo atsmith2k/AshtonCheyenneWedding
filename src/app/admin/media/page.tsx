@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { OptimizedImage } from '@/components/ui/image-optimized'
 import { MobileInput, MobileSelect, MobileCheckbox } from '@/components/mobile/mobile-form-controls'

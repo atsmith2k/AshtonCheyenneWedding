@@ -150,11 +150,13 @@ export function OptimizedImage({
         fill ? (
           <Image
             {...imageProps}
+            alt={alt}
             fill
           />
         ) : (
           <Image
             {...imageProps}
+            alt={alt}
             width={width}
             height={height}
           />

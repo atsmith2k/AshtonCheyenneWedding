@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge'
 import { PhotoGalleryMobile } from '@/components/ui/photo-gallery-mobile'
 import { OptimizedImage } from '@/components/ui/image-optimized'
 import { useMobileDetection } from '@/hooks/use-mobile-detection'
@@ -24,6 +26,7 @@ export function PhotoGallery() {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
 
   useEffect(() => {
     // This will be replaced with actual Supabase data fetching
