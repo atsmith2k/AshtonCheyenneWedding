@@ -289,7 +289,7 @@ export function EmailTester({ isOpen, onClose, templateId, templateType }: Email
               id="custom_variables"
               value={customVariables}
               onChange={(e) => setCustomVariables(e.target.value)}
-              placeholder='{"guest_first_name": "Test", "wedding_date": "July 15, 2026"}'
+              placeholder='{"guest_first_name": "Test", "wedding_date": "September 12, 2026"}'
               className="min-h-[80px] font-mono text-sm"
             />
             <p className="text-xs text-neutral-500">

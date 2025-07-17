@@ -130,15 +130,15 @@ export default function WeddingDetailsPage() {
             <CardContent className="p-6">
               <Calendar className="w-8 h-8 text-primary mx-auto mb-3" />
               <h3 className="font-semibold mb-2">Date</h3>
-              <p className="text-muted-foreground">Coming Soon</p>
+              <p className="text-muted-foreground">September 12, 2026</p>
             </CardContent>
           </Card>
-          
+
           <Card className="text-center">
             <CardContent className="p-6">
               <Clock className="w-8 h-8 text-primary mx-auto mb-3" />
               <h3 className="font-semibold mb-2">Time</h3>
-              <p className="text-muted-foreground">To Be Announced</p>
+              <p className="text-muted-foreground">3:00 PM</p>
             </CardContent>
           </Card>
           
@@ -146,7 +146,8 @@ export default function WeddingDetailsPage() {
             <CardContent className="p-6">
               <MapPin className="w-8 h-8 text-primary mx-auto mb-3" />
               <h3 className="font-semibold mb-2">Venue</h3>
-              <p className="text-muted-foreground">To Be Announced</p>
+              <p className="text-muted-foreground">The Otisco Disco</p>
+              <p className="text-sm text-muted-foreground/80">123 Cattail Rd, Otisco, IN</p>
             </CardContent>
           </Card>
         </div>

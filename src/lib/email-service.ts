@@ -69,10 +69,10 @@ function replaceTemplateVariables(content: string, variables: EmailTemplateVaria
 function getDefaultVariables(): EmailTemplateVariables {
   return {
     couple_names: 'Ashton & Cheyenne',
-    wedding_date: 'July 2026', // Update with actual date
-    wedding_venue: 'Beautiful Wedding Venue', // Update with actual venue
+    wedding_date: 'September 12, 2026',
+    wedding_venue: 'The Otisco Disco',
     website_url: process.env.NEXT_PUBLIC_APP_URL || 'https://ashtonandcheyenne.com',
-    rsvp_deadline: 'June 1, 2026' // Update with actual deadline
+    rsvp_deadline: 'September 1, 2026'
   }
 }
 

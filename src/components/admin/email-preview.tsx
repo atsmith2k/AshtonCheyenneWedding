@@ -42,11 +42,11 @@ const SAMPLE_VARIABLES = {
   guest_last_name: 'Smith',
   guest_full_name: 'John Smith',
   invitation_code: 'ABC123XYZ',
-  wedding_date: 'July 15, 2026',
-  wedding_time: '4:00 PM',
-  wedding_venue: 'Beautiful Garden Venue',
-  wedding_address: '123 Wedding Lane, Love City, LC 12345',
-  rsvp_deadline: 'June 1, 2026',
+  wedding_date: 'September 12, 2026',
+  wedding_time: '3:00 PM',
+  wedding_venue: 'The Otisco Disco',
+  wedding_address: '123 Cattail Rd, Otisco, IN',
+  rsvp_deadline: 'September 1, 2026',
   website_url: 'https://ashtonandcheyenne.com',
   couple_names: 'Ashton & Cheyenne'
 }

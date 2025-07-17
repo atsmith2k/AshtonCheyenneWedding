@@ -63,14 +63,14 @@ export function Hero() {
                   <Calendar className="w-5 h-5 text-primary" />
                   <div>
                     <p className="font-medium text-card-foreground">Wedding Date</p>
-                    <p className="text-muted-foreground">Coming Soon</p>
+                    <p className="text-muted-foreground">September 12, 2026</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-center gap-3">
                   <MapPin className="w-5 h-5 text-primary" />
                   <div>
                     <p className="font-medium text-card-foreground">Location</p>
-                    <p className="text-muted-foreground">To Be Announced</p>
+                    <p className="text-muted-foreground">The Otisco Disco</p>
                   </div>
                 </div>
               </div>

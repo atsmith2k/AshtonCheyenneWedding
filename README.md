@@ -6,9 +6,9 @@ A beautiful, secure wedding website built with Next.js to celebrate our special 
 [Visit Our Wedding Website](https://your-domain.vercel.app)
 
 ## 📅 **Wedding Details**
-- **Date**: July 15, 2026
-- **Location**: Beautiful Garden Venue
-- **RSVP Deadline**: July 1, 2026
+- **Date**: September 12, 2026
+- **Location**: The Otisco Disco
+- **RSVP Deadline**: September 1, 2026
 
 ## ✨ **Features**
 

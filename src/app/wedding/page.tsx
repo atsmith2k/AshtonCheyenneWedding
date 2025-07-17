@@ -115,16 +115,17 @@ export default function WeddingHomePage() {
               <Calendar className="w-12 h-12 text-primary mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">Save the Date</h3>
               <p className="text-muted-foreground">
-                We'll be sharing our wedding date and venue details soon. 
-                Make sure to check back for updates!
+                Join us on September 12, 2026 for our special day!
+                Mark your calendars and get ready to celebrate with us.
               </p>
             </div>
             <div className="text-center">
               <MapPin className="w-12 h-12 text-primary mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">Location</h3>
               <p className="text-muted-foreground">
-                Our ceremony and reception venue will be announced soon. 
-                We can't wait to celebrate with you!
+                The Otisco Disco - 123 Cattail Rd, Otisco, IN
+                <br />
+                We can't wait to celebrate with you at this amazing venue!
               </p>
             </div>
           </div>

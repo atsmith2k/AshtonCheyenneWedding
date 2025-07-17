@@ -66,7 +66,7 @@ export default function RequestAccessPage() {
               <CardContent className="p-6 text-center">
                 <Calendar className="w-8 h-8 text-primary mx-auto mb-3" />
                 <h3 className="font-semibold text-foreground mb-2">Save the Date</h3>
-                <p className="text-muted-foreground">July 15, 2026</p>
+                <p className="text-muted-foreground">September 12, 2026</p>
               </CardContent>
             </Card>
 
@@ -74,7 +74,7 @@ export default function RequestAccessPage() {
               <CardContent className="p-6 text-center">
                 <MapPin className="w-8 h-8 text-primary mx-auto mb-3" />
                 <h3 className="font-semibold text-foreground mb-2">Location</h3>
-                <p className="text-muted-foreground">Beautiful Garden Venue</p>
+                <p className="text-muted-foreground">The Otisco Disco</p>
               </CardContent>
             </Card>
 
@@ -165,7 +165,7 @@ export default function RequestAccessPage() {
               <Heart className="w-5 h-5 text-primary" />
             </div>
             <p className="text-sm text-muted-foreground">
-              July 15, 2026 • We can't wait to celebrate with you!
+              September 12, 2026 • We can't wait to celebrate with you!
             </p>
           </div>
         </div>
