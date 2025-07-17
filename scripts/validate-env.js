@@ -56,6 +56,16 @@ const requiredVars = {
       description: 'Application URL',
       example: 'http://localhost:3001 (dev) or https://your-domain.vercel.app (prod)',
       validate: (value) => {
+        // Allow Vercel environment variables like $VERCEL_URL
+        if (value && value.startsWith('$')) {
+          return true
+        }
+        // If we're in Vercel and VERCEL_URL is available, that's acceptable
+        if (process.env.VERCEL && process.env.VERCEL_URL) {
+          return true
+        }
+        // Otherwise validate as normal URL
+        if (!value) return false
         try {
           new URL(value)
           return true
@@ -114,7 +124,13 @@ function validateEnvironment() {
     const value = process.env[key]
     const isSet = !!value
     const isValid = isSet && (!config.validate || config.validate(value))
-    
+
+    // Special handling for NEXT_PUBLIC_APP_URL in Vercel
+    if (key === 'NEXT_PUBLIC_APP_URL' && !isSet && process.env.VERCEL && process.env.VERCEL_URL) {
+      console.log(`  ✅ ${key} (using VERCEL_URL: ${process.env.VERCEL_URL})`)
+      return
+    }
+
     if (isSet && isValid) {
       console.log(`  ✅ ${key}`)
     } else if (isSet && !isValid) {
