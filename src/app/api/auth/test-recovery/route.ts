@@ -73,58 +73,27 @@ export async function POST(request: NextRequest) {
     })
 
     // Step 4: Check Email Template
-    let template
-    const { data: existingTemplate, error: templateError } = await supabaseAdmin
+    const { data: template, error: templateError } = await supabaseAdmin
       .from('email_templates')
       .select('*')
       .eq('template_type', 'invitation_recovery')
       .eq('is_active', true)
       .single()
 
-    if (templateError || !existingTemplate) {
-      // Try to initialize the template
-      try {
-        const initResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/init-recovery-template`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        })
-
-        if (initResponse.ok) {
-          const initResult = await initResponse.json()
-          if (initResult.success) {
-            // Re-fetch the template
-            const { data: newTemplate } = await supabaseAdmin
-              .from('email_templates')
-              .select('*')
-              .eq('template_type', 'invitation_recovery')
-              .eq('is_active', true)
-              .single()
-
-            template = newTemplate
-          }
-        }
-      } catch (initError) {
-        console.error('Failed to initialize template:', initError)
-      }
-    } else {
-      template = existingTemplate
-    }
-
     debugInfo.steps.push({
       step: 4,
       name: 'Email Template',
       status: template ? 'OK' : 'FAILED',
-      details: template
+      details: template 
         ? `Template found: ${template.subject}`
-        : `Template not found or failed to create: ${templateError?.message || 'Unknown error'}`,
+        : `Template not found: ${templateError?.message || 'Unknown error'}`,
       template: template ? {
         id: template.id,
         subject: template.subject,
         is_active: template.is_active,
         has_html_content: !!template.html_content,
         has_text_content: !!template.text_content
-      } : null,
-      auto_created: !existingTemplate && !!template
+      } : null
     })
 
     // Step 5: Test Email Sending (only if all previous steps passed and guest exists)
