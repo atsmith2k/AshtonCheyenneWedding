@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!supabaseAdmin) {
@@ -28,10 +28,13 @@ export async function GET(
     // Require admin authentication
     const adminUser = await requireAdmin()
 
+    // Await params in Next.js 15
+    const { id } = await params
+
     const { data: accessRequest, error } = await supabaseAdmin
       .from('access_requests')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (error || !accessRequest) {
@@ -73,7 +76,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!supabaseAdmin) {
@@ -86,6 +89,9 @@ export async function PATCH(
     // Require admin authentication
     const adminUser = await requireAdmin()
 
+    // Await params in Next.js 15
+    const { id } = await params
+
     const body = await request.json()
     const validatedData = accessRequestUpdateSchema.parse(body)
 
@@ -93,7 +99,7 @@ export async function PATCH(
     const { data: currentRequest, error: fetchError } = await supabaseAdmin
       .from('access_requests')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (fetchError || !currentRequest) {
@@ -127,7 +133,7 @@ export async function PATCH(
     const { data: updatedRequest, error: updateError } = await supabaseAdmin
       .from('access_requests')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single()
 
@@ -282,7 +288,7 @@ Ashton & Cheyenne
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!supabaseAdmin) {
@@ -295,10 +301,13 @@ export async function DELETE(
     // Require admin authentication
     const adminUser = await requireAdmin()
 
+    // Await params in Next.js 15
+    const { id } = await params
+
     const { error } = await supabaseAdmin
       .from('access_requests')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (error) {
       console.error('Error deleting access request:', error)
