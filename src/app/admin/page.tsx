@@ -1,9 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { MobileDashboard } from '@/components/admin/mobile-dashboard'
+import { useMobileDetection } from '@/hooks/use-mobile-detection'
 import {
   Users,
   UserCheck,
@@ -30,6 +33,8 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
+  const router = useRouter()
+  const { isMobile } = useMobileDetection()
   const [stats, setStats] = useState<DashboardStats>({
     totalGuests: 0,
     attending: 0,
@@ -41,6 +46,11 @@ export default function AdminDashboard() {
     pendingPhotos: 0,
     newMessages: 0
   })
+
+  // Calculate days until wedding (placeholder date)
+  const weddingDate = new Date('2026-07-15')
+  const today = new Date()
+  const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -128,6 +138,10 @@ export default function AdminDashboard() {
     </Card>
   )
 
+  const handleNavigate = (path: string) => {
+    router.push(path)
+  }
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -154,6 +168,26 @@ export default function AdminDashboard() {
     )
   }
 
+  // Mobile dashboard
+  if (isMobile) {
+    return (
+      <MobileDashboard
+        stats={{
+          totalGuests: stats.totalGuests,
+          rsvpResponses: stats.attending + stats.notAttending,
+          pendingRsvps: stats.pending,
+          attendingGuests: stats.attending,
+          photosUploaded: stats.photosUploaded,
+          pendingPhotos: stats.pendingPhotos,
+          messagesReceived: stats.newMessages,
+          daysUntilWedding
+        }}
+        onNavigate={handleNavigate}
+      />
+    )
+  }
+
+  // Desktop dashboard
   return (
     <div className="space-y-6">
       {/* Header */}

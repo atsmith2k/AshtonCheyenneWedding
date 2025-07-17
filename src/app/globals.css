@@ -269,11 +269,43 @@
   .admin-sidebar.open {
     @apply translate-x-0;
   }
+
+  /* Prevent zoom on form inputs */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+
+  /* Touch-friendly minimum sizes */
+  button,
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Improved touch feedback */
+  .touch-feedback {
+    @apply active:scale-95 transition-transform duration-150;
+  }
+
+  /* Mobile-optimized spacing */
+  .mobile-padding {
+    @apply px-4 py-6;
+  }
+
+  .mobile-margin {
+    @apply mx-4 my-6;
+  }
 }
 
 /* Additional wedding-specific utility classes */
 .wedding-section {
-  @apply py-20 px-4;
+  @apply py-12 px-4 md:py-20;
 }
 
 .wedding-container {
@@ -281,11 +313,101 @@
 }
 
 .wedding-heading {
-  @apply font-serif text-4xl md:text-5xl text-foreground mb-4;
+  @apply font-serif text-2xl md:text-4xl lg:text-5xl text-foreground mb-4;
 }
 
 .wedding-subheading {
-  @apply text-xl text-muted-foreground mb-6;
+  @apply text-lg md:text-xl text-muted-foreground mb-6;
+}
+
+/* Mobile-first responsive utilities */
+.mobile-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4;
+}
+
+.mobile-flex {
+  @apply flex flex-col sm:flex-row gap-4;
+}
+
+.mobile-text {
+  @apply text-base md:text-lg;
+}
+
+.mobile-button {
+  @apply w-full sm:w-auto min-h-[48px] px-6 py-3 text-base font-medium;
+}
+
+/* Touch gesture utilities */
+.swipe-container {
+  @apply relative overflow-hidden touch-pan-x;
+}
+
+.pinch-zoom {
+  @apply touch-pinch-zoom;
+}
+
+/* Performance optimizations */
+.gpu-accelerated {
+  @apply transform-gpu;
+}
+
+.will-change-transform {
+  will-change: transform;
+}
+
+/* Accessibility improvements */
+.focus-visible-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+}
+
+.sr-only-focusable {
+  @apply sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-2 focus:bg-background focus:text-foreground;
+}
+
+/* Cross-platform consistency */
+.platform-button {
+  @apply transition-all duration-200 focus-visible-ring;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .platform-button {
+    @apply hover:scale-105;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .platform-button {
+    @apply active:scale-95;
+  }
+}
+
+/* Responsive text scaling */
+.responsive-text-xs { @apply text-xs sm:text-sm; }
+.responsive-text-sm { @apply text-sm sm:text-base; }
+.responsive-text-base { @apply text-base sm:text-lg; }
+.responsive-text-lg { @apply text-lg sm:text-xl; }
+.responsive-text-xl { @apply text-xl sm:text-2xl; }
+.responsive-text-2xl { @apply text-2xl sm:text-3xl; }
+.responsive-text-3xl { @apply text-3xl sm:text-4xl; }
+
+/* Responsive spacing */
+.responsive-p-sm { @apply p-3 sm:p-4; }
+.responsive-p-md { @apply p-4 sm:p-6; }
+.responsive-p-lg { @apply p-6 sm:p-8; }
+
+.responsive-m-sm { @apply m-3 sm:m-4; }
+.responsive-m-md { @apply m-4 sm:m-6; }
+.responsive-m-lg { @apply m-6 sm:m-8; }
+
+/* Loading states */
+.loading-shimmer {
+  @apply animate-pulse bg-gradient-to-r from-muted via-muted/50 to-muted bg-[length:200%_100%];
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 .wedding-divider {
