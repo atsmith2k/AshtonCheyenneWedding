@@ -1,20 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 import { GET, POST } from '../wedding-info/route'
+import { supabaseAdmin } from '@/lib/supabase'
 
 // Mock the Supabase admin client
-const mockSupabaseAdmin = {
-  from: vi.fn(() => ({
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    upsert: vi.fn().mockReturnThis(),
-    single: vi.fn()
-  }))
-}
 
-vi.mock('@/lib/supabase-server', () => ({
-  supabaseAdmin: mockSupabaseAdmin
+vi.mock('@/lib/supabase', () => ({
+  supabaseAdmin: {
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      upsert: vi.fn().mockReturnThis(),
+      single: vi.fn()
+    }))
+  }
 }))
 
 describe('Wedding Info API Integration Tests', () => {
@@ -48,10 +48,20 @@ describe('Wedding Info API Integration Tests', () => {
       ]
 
       // Mock successful database response
-      mockSupabaseAdmin.from().single.mockResolvedValue({
-        data: mockWeddingInfo,
-        error: null
-      })
+      const mockedSupabase = vi.mocked(supabaseAdmin)!
+      const mockChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({
+          data: mockWeddingInfo,
+          error: null
+        }),
+        single: vi.fn().mockResolvedValue({
+          data: mockWeddingInfo,
+          error: null
+        })
+      }
+      mockedSupabase.from.mockReturnValue(mockChain as any)
 
       const request = new NextRequest('http://localhost:3000/api/wedding-info')
       const response = await GET(request)
@@ -60,20 +70,30 @@ describe('Wedding Info API Integration Tests', () => {
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
       expect(data.data).toEqual(mockWeddingInfo)
-      
+
       // Verify database query
-      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('wedding_info')
-      expect(mockSupabaseAdmin.from().select).toHaveBeenCalledWith('*')
-      expect(mockSupabaseAdmin.from().eq).toHaveBeenCalledWith('published', true)
-      expect(mockSupabaseAdmin.from().order).toHaveBeenCalledWith('order_index')
+      expect(mockedSupabase.from).toHaveBeenCalledWith('wedding_info')
+      expect(mockChain.select).toHaveBeenCalledWith('*')
+      expect(mockChain.eq).toHaveBeenCalledWith('published', true)
+      expect(mockChain.order).toHaveBeenCalledWith('order_index')
     })
 
     it('should handle database errors gracefully', async () => {
       // Mock database error
-      mockSupabaseAdmin.from().single.mockResolvedValue({
-        data: null,
-        error: { message: 'Database connection failed' }
-      })
+      const mockedSupabase = vi.mocked(supabaseAdmin)!
+      const mockChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: 'Database connection failed' }
+        }),
+        single: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: 'Database connection failed' }
+        })
+      }
+      mockedSupabase.from.mockReturnValue(mockChain as any)
 
       const request = new NextRequest('http://localhost:3000/api/wedding-info')
       const response = await GET(request)
@@ -85,26 +105,46 @@ describe('Wedding Info API Integration Tests', () => {
     })
 
     it('should handle missing supabase client', async () => {
-      // Temporarily mock supabaseAdmin as null
-      vi.doMock('@/lib/supabase-server', () => ({
+      // Temporarily override the mock to return null
+      const mockedSupabase = vi.mocked(supabaseAdmin)!
+      const originalMock = mockedSupabase.from
+
+      // Mock the module to return null for supabaseAdmin
+      vi.doMock('@/lib/supabase', () => ({
         supabaseAdmin: null
       }))
 
+      // Re-import the route to get the version with null supabaseAdmin
+      vi.resetModules()
       const { GET: getHandler } = await import('../wedding-info/route')
+
       const request = new NextRequest('http://localhost:3000/api/wedding-info')
       const response = await getHandler(request)
       const data = await response.json()
 
       expect(response.status).toBe(500)
       expect(data.error).toBe('Server configuration error')
+
+      // Restore the original mock
+      vi.doUnmock('@/lib/supabase')
     })
 
     it('should return empty array when no published info exists', async () => {
       // Mock empty result
-      mockSupabaseAdmin.from().single.mockResolvedValue({
-        data: [],
-        error: null
-      })
+      const mockedSupabase = vi.mocked(supabaseAdmin)!
+      const mockChain = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockResolvedValue({
+          data: [],
+          error: null
+        }),
+        single: vi.fn().mockResolvedValue({
+          data: [],
+          error: null
+        })
+      }
+      mockedSupabase.from.mockReturnValue(mockChain as any)
 
       const request = new NextRequest('http://localhost:3000/api/wedding-info')
       const response = await GET(request)
@@ -138,10 +178,16 @@ describe('Wedding Info API Integration Tests', () => {
       }
 
       // Mock successful creation
-      mockSupabaseAdmin.from().single.mockResolvedValue({
-        data: mockCreatedInfo,
-        error: null
-      })
+      const mockedSupabase = vi.mocked(supabaseAdmin)!
+      const mockChain = {
+        upsert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: mockCreatedInfo,
+          error: null
+        })
+      }
+      mockedSupabase.from.mockReturnValue(mockChain as any)
 
       const request = new NextRequest('http://localhost:3000/api/wedding-info', {
         method: 'POST',
@@ -159,8 +205,8 @@ describe('Wedding Info API Integration Tests', () => {
       expect(data.data).toEqual(mockCreatedInfo)
 
       // Verify upsert was called with correct data
-      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('wedding_info')
-      expect(mockSupabaseAdmin.from().upsert).toHaveBeenCalledWith(
+      expect(mockedSupabase.from).toHaveBeenCalledWith('wedding_info')
+      expect(mockChain.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
           section: 'venue',
           title: 'Venue Information',
@@ -203,10 +249,16 @@ describe('Wedding Info API Integration Tests', () => {
       }
 
       // Mock database error
-      mockSupabaseAdmin.from().single.mockResolvedValue({
-        data: null,
-        error: { message: 'Unique constraint violation' }
-      })
+      const mockedSupabase = vi.mocked(supabaseAdmin)!
+      const mockChain = {
+        upsert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: null,
+          error: { message: 'Unique constraint violation' }
+        })
+      }
+      mockedSupabase.from.mockReturnValue(mockChain as any)
 
       const request = new NextRequest('http://localhost:3000/api/wedding-info', {
         method: 'POST',
@@ -220,7 +272,7 @@ describe('Wedding Info API Integration Tests', () => {
       const data = await response.json()
 
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Failed to save wedding information')
+      expect(data.error).toBe('Failed to update wedding information')
     })
 
     it('should default published to true when not specified', async () => {
@@ -230,10 +282,16 @@ describe('Wedding Info API Integration Tests', () => {
         content: 'Our wedding will be held at the beautiful Sunset Gardens.'
       }
 
-      mockSupabaseAdmin.from().single.mockResolvedValue({
-        data: { id: '1', ...dataWithoutPublished, published: true },
-        error: null
-      })
+      const mockedSupabase = vi.mocked(supabaseAdmin)!
+      const mockChain = {
+        upsert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { id: '1', ...dataWithoutPublished, published: true },
+          error: null
+        })
+      }
+      mockedSupabase.from.mockReturnValue(mockChain as any)
 
       const request = new NextRequest('http://localhost:3000/api/wedding-info', {
         method: 'POST',
@@ -246,7 +304,7 @@ describe('Wedding Info API Integration Tests', () => {
       await POST(request)
 
       // Verify published defaults to true
-      expect(mockSupabaseAdmin.from().upsert).toHaveBeenCalledWith(
+      expect(mockChain.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
           published: true
         }),
@@ -261,10 +319,16 @@ describe('Wedding Info API Integration Tests', () => {
         content: 'Our wedding will be held at the beautiful Sunset Gardens.'
       }
 
-      mockSupabaseAdmin.from().single.mockResolvedValue({
-        data: { id: '1', ...dataWithoutOrder, order_index: 0 },
-        error: null
-      })
+      const mockedSupabase = vi.mocked(supabaseAdmin)!
+      const mockChain = {
+        upsert: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({
+          data: { id: '1', ...dataWithoutOrder, order_index: 0 },
+          error: null
+        })
+      }
+      mockedSupabase.from.mockReturnValue(mockChain as any)
 
       const request = new NextRequest('http://localhost:3000/api/wedding-info', {
         method: 'POST',
@@ -277,7 +341,7 @@ describe('Wedding Info API Integration Tests', () => {
       await POST(request)
 
       // Verify order_index defaults to 0
-      expect(mockSupabaseAdmin.from().upsert).toHaveBeenCalledWith(
+      expect(mockChain.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
           order_index: 0
         }),

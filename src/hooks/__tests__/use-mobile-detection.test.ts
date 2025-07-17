@@ -14,31 +14,47 @@ const mockWindow = (width: number, height: number, touchSupport = false) => {
     configurable: true,
     value: height,
   })
-  Object.defineProperty(window, 'ontouchstart', {
-    writable: true,
-    configurable: true,
-    value: touchSupport ? {} : undefined,
-  })
-  Object.defineProperty(navigator, 'maxTouchPoints', {
-    writable: true,
-    configurable: true,
-    value: touchSupport ? 1 : 0,
-  })
+
+  // Properly mock touch support
+  if (touchSupport) {
+    Object.defineProperty(window, 'ontouchstart', {
+      writable: true,
+      configurable: true,
+      value: {},
+    })
+    Object.defineProperty(navigator, 'maxTouchPoints', {
+      writable: true,
+      configurable: true,
+      value: 1,
+    })
+  } else {
+    // Ensure no touch support by deleting the property
+    if ('ontouchstart' in window) {
+      delete (window as any).ontouchstart
+    }
+    Object.defineProperty(navigator, 'maxTouchPoints', {
+      writable: true,
+      configurable: true,
+      value: 0,
+    })
+  }
 }
 
 // Mock event listeners
 const mockEventListeners: { [key: string]: EventListener[] } = {}
 
-const mockAddEventListener = vi.fn((event: string, listener: EventListener) => {
+const mockAddEventListener = vi.fn((event: string, listener: EventListenerOrEventListenerObject) => {
+  const eventListener = typeof listener === 'function' ? listener : listener.handleEvent
   if (!mockEventListeners[event]) {
     mockEventListeners[event] = []
   }
-  mockEventListeners[event].push(listener)
+  mockEventListeners[event].push(eventListener)
 })
 
-const mockRemoveEventListener = vi.fn((event: string, listener: EventListener) => {
+const mockRemoveEventListener = vi.fn((event: string, listener: EventListenerOrEventListenerObject) => {
+  const eventListener = typeof listener === 'function' ? listener : listener.handleEvent
   if (mockEventListeners[event]) {
-    const index = mockEventListeners[event].indexOf(listener)
+    const index = mockEventListeners[event].indexOf(eventListener)
     if (index > -1) {
       mockEventListeners[event].splice(index, 1)
     }
@@ -59,8 +75,8 @@ describe('useMobileDetection', () => {
     })
     
     // Mock window event listeners
-    window.addEventListener = mockAddEventListener
-    window.removeEventListener = mockRemoveEventListener
+    window.addEventListener = mockAddEventListener as any
+    window.removeEventListener = mockRemoveEventListener as any
   })
 
   afterEach(() => {
@@ -156,34 +172,26 @@ describe('useMobileDetection', () => {
     })
 
     it('should detect touch support via maxTouchPoints', () => {
-      Object.defineProperty(window, 'ontouchstart', {
-        value: undefined,
-        configurable: true
-      })
+      // First set up window dimensions without touch
+      mockWindow(1200, 800, false)
+
+      // Then override maxTouchPoints to simulate touch support
       Object.defineProperty(navigator, 'maxTouchPoints', {
         value: 2,
         configurable: true
       })
-      mockWindow(1200, 800, false)
-      
+
       const { result } = renderHook(() => useMobileDetection())
-      
+
       expect(result.current.isTouchDevice).toBe(true)
     })
 
     it('should not detect touch when neither method indicates support', () => {
-      Object.defineProperty(window, 'ontouchstart', {
-        value: undefined,
-        configurable: true
-      })
-      Object.defineProperty(navigator, 'maxTouchPoints', {
-        value: 0,
-        configurable: true
-      })
+      // Use mockWindow with touchSupport = false to ensure no touch
       mockWindow(1200, 800, false)
-      
+
       const { result } = renderHook(() => useMobileDetection())
-      
+
       expect(result.current.isTouchDevice).toBe(false)
     })
   })

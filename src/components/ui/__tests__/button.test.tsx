@@ -241,9 +241,10 @@ describe('Button Component', () => {
 
     it('should be focusable by default', () => {
       render(<Button>Focusable</Button>)
-      
+
       const button = screen.getByRole('button')
-      expect(button).toHaveAttribute('tabindex', '0')
+      expect(button).not.toBeDisabled()
+      expect(button.tagName).toBe('BUTTON')
     })
 
     it('should not be focusable when disabled', () => {

@@ -94,6 +94,16 @@ export function validateEmail(email: string): EmailValidationResult {
     }
   }
 
+  // Check for domain-specific issues before general format validation
+  const [localPart, domain] = trimmedEmail.split('@')
+
+  if (!domain || domain.length === 0) {
+    return {
+      isValid: false,
+      error: 'Email address must include a domain'
+    }
+  }
+
   if (!validateEmailFormat(trimmedEmail)) {
     return {
       isValid: false,
@@ -116,9 +126,7 @@ export function validateEmail(email: string): EmailValidationResult {
     suggestion = `${localPart}@${domainSuggestion}`
   }
 
-  // Check for common issues
-  const [localPart, domain] = trimmedEmail.split('@')
-  
+  // Check for common issues (domain already checked above)
   if (localPart.length > 64) {
     return {
       isValid: false,
@@ -137,13 +145,6 @@ export function validateEmail(email: string): EmailValidationResult {
     return {
       isValid: false,
       error: 'Email address cannot contain consecutive periods'
-    }
-  }
-
-  if (!domain || domain.length === 0) {
-    return {
-      isValid: false,
-      error: 'Email address must include a domain'
     }
   }
 
@@ -238,7 +239,7 @@ export function isPersonalEmail(email: string): boolean {
  */
 export function getEmailDomain(email: string): string | null {
   const parts = email.split('@')
-  return parts.length === 2 ? parts[1].toLowerCase() : null
+  return parts.length === 2 && parts[1].length > 0 ? parts[1].toLowerCase() : null
 }
 
 /**

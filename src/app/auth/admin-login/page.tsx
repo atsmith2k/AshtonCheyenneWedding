@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/components/providers'
 import { getErrorMessage } from '@/lib/auth-errors'
@@ -187,10 +188,10 @@ export default function AdminLoginPage() {
                 Not an admin?
               </p>
               <Button variant="outline" size="sm" asChild>
-                <a href="/">
+                <Link href="/">
                   <Home className="w-4 h-4 mr-2" />
                   Return to Wedding Website
-                </a>
+                </Link>
               </Button>
             </div>
           </div>
