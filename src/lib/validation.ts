@@ -242,13 +242,6 @@ export const accessRequestSchema = z.object({
 
 // Type definition for access request data
 export type AccessRequestData = z.infer<typeof accessRequestSchema>
-
-<<<<<<< HEAD
-// Type definition for access request data
-export type AccessRequestData = z.infer<typeof accessRequestSchema>
-
-=======
->>>>>>> 882136c (feat: Implement comprehensive guest access request system)
 // Admin Access Request Management Validation
 export const accessRequestUpdateSchema = z.object({
   status: z.enum(['pending', 'approved', 'denied']),
