@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import { Resend } from 'resend'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { sendEmail } from '@/lib/email-service'
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,34 +28,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Send invitation code via email
-    if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 'your_resend_api_key_here') {
-      try {
-        await resend.emails.send({
-          from: 'Ashton & Cheyenne <noreply@your-domain.com>',
-          to: guest.email,
-          subject: 'Your Wedding Invitation Code',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h1 style="color: #ec4899;">Ashton & Cheyenne's Wedding</h1>
-              <p>Hi ${guest.first_name},</p>
-              <p>Here is your invitation code for our wedding website:</p>
-              <div style="background: #f8fafc; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
-                <h2 style="color: #0ea5e9; font-size: 24px; letter-spacing: 2px; margin: 0;">
-                  ${guest.invitation_code}
-                </h2>
-              </div>
-              <p>Use this code to access our wedding website and submit your RSVP.</p>
-              <p>We can't wait to celebrate with you!</p>
-              <p>Love,<br>Ashton & Cheyenne</p>
-            </div>
-          `,
-          text: `Hi ${guest.first_name},\n\nHere is your invitation code for Ashton & Cheyenne's wedding: ${guest.invitation_code}\n\nUse this code to access the wedding website and submit your RSVP.\n\nWe can't wait to celebrate with you!\n\nLove,\nAshton & Cheyenne`
-        })
-      } catch (emailError) {
-        console.error('Failed to send recovery email:', emailError)
+    // Send invitation code via email using the email service
+    try {
+      const emailResult = await sendEmail({
+        to: guest.email,
+        templateType: 'invitation_recovery',
+        guestId: guest.id,
+        variables: {
+          guest_first_name: guest.first_name,
+          guest_last_name: guest.last_name,
+          guest_full_name: `${guest.first_name} ${guest.last_name}`,
+          invitation_code: guest.invitation_code
+        }
+      })
+
+      if (!emailResult.success) {
+        console.error('Failed to send recovery email:', emailResult.error)
         // Still return success to avoid revealing email existence
+      } else {
+        console.log('Recovery email sent successfully:', emailResult.messageId)
       }
+    } catch (emailError) {
+      console.error('Failed to send recovery email:', emailError)
+      // Still return success to avoid revealing email existence
     }
 
     return NextResponse.json(
