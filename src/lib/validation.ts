@@ -195,6 +195,55 @@ export const rateLimitSchema = z.object({
   count: z.number().default(1)
 })
 
+// Access Request Validation
+export const accessRequestSchema = z.object({
+  name: sanitizedString(100).min(2, 'Name must be at least 2 characters'),
+  email: sanitizedEmail(),
+  phone: sanitizedPhone().min(10, 'Phone number must be at least 10 digits'),
+  address: sanitizedString(500).min(10, 'Please provide a complete address'),
+  message: sanitizedString(1000).optional(),
+  // Security fields
+  timestamp: z.number().optional(),
+  csrfToken: z.string().optional(),
+  honeypot: z.string().optional() // Bot detection
+}).refine(data => {
+  // Honeypot field should be empty (bot detection)
+  if (data.honeypot && data.honeypot.length > 0) {
+    return false
+  }
+  return true
+}, {
+  message: 'Invalid submission'
+}).refine(data => {
+  // Basic timestamp validation (submission within last hour)
+  if (data.timestamp) {
+    const now = Date.now()
+    const submissionTime = data.timestamp
+    const oneHour = 60 * 60 * 1000
+    if (Math.abs(now - submissionTime) > oneHour) {
+      return false
+    }
+  }
+  return true
+}, {
+  message: 'Submission expired, please try again'
+})
+
+// Admin Access Request Management Validation
+export const accessRequestUpdateSchema = z.object({
+  status: z.enum(['pending', 'approved', 'denied']),
+  admin_notes: sanitizedString(1000).optional(),
+  send_invitation: z.boolean().optional().default(false)
+})
+
+// Bulk Access Request Actions
+export const bulkAccessRequestSchema = z.object({
+  request_ids: z.array(z.string().uuid()).min(1, 'At least one request must be selected'),
+  action: z.enum(['approve', 'deny', 'delete']),
+  admin_notes: sanitizedString(1000).optional(),
+  send_invitations: z.boolean().optional().default(false)
+})
+
 // RSVP Deadline Validation
 export function validateRSVPDeadline(): { isValid: boolean; message?: string } {
   try {
