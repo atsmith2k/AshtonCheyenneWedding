@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabaseAdmin } from '@/lib/supabase'
-import { accessRequestSchema } from '@/lib/validation'
-import { encrypt } from '@/lib/crypto'
+import { accessRequestSchema, type AccessRequestData } from '@/lib/validation'
+import { encrypt, sanitizeText, sanitizeEmail, sanitizePhone } from '@/lib/crypto'
 import { sendEmail } from '@/lib/email-service'
 
 // Force dynamic rendering for API routes
@@ -30,10 +30,16 @@ export async function POST(request: NextRequest) {
       timestamp: Date.now()
     }
 
-    const validatedData = accessRequestSchema.parse(requestData)
+    const validatedData: AccessRequestData = accessRequestSchema.parse(requestData)
 
-    // Ensure email is properly typed as string
-    const email: string = validatedData.email
+    // Sanitize the validated data
+    const sanitizedData = {
+      name: sanitizeText(validatedData.name),
+      email: sanitizeEmail(validatedData.email),
+      phone: sanitizePhone(validatedData.phone),
+      address: sanitizeText(validatedData.address),
+      message: validatedData.message ? sanitizeText(validatedData.message) : null
+    }
 
     // Check for duplicate email submissions within 24 hours
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
@@ -41,7 +47,7 @@ export async function POST(request: NextRequest) {
     const { data: existingRequest, error: checkError } = await supabaseAdmin
       .from('access_requests')
       .select('id, email, created_at')
-      .eq('email', email.toLowerCase())
+      .eq('email', sanitizedData.email.toLowerCase())
       .gte('created_at', twentyFourHoursAgo)
       .single()
 
@@ -56,18 +62,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Encrypt sensitive data
-    const encryptedPhone = encrypt(validatedData.phone)
-    const encryptedAddress = encrypt(validatedData.address)
+    const encryptedPhone = encrypt(sanitizedData.phone)
+    const encryptedAddress = encrypt(sanitizedData.address)
 
     // Insert access request into database
     const { data: accessRequest, error: insertError } = await supabaseAdmin
       .from('access_requests')
       .insert({
-        name: validatedData.name,
-        email: email.toLowerCase(),
+        name: sanitizedData.name,
+        email: sanitizedData.email.toLowerCase(),
         phone: encryptedPhone,
         address: encryptedAddress,
-        message: validatedData.message || null,
+        message: sanitizedData.message,
         status: 'pending',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -98,11 +104,11 @@ export async function POST(request: NextRequest) {
               
               <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h3 style="margin-top: 0;">Request Details</h3>
-                <p><strong>Name:</strong> ${validatedData.name}</p>
-                <p><strong>Email:</strong> ${email}</p>
-                <p><strong>Phone:</strong> ${validatedData.phone}</p>
-                <p><strong>Address:</strong> ${validatedData.address}</p>
-                ${validatedData.message ? `<p><strong>Message:</strong> ${validatedData.message}</p>` : ''}
+                <p><strong>Name:</strong> ${sanitizedData.name}</p>
+                <p><strong>Email:</strong> ${sanitizedData.email}</p>
+                <p><strong>Phone:</strong> ${sanitizedData.phone}</p>
+                <p><strong>Address:</strong> ${sanitizedData.address}</p>
+                ${sanitizedData.message ? `<p><strong>Message:</strong> ${sanitizedData.message}</p>` : ''}
                 <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
               </div>
               
@@ -121,11 +127,11 @@ export async function POST(request: NextRequest) {
           textContent: `
 New Access Request
 
-Name: ${validatedData.name}
-Email: ${email}
-Phone: ${validatedData.phone}
-Address: ${validatedData.address}
-${validatedData.message ? `Message: ${validatedData.message}` : ''}
+Name: ${sanitizedData.name}
+Email: ${sanitizedData.email}
+Phone: ${sanitizedData.phone}
+Address: ${sanitizedData.address}
+${sanitizedData.message ? `Message: ${sanitizedData.message}` : ''}
 
 Review this request at: ${process.env.NEXT_PUBLIC_SITE_URL}/admin/access-requests
           `

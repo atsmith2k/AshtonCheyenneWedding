@@ -195,13 +195,24 @@ export const rateLimitSchema = z.object({
   count: z.number().default(1)
 })
 
-// Access Request Validation
+// Access Request Validation - Simplified without problematic transforms
 export const accessRequestSchema = z.object({
-  name: sanitizedString(100).min(2, 'Name must be at least 2 characters'),
-  email: sanitizedEmail(),
-  phone: sanitizedPhone().min(10, 'Phone number must be at least 10 digits'),
-  address: sanitizedString(500).min(10, 'Please provide a complete address'),
-  message: sanitizedString(1000).optional(),
+  name: z.string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must be less than 100 characters'),
+  email: z.string()
+    .email('Invalid email format')
+    .max(254, 'Email too long'),
+  phone: z.string()
+    .min(10, 'Phone number must be at least 10 digits')
+    .max(20, 'Phone number is too long')
+    .regex(/^[\d\s\-\+\(\)\.]+$/, 'Please enter a valid phone number'),
+  address: z.string()
+    .min(10, 'Please provide a complete address')
+    .max(500, 'Address is too long'),
+  message: z.string()
+    .max(1000, 'Message is too long')
+    .optional(),
   // Security fields
   timestamp: z.number().optional(),
   csrfToken: z.string().optional(),
@@ -228,6 +239,9 @@ export const accessRequestSchema = z.object({
 }, {
   message: 'Submission expired, please try again'
 })
+
+// Type definition for access request data
+export type AccessRequestData = z.infer<typeof accessRequestSchema>
 
 // Admin Access Request Management Validation
 export const accessRequestUpdateSchema = z.object({
