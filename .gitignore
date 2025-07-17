@@ -54,3 +54,6 @@ logs
 
 # Documentation (moved to keep repo clean for production)
 docs/
+
+# Augment Agent logs
+.augment/
