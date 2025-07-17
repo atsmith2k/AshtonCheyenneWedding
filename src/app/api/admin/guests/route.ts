@@ -2,8 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { requireAdminFromRequest, logAdminAction } from '@/lib/admin-auth'
 
+// Force dynamic rendering - admin routes use authentication
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
     // Require admin authentication
     const adminUser = await requireAdminFromRequest(request)
     await logAdminAction('VIEW_GUESTS', { adminEmail: adminUser.email })
@@ -68,6 +78,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
     // Require admin authentication
     const adminUser = await requireAdminFromRequest(request)
 

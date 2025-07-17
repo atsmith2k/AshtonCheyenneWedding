@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { useAuth } from '@/components/providers'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -257,10 +258,11 @@ export default function PhotoGalleryPage() {
               .map((photo) => (
                 <Card key={photo.id} className="overflow-hidden">
                   <div className="aspect-square relative">
-                    <img
+                    <Image
                       src={photo.url}
                       alt={photo.caption || 'Wedding photo'}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                   </div>
                   {photo.caption && (

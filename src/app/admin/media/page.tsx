@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { 
   Image as ImageIcon, 
@@ -271,9 +272,11 @@ export default function MediaManagement() {
               {photos.map((photo) => (
                 <div key={photo.id} className="relative group">
                   <div className="aspect-square bg-neutral-100 rounded-lg overflow-hidden">
-                    <img
+                    <Image
                       src={photo.url}
                       alt={photo.caption || photo.original_filename}
+                      width={200}
+                      height={200}
                       className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-200"
                       onClick={() => setViewingPhoto(photo)}
                     />
@@ -408,10 +411,12 @@ export default function MediaManagement() {
               </div>
             </div>
             <div className="p-4">
-              <img
+              <Image
                 src={viewingPhoto.url}
                 alt={viewingPhoto.caption || viewingPhoto.original_filename}
-                className="max-w-full max-h-96 mx-auto rounded-lg"
+                width={800}
+                height={600}
+                className="max-w-full max-h-96 mx-auto rounded-lg object-contain"
               />
             </div>
           </div>

@@ -3,8 +3,8 @@ const nextConfig = {
   images: {
     domains: [
       'localhost',
-      // Add Supabase storage domain when configured
-      // 'your-project-id.supabase.co'
+      // Supabase storage domain
+      'hmtckncefetaedoqdqna.supabase.co'
     ],
     formats: ['image/webp', 'image/avif'],
   },

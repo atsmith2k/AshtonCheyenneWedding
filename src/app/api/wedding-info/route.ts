@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
+// Force dynamic rendering - this route uses database queries
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
     // Get published wedding information
     const { data: weddingInfo, error } = await supabaseAdmin
       .from('wedding_info')
@@ -34,6 +44,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
     // Check if user is admin (this should be enhanced with proper auth)
     const { section, title, content, orderIndex, published } = await request.json()
 

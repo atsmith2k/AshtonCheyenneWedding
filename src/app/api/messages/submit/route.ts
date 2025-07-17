@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+
+// Force dynamic rendering - this route uses database operations
+export const dynamic = 'force-dynamic'
 import { z } from 'zod'
 
 // Message validation schema
@@ -96,6 +99,13 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
     // Get all messages for admin (with guest information)
     const { data: messages, error } = await supabaseAdmin
       .from('messages')

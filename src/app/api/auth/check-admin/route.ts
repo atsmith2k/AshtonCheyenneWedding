@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isAdminUser, getCurrentAdminUser } from '@/lib/admin-auth'
 
+// Force dynamic rendering - this route uses cookies
+export const dynamic = 'force-dynamic'
+
 /**
  * Check if current user is admin (server-side only)
  * Used by client components to securely check admin status

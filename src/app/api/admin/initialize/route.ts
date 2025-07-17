@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
+// Force dynamic rendering - admin routes use authentication
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
     const results = {
       adminUsers: { success: 0, failed: 0, errors: [] as string[] },
       weddingEvents: { success: 0, failed: 0, errors: [] as string[] },

@@ -4,6 +4,9 @@ import { isAdminUser } from '@/lib/admin-auth'
 import { AdminSidebar } from '@/components/admin/sidebar'
 import { AdminHeader } from '@/components/admin/header'
 
+// Force dynamic rendering for admin routes
+export const dynamic = 'force-dynamic'
+
 export default async function AdminLayout({
   children,
 }: {

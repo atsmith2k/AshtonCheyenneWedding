@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 
+// Force dynamic rendering - this route uses database operations and file uploads
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     if (!supabaseAdmin) {
@@ -131,6 +134,13 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const approved = searchParams.get('approved')
     const albumId = searchParams.get('albumId')
@@ -174,7 +184,7 @@ export async function GET(request: NextRequest) {
     // Add public URLs to photos
     const photosWithUrls = photos.map(photo => ({
       ...photo,
-      url: supabaseAdmin.storage
+      url: supabaseAdmin!.storage
         .from('wedding-photos')
         .getPublicUrl(photo.file_path).data.publicUrl
     }))

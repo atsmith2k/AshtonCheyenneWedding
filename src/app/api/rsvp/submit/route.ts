@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+
+// Force dynamic rendering - this route uses database operations
+export const dynamic = 'force-dynamic'
 import { rsvpSchema, validateRSVPDeadline, validateOrigin, validateTimestamp, securityHeaders } from '@/lib/validation'
 import { encrypt } from '@/lib/crypto'
 import { z } from 'zod'

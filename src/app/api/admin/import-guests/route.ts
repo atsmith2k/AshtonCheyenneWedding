@@ -3,6 +3,9 @@ import { supabaseAdmin } from '@/lib/supabase'
 import { generateInvitationCode } from '@/lib/supabase'
 import { requireAdminFromRequest, logAdminAction } from '@/lib/admin-auth'
 
+// Force dynamic rendering - admin routes use authentication
+export const dynamic = 'force-dynamic'
+
 interface GuestImportData {
   firstName: string
   lastName: string
@@ -15,6 +18,13 @@ interface GuestImportData {
 
 export async function POST(request: NextRequest) {
   try {
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
     // Require admin authentication
     const adminUser = await requireAdminFromRequest(request)
 

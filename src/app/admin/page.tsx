@@ -239,7 +239,7 @@ export default function AdminDashboard() {
               Send RSVP Reminder ({stats.pending} guests)
             </Button>
             <Button variant="outline" className="w-full justify-start">
-              <Image className="w-4 h-4 mr-2" />
+              <Image className="w-4 h-4 mr-2" aria-label="Photo uploads icon" />
               Review Photo Uploads ({stats.pendingPhotos} pending)
             </Button>
             <Button variant="outline" className="w-full justify-start">
