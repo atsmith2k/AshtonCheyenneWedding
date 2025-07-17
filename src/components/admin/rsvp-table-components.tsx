@@ -200,16 +200,16 @@ export function RSVPTableRow({
       <td className="p-4">
         {isEditing ? (
           <Select
-            value={editData.meal_preference}
+            value={editData.meal_preference || 'none'}
             onValueChange={(value) =>
-              setEditData(prev => ({ ...prev, meal_preference: value }))
+              setEditData(prev => ({ ...prev, meal_preference: value === 'none' ? '' : value }))
             }
           >
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="Select meal" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">None</SelectItem>
+              <SelectItem value="none">None</SelectItem>
               <SelectItem value="chicken">Chicken</SelectItem>
               <SelectItem value="beef">Beef</SelectItem>
               <SelectItem value="fish">Fish</SelectItem>
@@ -236,16 +236,16 @@ export function RSVPTableRow({
             />
             {editData.plus_one_name && (
               <Select
-                value={editData.plus_one_meal}
+                value={editData.plus_one_meal || 'none'}
                 onValueChange={(value) =>
-                  setEditData(prev => ({ ...prev, plus_one_meal: value }))
+                  setEditData(prev => ({ ...prev, plus_one_meal: value === 'none' ? '' : value }))
                 }
               >
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Plus one meal" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   <SelectItem value="chicken">Chicken</SelectItem>
                   <SelectItem value="beef">Beef</SelectItem>
                   <SelectItem value="fish">Fish</SelectItem>

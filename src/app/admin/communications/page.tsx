@@ -34,7 +34,7 @@ interface Message {
     first_name: string
     last_name: string
     email: string
-  }
+  } | null
 }
 
 interface EmailTemplate {
@@ -90,7 +90,16 @@ export default function Communications() {
       const result = await response.json()
 
       if (response.ok && result.success) {
-        setMessages(result.data)
+        // Validate that each message has the expected structure
+        const validatedMessages = result.data.map((message: any) => {
+          if (!message.guest) {
+            console.warn(`Message ${message.id} has no guest data:`, message)
+          }
+          return message
+        })
+        setMessages(validatedMessages)
+      } else {
+        console.error('Failed to fetch messages:', result.error)
       }
     } catch (error) {
       console.error('Error fetching messages:', error)
@@ -496,7 +505,10 @@ export default function Communications() {
                             className="rounded"
                           />
                           <h4 className="font-medium text-neutral-800">
-                            {message.guest.first_name} {message.guest.last_name}
+                            {message.guest ?
+                              `${message.guest.first_name} ${message.guest.last_name}` :
+                              'Unknown Guest'
+                            }
                           </h4>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(message.status)}`}>
                             {getStatusText(message.status)}
@@ -510,7 +522,7 @@ export default function Communications() {
                         <h5 className="font-medium text-neutral-700 mb-1">{message.subject}</h5>
                         <p className="text-neutral-600 text-sm line-clamp-2">{message.message}</p>
                         <p className="text-xs text-neutral-400 mt-2">
-                          {new Date(message.created_at).toLocaleDateString()} • {message.guest.email}
+                          {new Date(message.created_at).toLocaleDateString()} • {message.guest?.email || 'No email available'}
                         </p>
                       </div>
                       <div className="flex gap-2 ml-4">

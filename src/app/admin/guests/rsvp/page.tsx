@@ -61,6 +61,34 @@ interface RSVPStats {
   plusOnes: number
 }
 
+// API Response interfaces for type safety
+interface GuestAPIResponse {
+  id: string
+  first_name: string
+  last_name: string
+  email: string | null
+  phone: string | null
+  invitation_code: string
+  rsvp_status: 'pending' | 'attending' | 'not_attending'
+  meal_preference: string | null
+  dietary_restrictions: string | null
+  plus_one_allowed: boolean
+  plus_one_name: string | null
+  plus_one_meal: string | null
+  rsvp_submitted_at: string | null
+  created_at: string
+  updated_at: string
+  guest_groups?: {
+    group_name: string
+  } | null
+  group_name?: string | null
+}
+
+interface AdminGuestsAPIResponse {
+  success: boolean
+  data: GuestAPIResponse[]
+}
+
 export default function RSVPManagementPage() {
   const [rsvpEntries, setRsvpEntries] = useState<RSVPEntry[]>([])
   const [filteredEntries, setFilteredEntries] = useState<RSVPEntry[]>([])
@@ -87,68 +115,128 @@ export default function RSVPManagementPage() {
   const [activeTab, setActiveTab] = useState<'table' | 'analytics'>('table')
   const { toast } = useToast()
 
-  // Fetch RSVP data
+  // Fetch RSVP data with proper error handling and type safety
   const fetchRSVPData = useCallback(async () => {
     try {
       setIsLoading(true)
       const response = await fetch('/api/admin/guests')
-      
+
       if (!response.ok) {
-        throw new Error('Failed to fetch RSVP data')
+        const errorText = await response.text()
+        throw new Error(`Failed to fetch RSVP data: ${response.status} ${errorText}`)
       }
 
-      const data = await response.json()
-      const entries: RSVPEntry[] = data.guests.map((guest: any) => ({
-        id: guest.id,
-        first_name: guest.first_name,
-        last_name: guest.last_name,
-        email: guest.email,
-        phone: guest.phone,
-        group_name: guest.guest_groups?.group_name || null,
-        rsvp_status: guest.rsvp_status,
-        meal_preference: guest.meal_preference,
-        dietary_restrictions: guest.dietary_restrictions,
-        plus_one_allowed: guest.plus_one_allowed,
-        plus_one_name: guest.plus_one_name,
-        plus_one_meal: guest.plus_one_meal,
-        rsvp_submitted_at: guest.rsvp_submitted_at,
-        created_at: guest.created_at,
-        updated_at: guest.updated_at
+      const apiResponse: AdminGuestsAPIResponse = await response.json()
+
+      // Validate API response structure
+      if (!apiResponse || typeof apiResponse !== 'object') {
+        throw new Error('Invalid API response format')
+      }
+
+      if (!apiResponse.success) {
+        throw new Error('API request was not successful')
+      }
+
+      if (!Array.isArray(apiResponse.data)) {
+        console.error('API Response:', apiResponse)
+        throw new Error('Expected guest data to be an array, but received: ' + typeof apiResponse.data)
+      }
+
+      // Transform API data to RSVPEntry format with defensive programming
+      const entries: RSVPEntry[] = apiResponse.data.map((guest: GuestAPIResponse) => ({
+        id: guest.id || '',
+        first_name: guest.first_name || '',
+        last_name: guest.last_name || '',
+        email: guest.email || null,
+        phone: guest.phone || null,
+        group_name: guest.guest_groups?.group_name || guest.group_name || null,
+        rsvp_status: guest.rsvp_status || 'pending',
+        meal_preference: guest.meal_preference || null,
+        dietary_restrictions: guest.dietary_restrictions || null,
+        plus_one_allowed: Boolean(guest.plus_one_allowed),
+        plus_one_name: guest.plus_one_name || null,
+        plus_one_meal: guest.plus_one_meal || null,
+        rsvp_submitted_at: guest.rsvp_submitted_at || null,
+        created_at: guest.created_at || '',
+        updated_at: guest.updated_at || ''
       }))
 
       setRsvpEntries(entries)
       calculateStats(entries)
+
+      // Show success message only on manual refresh
+      if (entries.length === 0) {
+        toast({
+          title: 'No Data',
+          description: 'No guest data found. You may need to add guests first.',
+          variant: 'default'
+        })
+      }
     } catch (error) {
       console.error('Error fetching RSVP data:', error)
+
+      // Provide more specific error messages
+      let errorMessage = 'Failed to load RSVP data. Please try again.'
+      if (error instanceof Error) {
+        if (error.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.'
+        } else if (error.message.includes('Invalid API response')) {
+          errorMessage = 'Server returned invalid data. Please contact support if this persists.'
+        } else if (error.message.includes('array')) {
+          errorMessage = 'Data format error. Please contact support.'
+        }
+      }
+
       toast({
         title: 'Error',
-        description: 'Failed to load RSVP data. Please try again.',
+        description: errorMessage,
         variant: 'destructive'
+      })
+
+      // Set empty state on error to prevent crashes
+      setRsvpEntries([])
+      setFilteredEntries([])
+      setStats({
+        total: 0,
+        attending: 0,
+        notAttending: 0,
+        pending: 0,
+        responseRate: 0,
+        mealBreakdown: {},
+        plusOnes: 0
       })
     } finally {
       setIsLoading(false)
     }
   }, [toast])
 
-  // Calculate RSVP statistics
+  // Calculate RSVP statistics with defensive programming
   const calculateStats = (entries: RSVPEntry[]) => {
+    // Ensure entries is an array
+    if (!Array.isArray(entries)) {
+      console.warn('calculateStats received non-array input:', entries)
+      entries = []
+    }
+
     const total = entries.length
-    const attending = entries.filter(e => e.rsvp_status === 'attending').length
-    const notAttending = entries.filter(e => e.rsvp_status === 'not_attending').length
-    const pending = entries.filter(e => e.rsvp_status === 'pending').length
-    const responseRate = total > 0 ? ((attending + notAttending) / total) * 100 : 0
+    const attending = entries.filter(e => e?.rsvp_status === 'attending').length
+    const notAttending = entries.filter(e => e?.rsvp_status === 'not_attending').length
+    const pending = entries.filter(e => e?.rsvp_status === 'pending').length
+    const responseRate = total > 0 ? Math.round(((attending + notAttending) / total) * 100 * 100) / 100 : 0
 
     const mealBreakdown: Record<string, number> = {}
     entries.forEach(entry => {
-      if (entry.meal_preference) {
+      if (!entry) return
+
+      if (entry.meal_preference && typeof entry.meal_preference === 'string') {
         mealBreakdown[entry.meal_preference] = (mealBreakdown[entry.meal_preference] || 0) + 1
       }
-      if (entry.plus_one_meal) {
+      if (entry.plus_one_meal && typeof entry.plus_one_meal === 'string') {
         mealBreakdown[entry.plus_one_meal] = (mealBreakdown[entry.plus_one_meal] || 0) + 1
       }
     })
 
-    const plusOnes = entries.filter(e => e.plus_one_name).length
+    const plusOnes = entries.filter(e => e?.plus_one_name && typeof e.plus_one_name === 'string' && e.plus_one_name.trim().length > 0).length
 
     setStats({
       total,
@@ -161,52 +249,74 @@ export default function RSVPManagementPage() {
     })
   }
 
-  // Filter and search entries
+  // Filter and search entries with defensive programming
   useEffect(() => {
+    // Ensure rsvpEntries is an array
+    if (!Array.isArray(rsvpEntries)) {
+      setFilteredEntries([])
+      return
+    }
+
     let filtered = [...rsvpEntries]
 
-    // Apply search filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase()
-      filtered = filtered.filter(entry =>
-        entry.first_name.toLowerCase().includes(term) ||
-        entry.last_name.toLowerCase().includes(term) ||
-        entry.email?.toLowerCase().includes(term) ||
-        entry.group_name?.toLowerCase().includes(term)
-      )
+    // Apply search filter with null safety
+    if (searchTerm && typeof searchTerm === 'string' && searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim()
+      filtered = filtered.filter(entry => {
+        if (!entry) return false
+
+        const firstName = (entry.first_name || '').toLowerCase()
+        const lastName = (entry.last_name || '').toLowerCase()
+        const email = (entry.email || '').toLowerCase()
+        const groupName = (entry.group_name || '').toLowerCase()
+
+        return firstName.includes(term) ||
+               lastName.includes(term) ||
+               email.includes(term) ||
+               groupName.includes(term)
+      })
     }
 
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(entry => entry.rsvp_status === statusFilter)
+    // Apply status filter with validation
+    if (statusFilter && statusFilter !== 'all') {
+      filtered = filtered.filter(entry => entry?.rsvp_status === statusFilter)
     }
 
-    // Apply meal filter
-    if (mealFilter !== 'all') {
-      filtered = filtered.filter(entry => 
-        entry.meal_preference === mealFilter || entry.plus_one_meal === mealFilter
-      )
+    // Apply meal filter with null safety
+    if (mealFilter && mealFilter !== 'all') {
+      filtered = filtered.filter(entry => {
+        if (!entry) return false
+        return entry.meal_preference === mealFilter || entry.plus_one_meal === mealFilter
+      })
     }
 
-    // Apply plus-one filter
-    if (plusOneFilter !== 'all') {
+    // Apply plus-one filter with validation
+    if (plusOneFilter && plusOneFilter !== 'all') {
       if (plusOneFilter === 'has_plus_one') {
-        filtered = filtered.filter(entry => entry.plus_one_name)
+        filtered = filtered.filter(entry => entry?.plus_one_name && entry.plus_one_name.trim().length > 0)
       } else if (plusOneFilter === 'no_plus_one') {
-        filtered = filtered.filter(entry => !entry.plus_one_name)
+        filtered = filtered.filter(entry => !entry?.plus_one_name || entry.plus_one_name.trim().length === 0)
       } else if (plusOneFilter === 'plus_one_allowed') {
-        filtered = filtered.filter(entry => entry.plus_one_allowed)
+        filtered = filtered.filter(entry => Boolean(entry?.plus_one_allowed))
       }
     }
 
-    // Apply sorting
+    // Apply sorting with null safety
     filtered.sort((a, b) => {
-      let aValue = a[sortField as keyof RSVPEntry] || ''
-      let bValue = b[sortField as keyof RSVPEntry] || ''
-      
+      if (!a || !b) return 0
+
+      let aValue = a[sortField as keyof RSVPEntry]
+      let bValue = b[sortField as keyof RSVPEntry]
+
+      // Handle null/undefined values
+      if (aValue == null && bValue == null) return 0
+      if (aValue == null) return sortDirection === 'asc' ? 1 : -1
+      if (bValue == null) return sortDirection === 'asc' ? -1 : 1
+
+      // Convert to strings for comparison if needed
       if (typeof aValue === 'string') aValue = aValue.toLowerCase()
       if (typeof bValue === 'string') bValue = bValue.toLowerCase()
-      
+
       if (sortDirection === 'asc') {
         return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
       } else {
@@ -578,6 +688,25 @@ export default function RSVPManagementPage() {
   }
 
   async function handleUpdateEntry(entryId: string, updates: Partial<RSVPEntry>) {
+    // Validate inputs
+    if (!entryId || typeof entryId !== 'string') {
+      toast({
+        title: 'Error',
+        description: 'Invalid entry ID provided',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    if (!updates || typeof updates !== 'object') {
+      toast({
+        title: 'Error',
+        description: 'Invalid update data provided',
+        variant: 'destructive'
+      })
+      return
+    }
+
     try {
       const response = await fetch('/api/admin/guests', {
         method: 'PUT',
@@ -600,15 +729,23 @@ export default function RSVPManagementPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update RSVP')
+        const errorText = await response.text()
+        throw new Error(`Failed to update RSVP: ${response.status} ${errorText}`)
       }
 
-      // Optimistic update
-      setRsvpEntries(prev =>
-        prev.map(entry =>
-          entry.id === entryId ? { ...entry, ...updates } : entry
+      // Verify the response
+      const result = await response.json()
+      if (!result.success) {
+        throw new Error(result.error || 'Update was not successful')
+      }
+
+      // Optimistic update with validation
+      setRsvpEntries(prev => {
+        if (!Array.isArray(prev)) return []
+        return prev.map(entry =>
+          entry?.id === entryId ? { ...entry, ...updates, updated_at: new Date().toISOString() } : entry
         )
-      )
+      })
 
       toast({
         title: 'Success',
@@ -616,16 +753,38 @@ export default function RSVPManagementPage() {
       })
     } catch (error) {
       console.error('Error updating RSVP:', error)
+
+      let errorMessage = 'Failed to update RSVP. Please try again.'
+      if (error instanceof Error) {
+        if (error.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.'
+        } else if (error.message.includes('400')) {
+          errorMessage = 'Invalid data provided. Please check your inputs.'
+        } else if (error.message.includes('403') || error.message.includes('401')) {
+          errorMessage = 'You do not have permission to perform this action.'
+        }
+      }
+
       toast({
         title: 'Error',
-        description: 'Failed to update RSVP. Please try again.',
+        description: errorMessage,
         variant: 'destructive'
       })
     }
   }
 
   async function handleDeleteEntry(entryId: string) {
-    if (!confirm('Are you sure you want to delete this RSVP entry?')) {
+    // Validate input
+    if (!entryId || typeof entryId !== 'string') {
+      toast({
+        title: 'Error',
+        description: 'Invalid entry ID provided',
+        variant: 'destructive'
+      })
+      return
+    }
+
+    if (!confirm('Are you sure you want to delete this RSVP entry? This action cannot be undone.')) {
       return
     }
 
@@ -639,11 +798,26 @@ export default function RSVPManagementPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to delete RSVP')
+        const errorText = await response.text()
+        throw new Error(`Failed to delete RSVP: ${response.status} ${errorText}`)
       }
 
-      setRsvpEntries(prev => prev.filter(entry => entry.id !== entryId))
-      setSelectedEntries(prev => prev.filter(id => id !== entryId))
+      // Verify the response
+      const result = await response.json()
+      if (!result.success) {
+        throw new Error(result.error || 'Delete was not successful')
+      }
+
+      // Update state with validation
+      setRsvpEntries(prev => {
+        if (!Array.isArray(prev)) return []
+        return prev.filter(entry => entry?.id !== entryId)
+      })
+
+      setSelectedEntries(prev => {
+        if (!Array.isArray(prev)) return []
+        return prev.filter(id => id !== entryId)
+      })
 
       toast({
         title: 'Success',
@@ -651,9 +825,21 @@ export default function RSVPManagementPage() {
       })
     } catch (error) {
       console.error('Error deleting RSVP:', error)
+
+      let errorMessage = 'Failed to delete RSVP entry. Please try again.'
+      if (error instanceof Error) {
+        if (error.message.includes('fetch')) {
+          errorMessage = 'Network error. Please check your connection and try again.'
+        } else if (error.message.includes('403') || error.message.includes('401')) {
+          errorMessage = 'You do not have permission to perform this action.'
+        } else if (error.message.includes('404')) {
+          errorMessage = 'RSVP entry not found. It may have already been deleted.'
+        }
+      }
+
       toast({
         title: 'Error',
-        description: 'Failed to delete RSVP entry. Please try again.',
+        description: errorMessage,
         variant: 'destructive'
       })
     }

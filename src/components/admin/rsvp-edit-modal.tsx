@@ -216,14 +216,14 @@ export function RSVPEditModal({ entry, open, onOpenChange, onUpdate }: RSVPEditM
             <div>
               <Label htmlFor="meal_preference">Meal Preference</Label>
               <Select
-                value={formData.meal_preference}
-                onValueChange={(value) => handleInputChange('meal_preference', value)}
+                value={formData.meal_preference || 'not_specified'}
+                onValueChange={(value) => handleInputChange('meal_preference', value === 'not_specified' ? '' : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select meal preference" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Not specified</SelectItem>
+                  <SelectItem value="not_specified">Not specified</SelectItem>
                   <SelectItem value="chicken">Chicken</SelectItem>
                   <SelectItem value="beef">Beef</SelectItem>
                   <SelectItem value="fish">Fish</SelectItem>
@@ -274,14 +274,14 @@ export function RSVPEditModal({ entry, open, onOpenChange, onUpdate }: RSVPEditM
                   <div>
                     <Label htmlFor="plus_one_meal">Plus One Meal Preference</Label>
                     <Select
-                      value={formData.plus_one_meal}
-                      onValueChange={(value) => handleInputChange('plus_one_meal', value)}
+                      value={formData.plus_one_meal || 'not_specified'}
+                      onValueChange={(value) => handleInputChange('plus_one_meal', value === 'not_specified' ? '' : value)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select meal preference" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Not specified</SelectItem>
+                        <SelectItem value="not_specified">Not specified</SelectItem>
                         <SelectItem value="chicken">Chicken</SelectItem>
                         <SelectItem value="beef">Beef</SelectItem>
                         <SelectItem value="fish">Fish</SelectItem>

@@ -127,9 +127,17 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Transform the data to match frontend expectations
+    // Supabase returns joined data under the table name 'guests', but frontend expects 'guest'
+    const transformedMessages = messages?.map(message => ({
+      ...message,
+      guest: message.guests || null, // Transform 'guests' to 'guest' and handle null case
+      guests: undefined // Remove the original 'guests' property
+    })) || []
+
     return NextResponse.json({
       success: true,
-      data: messages
+      data: transformedMessages
     })
 
   } catch (error) {
