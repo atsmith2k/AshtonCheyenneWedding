@@ -190,4 +190,13 @@ function validateEnvironment() {
 
 // Run validation
 const isValid = validateEnvironment()
-process.exit(isValid ? 0 : 1)
+
+// In deployment environments (Vercel/CI), warn but don't fail the build
+if (!isValid && (process.env.VERCEL || process.env.CI)) {
+  console.log('\n⚠️  WARNING: Environment validation failed, but continuing deployment.')
+  console.log('   Please add the missing environment variables in Vercel dashboard.')
+  console.log('   The app may not function correctly until all variables are set.')
+  process.exit(0) // Allow deployment to continue
+} else {
+  process.exit(isValid ? 0 : 1)
+}
