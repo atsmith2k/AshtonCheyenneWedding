@@ -160,8 +160,6 @@ export async function POST(request: NextRequest) {
       template = existingTemplate
     }
 
-    console.log(`✅ Resend API key configured: ${process.env.RESEND_API_KEY.substring(0, 10)}...`)
-
     // Validate Resend API configuration
     if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === 'your_resend_api_key_here') {
       console.error('❌ Resend API key not configured properly')
@@ -172,6 +170,8 @@ export async function POST(request: NextRequest) {
         { status: 200 }
       )
     }
+
+    console.log(`✅ Resend API key configured: ${process.env.RESEND_API_KEY.substring(0, 10)}...`)
 
     console.log(`✅ Resend API key configured: ${process.env.RESEND_API_KEY.substring(0, 10)}...`)
 
