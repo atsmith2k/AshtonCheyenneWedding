@@ -32,13 +32,16 @@ export async function POST(request: NextRequest) {
 
     const validatedData = accessRequestSchema.parse(requestData)
 
+    // Ensure email is properly typed as string
+    const email: string = validatedData.email
+
     // Check for duplicate email submissions within 24 hours
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
     
     const { data: existingRequest, error: checkError } = await supabaseAdmin
       .from('access_requests')
       .select('id, email, created_at')
-      .eq('email', validatedData.email.toLowerCase())
+      .eq('email', email.toLowerCase())
       .gte('created_at', twentyFourHoursAgo)
       .single()
 
@@ -61,7 +64,7 @@ export async function POST(request: NextRequest) {
       .from('access_requests')
       .insert({
         name: validatedData.name,
-        email: validatedData.email.toLowerCase(),
+        email: email.toLowerCase(),
         phone: encryptedPhone,
         address: encryptedAddress,
         message: validatedData.message || null,
@@ -96,7 +99,7 @@ export async function POST(request: NextRequest) {
               <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
                 <h3 style="margin-top: 0;">Request Details</h3>
                 <p><strong>Name:</strong> ${validatedData.name}</p>
-                <p><strong>Email:</strong> ${validatedData.email}</p>
+                <p><strong>Email:</strong> ${email}</p>
                 <p><strong>Phone:</strong> ${validatedData.phone}</p>
                 <p><strong>Address:</strong> ${validatedData.address}</p>
                 ${validatedData.message ? `<p><strong>Message:</strong> ${validatedData.message}</p>` : ''}
@@ -119,7 +122,7 @@ export async function POST(request: NextRequest) {
 New Access Request
 
 Name: ${validatedData.name}
-Email: ${validatedData.email}
+Email: ${email}
 Phone: ${validatedData.phone}
 Address: ${validatedData.address}
 ${validatedData.message ? `Message: ${validatedData.message}` : ''}

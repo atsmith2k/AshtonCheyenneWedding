@@ -7,21 +7,21 @@ import { sanitizeText, sanitizeEmail, sanitizePhone, sanitizeDietaryRestrictions
  */
 
 // Custom validation functions
-const sanitizedString = (maxLength: number = 255) => 
+const sanitizedString = (maxLength: number = 255) =>
   z.string()
-    .transform(sanitizeText)
+    .transform((val: string): string => sanitizeText(val))
     .refine(val => val.length <= maxLength, `Must be ${maxLength} characters or less`)
 
 const sanitizedEmail = () =>
   z.string()
     .email('Invalid email format')
-    .transform(sanitizeEmail)
+    .transform((val: string): string => sanitizeEmail(val))
     .refine(val => val.length <= 254, 'Email too long')
 
 const sanitizedPhone = () =>
   z.string()
     .optional()
-    .transform(val => val ? sanitizePhone(val) : '')
+    .transform((val: string | undefined): string => val ? sanitizePhone(val) : '')
     .refine(val => !val || /^[\d+()-\s]{7,20}$/.test(val), 'Invalid phone number format')
 
 // RSVP Form Validation
