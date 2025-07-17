@@ -44,6 +44,7 @@ import {
   DeleteGuestModal,
   BulkDeleteModal
 } from '@/components/admin/guest-modals'
+import { SendInvitationModal } from '@/components/admin/send-invitation-modal'
 import { GuestAnalytics } from '@/components/admin/guest-analytics'
 import { useToast } from '@/hooks/use-toast'
 
@@ -63,6 +64,7 @@ interface Guest {
   plus_one_name: string | null
   group_name: string | null
   rsvp_submitted_at: string | null
+  invitation_sent_at: string | null
 }
 
 export default function GuestManagement() {
@@ -85,7 +87,9 @@ export default function GuestManagement() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false)
+  const [showInvitationModal, setShowInvitationModal] = useState(false)
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null)
+  const [invitationGuests, setInvitationGuests] = useState<Guest[]>([])
 
   // Inline editing states
   const [editingCell, setEditingCell] = useState<{guestId: string, field: string} | null>(null)
@@ -156,7 +160,12 @@ export default function GuestManagement() {
 
   const startInlineEdit = (guestId: string, field: string, currentValue: string) => {
     setEditingCell({ guestId, field })
-    setEditingValue(currentValue || '')
+    // Convert null/empty values to placeholder values for Select components
+    if (field === 'meal_preference') {
+      setEditingValue(currentValue || 'not_specified')
+    } else {
+      setEditingValue(currentValue || '')
+    }
   }
 
   const cancelInlineEdit = () => {
@@ -191,7 +200,7 @@ export default function GuestManagement() {
       if (editingCell.field === 'rsvp_status') {
         updateData.rsvpStatus = editingValue
       } else if (editingCell.field === 'meal_preference') {
-        updateData.mealPreference = editingValue
+        updateData.mealPreference = editingValue === 'not_specified' ? null : editingValue
       }
 
       const response = await fetch('/api/admin/guests', {
@@ -368,6 +377,23 @@ export default function GuestManagement() {
       default:
         return <Clock className="w-4 h-4 text-yellow-600" />
     }
+  }
+
+  const handleSendInvitation = (guest: Guest) => {
+    setInvitationGuests([guest])
+    setShowInvitationModal(true)
+  }
+
+  const handleBulkSendInvitations = () => {
+    const selectedGuestObjects = guests.filter(g => selectedGuests.includes(g.id))
+    setInvitationGuests(selectedGuestObjects)
+    setShowInvitationModal(true)
+  }
+
+  const handleInvitationsSent = () => {
+    // Refresh the guest list to update invitation_sent_at timestamps
+    fetchGuests()
+    setSelectedGuests([]) // Clear selection after bulk send
   }
 
   const getRSVPStatusText = (status: string) => {
@@ -591,6 +617,14 @@ export default function GuestManagement() {
               {selectedGuests.length} guest{selectedGuests.length !== 1 ? 's' : ''} selected
             </p>
             <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="wedding"
+                onClick={handleBulkSendInvitations}
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                Send Invitations
+              </Button>
               <Button size="sm" variant="outline">
                 <Mail className="w-4 h-4 mr-2" />
                 Send Reminder
@@ -641,6 +675,7 @@ export default function GuestManagement() {
                 <SortableHeader field="last_name">Name</SortableHeader>
                 <SortableHeader field="email">Email</SortableHeader>
                 <SortableHeader field="group_name">Group</SortableHeader>
+                <SortableHeader field="invitation_sent_at">Invitation</SortableHeader>
                 <SortableHeader field="rsvp_status">RSVP Status</SortableHeader>
                 <SortableHeader field="meal_preference">Meal</SortableHeader>
                 <th className="text-left p-4 font-medium text-neutral-700">Plus One</th>
@@ -668,6 +703,28 @@ export default function GuestManagement() {
                   </td>
                   <td className="p-4 text-neutral-600">{guest.email || 'No email'}</td>
                   <td className="p-4 text-neutral-600">{guest.group_name || 'No group'}</td>
+                  <td className="p-4">
+                    {guest.email ? (
+                      guest.invitation_sent_at ? (
+                        <div className="flex items-center gap-1">
+                          <Check className="w-4 h-4 text-green-600" />
+                          <span className="text-sm text-green-700">
+                            {new Date(guest.invitation_sent_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4 text-yellow-600" />
+                          <span className="text-sm text-yellow-700">Not sent</span>
+                        </div>
+                      )
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <X className="w-4 h-4 text-red-600" />
+                        <span className="text-sm text-red-700">No email</span>
+                      </div>
+                    )}
+                  </td>
                   <td className="p-4">
                     {editingCell?.guestId === guest.id && editingCell?.field === 'rsvp_status' ? (
                       <div className="flex items-center gap-2">
@@ -720,7 +777,7 @@ export default function GuestManagement() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Not specified</SelectItem>
+                            <SelectItem value="not_specified">Not specified</SelectItem>
                             <SelectItem value="chicken">Chicken</SelectItem>
                             <SelectItem value="beef">Beef</SelectItem>
                             <SelectItem value="fish">Fish</SelectItem>
@@ -780,6 +837,12 @@ export default function GuestManagement() {
                         >
                           <Edit className="w-4 h-4 mr-2" />
                           Edit Guest
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleSendInvitation(guest)}
+                        >
+                          <Mail className="w-4 h-4 mr-2" />
+                          Send Invitation
                         </DropdownMenuItem>
                         <DropdownMenuItem>
                           <Mail className="w-4 h-4 mr-2" />
@@ -858,6 +921,13 @@ export default function GuestManagement() {
           refreshData()
           setSelectedGuests([])
         }}
+      />
+
+      <SendInvitationModal
+        open={showInvitationModal}
+        onOpenChange={setShowInvitationModal}
+        guests={invitationGuests}
+        onInvitationsSent={handleInvitationsSent}
       />
     </div>
   )

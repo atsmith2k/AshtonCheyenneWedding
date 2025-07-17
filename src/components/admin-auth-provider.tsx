@@ -76,11 +76,11 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
 
     const initializeAuth = async () => {
       try {
-        // Get initial session
-        const { data: { session }, error } = await supabase.auth.getSession()
-        
+        // Get authenticated user (secure method)
+        const { data: { user }, error } = await supabase.auth.getUser()
+
         if (error) {
-          console.error('Error getting session:', error)
+          console.error('Error getting user:', error)
           if (mounted) {
             setUser(null)
             setAdminUser(null)
@@ -90,14 +90,14 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
         }
 
         if (mounted) {
-          setUser(session?.user ?? null)
-          
-          if (session?.user) {
-            await checkAdminStatus(session.user)
+          setUser(user)
+
+          if (user) {
+            await checkAdminStatus(user)
           } else {
             setAdminUser(null)
           }
-          
+
           setIsLoading(false)
         }
       } catch (error) {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -11,6 +11,7 @@ import { Heart, Key, ArrowRight, Home } from 'lucide-react'
 
 export default function InvitationPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, guest, signInWithInvitationCode, isLoading } = useAuth()
   const [invitationCode, setInvitationCode] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -26,6 +27,14 @@ export default function InvitationPage() {
       router.push('/')
     }
   }, [user, guest, router])
+
+  useEffect(() => {
+    // Pre-fill invitation code from URL parameter
+    const codeParam = searchParams.get('code')
+    if (codeParam) {
+      setInvitationCode(codeParam.trim().toUpperCase())
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

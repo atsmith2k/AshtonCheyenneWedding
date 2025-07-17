@@ -14,11 +14,11 @@ export async function POST(request: NextRequest) {
     const supabase = createServerClient()
     const cookieStore = cookies()
 
-    // Get current session
-    const { data: { session } } = await supabase.auth.getSession()
+    // Get current authenticated user
+    const { data: { user } } = await supabase.auth.getUser()
 
     // Sign out from Supabase
-    if (session) {
+    if (user) {
       const { error } = await supabase.auth.signOut()
       if (error) {
         console.error('Supabase logout error:', error)

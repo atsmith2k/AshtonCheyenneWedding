@@ -15,31 +15,31 @@ export async function POST(request: NextRequest) {
     const supabase = createServerClient()
     const cookieStore = cookies()
 
-    // Get current session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    // Get current authenticated user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-    if (sessionError) {
-      console.error('Session error:', sessionError)
+    if (userError) {
+      console.error('User authentication error:', userError)
       return NextResponse.json(
-        { error: 'Invalid session' },
+        { error: 'Authentication failed' },
         { status: 401 }
       )
     }
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json(
-        { error: 'No active session' },
+        { error: 'No authenticated user' },
         { status: 401 }
       )
     }
 
     // Verify user is still an admin
-    if (!isValidAdminEmail(session.user.email || '')) {
+    if (!isValidAdminEmail(user.email || '')) {
       // Sign out if no longer admin
       await supabase.auth.signOut()
       cookieStore.delete('sb-access-token')
       cookieStore.delete('sb-refresh-token')
-      
+
       return NextResponse.json(
         { error: 'Admin privileges revoked' },
         { status: 403 }

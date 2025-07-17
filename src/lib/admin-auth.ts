@@ -22,16 +22,16 @@ export interface AdminUser {
 export async function isAdminUser(): Promise<boolean> {
   try {
     const supabase = createServerClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    if (!session?.user?.email) {
+    const { data: { user }, error } = await supabase.auth.getUser()
+
+    if (error || !user?.email) {
       return false
     }
-    
+
     // Get admin emails from server-side environment variable only
     const adminEmails = process.env.ADMIN_EMAIL?.split(',').map(email => email.trim().toLowerCase()) || []
-    const userEmail = session.user.email.toLowerCase()
-    
+    const userEmail = user.email.toLowerCase()
+
     return adminEmails.includes(userEmail)
   } catch (error) {
     console.error('Error checking admin status:', error)
@@ -45,22 +45,22 @@ export async function isAdminUser(): Promise<boolean> {
 export async function getCurrentAdminUser(): Promise<AdminUser | null> {
   try {
     const supabase = createServerClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    if (!session?.user?.email) {
+    const { data: { user }, error } = await supabase.auth.getUser()
+
+    if (error || !user?.email) {
       return null
     }
-    
+
     const isAdmin = await isAdminUser()
     if (!isAdmin) {
       return null
     }
-    
+
     return {
-      id: session.user.id,
-      email: session.user.email,
-      firstName: session.user.user_metadata?.first_name,
-      lastName: session.user.user_metadata?.last_name,
+      id: user.id,
+      email: user.email,
+      firstName: user.user_metadata?.first_name,
+      lastName: user.user_metadata?.last_name,
       role: 'admin' // Default role, can be enhanced later
     }
   } catch (error) {

@@ -50,7 +50,8 @@ export async function GET(request: NextRequest) {
       plus_one_allowed: guest.plus_one_allowed,
       plus_one_name: guest.plus_one_name,
       group_name: guest.guest_groups?.group_name || null,
-      rsvp_submitted_at: guest.rsvp_submitted_at
+      rsvp_submitted_at: guest.rsvp_submitted_at,
+      invitation_sent_at: guest.invitation_sent_at
     }))
 
     return NextResponse.json({

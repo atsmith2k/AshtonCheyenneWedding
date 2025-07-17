@@ -35,7 +35,7 @@ const guestFormSchema = z.object({
   groupId: z.string().optional(),
   plusOneAllowed: z.boolean().default(false),
   plusOneName: z.string().optional(),
-  mealPreference: z.enum(['chicken', 'beef', 'fish', 'vegetarian', 'vegan', 'kids_meal', '']).optional(),
+  mealPreference: z.enum(['chicken', 'beef', 'fish', 'vegetarian', 'vegan', 'kids_meal', 'not_specified']).optional(),
   dietaryRestrictions: z.string().optional(),
   specialNotes: z.string().optional(),
   rsvpStatus: z.enum(['pending', 'attending', 'not_attending']).optional(),
@@ -93,10 +93,10 @@ export function GuestForm({
       lastName: guest?.last_name || '',
       email: guest?.email || '',
       phone: guest?.phone || '',
-      groupId: guest?.group_id || '',
+      groupId: guest?.group_id || 'no_group',
       plusOneAllowed: guest?.plus_one_allowed || false,
       plusOneName: guest?.plus_one_name || '',
-      mealPreference: (guest?.meal_preference as any) || '',
+      mealPreference: (guest?.meal_preference as any) || 'not_specified',
       dietaryRestrictions: guest?.dietary_restrictions || '',
       specialNotes: guest?.special_notes || '',
       rsvpStatus: guest?.rsvp_status || 'pending',
@@ -248,7 +248,7 @@ export function GuestForm({
                       <SelectValue placeholder="Select a group" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No Group</SelectItem>
+                      <SelectItem value="no_group">No Group</SelectItem>
                       {groups.map((group) => (
                         <SelectItem key={group.id} value={group.id}>
                           {group.group_name} ({group.guest_count}/{group.max_guests})
@@ -362,7 +362,7 @@ export function GuestForm({
                       <SelectValue placeholder="Select meal preference" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Not specified</SelectItem>
+                      <SelectItem value="not_specified">Not specified</SelectItem>
                       <SelectItem value="chicken">Chicken</SelectItem>
                       <SelectItem value="beef">Beef</SelectItem>
                       <SelectItem value="fish">Fish</SelectItem>
