@@ -60,7 +60,7 @@ export function MobileDashboard({ stats, onNavigate }: MobileDashboardProps) {
       title: 'Review RSVPs',
       description: 'Check latest RSVP responses',
       icon: UserCheck,
-      path: '/admin/guests?filter=rsvp',
+      path: '/admin/guests/rsvp',
       color: 'bg-green-500',
       count: stats.rsvpResponses
     },
