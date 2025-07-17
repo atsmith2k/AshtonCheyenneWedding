@@ -243,10 +243,16 @@ export const accessRequestSchema = z.object({
 // Type definition for access request data
 export type AccessRequestData = z.infer<typeof accessRequestSchema>
 
+<<<<<<< HEAD
+// Type definition for access request data
+export type AccessRequestData = z.infer<typeof accessRequestSchema>
+
+=======
+>>>>>>> 882136c (feat: Implement comprehensive guest access request system)
 // Admin Access Request Management Validation
 export const accessRequestUpdateSchema = z.object({
   status: z.enum(['pending', 'approved', 'denied']),
-  admin_notes: sanitizedString(1000).optional(),
+  admin_notes: z.string().max(1000).optional(),
   send_invitation: z.boolean().optional().default(false)
 })
 
@@ -254,7 +260,7 @@ export const accessRequestUpdateSchema = z.object({
 export const bulkAccessRequestSchema = z.object({
   request_ids: z.array(z.string().uuid()).min(1, 'At least one request must be selected'),
   action: z.enum(['approve', 'deny', 'delete']),
-  admin_notes: sanitizedString(1000).optional(),
+  admin_notes: z.string().max(1000).optional(),
   send_invitations: z.boolean().optional().default(false)
 })
 
