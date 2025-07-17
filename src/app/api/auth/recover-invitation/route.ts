@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`✅ Resend API key configured: ${process.env.RESEND_API_KEY.substring(0, 10)}...`)
-
+    console.log(`✅ Resend API key configured: ${process.env.RESEND_API_KEY.substring(0, 10)}...`);
+    
     // Prepare template variables
     const baseVariables: EmailTemplateVariables = {
       couple_names: 'Ashton & Cheyenne',
@@ -125,6 +125,7 @@ export async function POST(request: NextRequest) {
           subject: processedSubject,
           htmlContent: processedHtmlContent,
           textContent: processedTextContent,
+          templateType: 'invitation_recovery',
           guestId: guest.id,
           variables: guestVariables
         }),
