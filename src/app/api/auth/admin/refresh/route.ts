@@ -12,8 +12,8 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerClient()
-    const cookieStore = cookies()
+    const supabase = await createServerClient()
+    const cookieStore = await cookies()
 
     // Get current authenticated user
     const { data: { user }, error: userError } = await supabase.auth.getUser()

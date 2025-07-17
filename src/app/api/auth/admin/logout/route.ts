@@ -11,8 +11,8 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerClient()
-    const cookieStore = cookies()
+    const supabase = await createServerClient()
+    const cookieStore = await cookies()
 
     // Get current authenticated user
     const { data: { user } } = await supabase.auth.getUser()
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     console.error('Admin logout error:', error)
     
     // Even if there's an error, try to clear cookies
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     cookieStore.delete('sb-access-token')
     cookieStore.delete('sb-refresh-token')
 

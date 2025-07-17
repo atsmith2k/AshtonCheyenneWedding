@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!supabaseAdmin) {
@@ -20,6 +20,9 @@ export async function GET(
     // Require admin authentication
     const adminUser = await requireAdminFromRequest(request)
 
+    // Await params in Next.js 14 App Router
+    const { id } = await params
+
     const { data: guest, error } = await supabaseAdmin
       .from('guests')
       .select(`
@@ -28,7 +31,7 @@ export async function GET(
           group_name
         )
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (error || !guest) {
@@ -41,7 +44,7 @@ export async function GET(
     // Log admin action
     await logAdminAction('VIEW_GUEST_DETAILS', {
       adminEmail: adminUser.email,
-      guestId: params.id,
+      guestId: id,
       guestName: `${guest.first_name} ${guest.last_name}`
     })
 
@@ -93,7 +96,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!supabaseAdmin) {
@@ -106,13 +109,16 @@ export async function PUT(
     // Require admin authentication
     const adminUser = await requireAdminFromRequest(request)
 
+    // Await params in Next.js 14 App Router
+    const { id } = await params
+
     const updateData = await request.json()
 
     // Check if guest exists
     const { data: existingGuest, error: fetchError } = await supabaseAdmin
       .from('guests')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (fetchError || !existingGuest) {
@@ -129,7 +135,7 @@ export async function PUT(
         ...updateData,
         updated_at: new Date().toISOString()
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single()
 
@@ -144,7 +150,7 @@ export async function PUT(
     // Log admin action
     await logAdminAction('UPDATE_GUEST_INDIVIDUAL', {
       adminEmail: adminUser.email,
-      guestId: params.id,
+      guestId: id,
       guestName: `${updatedGuest.first_name} ${updatedGuest.last_name}`,
       updateData
     })
@@ -175,7 +181,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!supabaseAdmin) {
@@ -188,11 +194,14 @@ export async function DELETE(
     // Require admin authentication
     const adminUser = await requireAdminFromRequest(request)
 
+    // Await params in Next.js 14 App Router
+    const { id } = await params
+
     // Check if guest exists
     const { data: existingGuest, error: fetchError } = await supabaseAdmin
       .from('guests')
       .select('id, first_name, last_name, email')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (fetchError || !existingGuest) {
@@ -206,7 +215,7 @@ export async function DELETE(
     const { error: deleteError } = await supabaseAdmin
       .from('guests')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (deleteError) {
       console.error('Error deleting guest:', deleteError)
@@ -219,7 +228,7 @@ export async function DELETE(
     // Log admin action
     await logAdminAction('DELETE_GUEST_INDIVIDUAL', {
       adminEmail: adminUser.email,
-      guestId: params.id,
+      guestId: id,
       guestName: `${existingGuest.first_name} ${existingGuest.last_name}`,
       guestEmail: existingGuest.email
     })

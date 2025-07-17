@@ -18,7 +18,10 @@ const RATE_LIMITS = {
 }
 
 function getRateLimitKey(request: NextRequest, type: string): string {
-  const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+  const ip = request.headers.get('x-forwarded-for') ||
+            request.headers.get('x-real-ip') ||
+            request.headers.get('cf-connecting-ip') ||
+            'unknown'
   return `${type}:${ip}`
 }
 

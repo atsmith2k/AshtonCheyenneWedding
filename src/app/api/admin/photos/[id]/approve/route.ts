@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     if (!supabaseAdmin) {
@@ -16,7 +16,9 @@ export async function POST(
       )
     }
 
-    const photoId = params.id
+    // Await params in Next.js 14 App Router
+    const { id } = await params
+    const photoId = id
 
     if (!photoId) {
       return NextResponse.json(

@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Supabase client for authentication
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
 
     // Attempt to sign in with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -108,8 +108,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Set secure session cookies
-    const cookieStore = cookies()
-    
+    const cookieStore = await cookies()
+
     // Set access token cookie
     cookieStore.set('sb-access-token', authData.session.access_token, {
       httpOnly: true,

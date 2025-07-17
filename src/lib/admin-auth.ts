@@ -21,7 +21,7 @@ export interface AdminUser {
  */
 export async function isAdminUser(): Promise<boolean> {
   try {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
     const { data: { user }, error } = await supabase.auth.getUser()
 
     if (error || !user?.email) {
@@ -44,7 +44,7 @@ export async function isAdminUser(): Promise<boolean> {
  */
 export async function getCurrentAdminUser(): Promise<AdminUser | null> {
   try {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
     const { data: { user }, error } = await supabase.auth.getUser()
 
     if (error || !user?.email) {

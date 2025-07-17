@@ -6,8 +6,8 @@ import type { Database } from '@/types/database'
  * Create a Supabase client for use in server components and API routes
  * Uses the modern @supabase/ssr package with proper cookie handling
  */
-export function createClient() {
-  const cookieStore = cookies()
+export async function createClient() {
+  const cookieStore = await cookies()
 
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
