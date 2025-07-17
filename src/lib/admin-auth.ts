@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { createServerSupabaseClient } from './supabase-server'
+import { createClient as createServerClient } from './supabase/server'
 import { NextRequest } from 'next/server'
 
 /**
@@ -21,7 +21,7 @@ export interface AdminUser {
  */
 export async function isAdminUser(): Promise<boolean> {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
     const { data: { session } } = await supabase.auth.getSession()
     
     if (!session?.user?.email) {
@@ -44,7 +44,7 @@ export async function isAdminUser(): Promise<boolean> {
  */
 export async function getCurrentAdminUser(): Promise<AdminUser | null> {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
     const { data: { session } } = await supabase.auth.getSession()
     
     if (!session?.user?.email) {

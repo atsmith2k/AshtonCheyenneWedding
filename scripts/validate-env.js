@@ -45,11 +45,11 @@ const requiredVars = {
         }
       }
     },
-    'NEXT_PUBLIC_SUPABASE_ANON_KEY': {
+    'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY': {
       required: true,
-      description: 'Supabase anonymous/public key',
-      example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-      validate: (value) => value.startsWith('eyJ')
+      description: 'Supabase publishable key (modern SSR pattern)',
+      example: 'sb_publishable_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+      validate: (value) => value.startsWith('sb_publishable_')
     },
     'NEXT_PUBLIC_APP_URL': {
       required: true,
@@ -69,8 +69,8 @@ const requiredVars = {
     'SUPABASE_SERVICE_ROLE_KEY': {
       required: true,
       description: 'Supabase service role key (server-side only)',
-      example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-      validate: (value) => value.startsWith('eyJ')
+      example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... or sb_secret_...',
+      validate: (value) => value.startsWith('eyJ') || value.startsWith('sb_secret_')
     },
     'ADMIN_EMAIL': {
       required: true,

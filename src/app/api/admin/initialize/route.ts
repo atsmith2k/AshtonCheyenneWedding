@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { createAdminClient } from '@/lib/supabase/server'
 
 // Force dynamic rendering - admin routes use authentication
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    if (!supabaseAdmin) {
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      )
-    }
+    const supabaseAdmin = createAdminClient()
 
     const results = {
       adminUsers: { success: 0, failed: 0, errors: [] as string[] },
@@ -19,16 +14,18 @@ export async function POST(request: NextRequest) {
       photoAlbums: { success: 0, failed: 0, errors: [] as string[] }
     }
 
-    // 1. Create admin users
+    // 1. Create admin users with authentication accounts
     const adminUsers = [
       {
-        email: 'ashton@example.com',
+        email: 'your-actual-email@gmail.com', // Replace with your real email
+        password: 'WeddingAdmin2024!', // Change this password after first login
         first_name: 'Ashton',
         last_name: 'Smith',
         role: 'admin'
       },
       {
-        email: 'cheyenne@example.com',
+        email: 'cheyenne-actual-email@gmail.com', // Replace with Cheyenne's real email
+        password: 'WeddingAdmin2024!', // Change this password after first login
         first_name: 'Cheyenne',
         last_name: 'Smith',
         role: 'admin'
@@ -37,12 +34,40 @@ export async function POST(request: NextRequest) {
 
     for (const admin of adminUsers) {
       try {
-        const { error } = await supabaseAdmin
-          .from('admin_users')
-          .upsert(admin, { onConflict: 'email' })
+        // First, create the Supabase Auth user
+        const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.createUser({
+          email: admin.email,
+          password: admin.password,
+          email_confirm: true, // Auto-confirm for admin users
+          user_metadata: {
+            first_name: admin.first_name,
+            last_name: admin.last_name,
+            role: admin.role
+          }
+        })
 
-        if (error) {
-          results.adminUsers.errors.push(`${admin.email}: ${error.message}`)
+        if (authError) {
+          // If user already exists, that's okay - skip auth creation
+          if (!authError.message.includes('already registered')) {
+            results.adminUsers.errors.push(`${admin.email} (auth): ${authError.message}`)
+            results.adminUsers.failed++
+            continue
+          }
+        }
+
+        // Then create/update the admin_users database record
+        const { error: dbError } = await supabaseAdmin
+          .from('admin_users')
+          .upsert({
+            id: authUser?.user?.id, // Use the auth user ID if available
+            email: admin.email,
+            first_name: admin.first_name,
+            last_name: admin.last_name,
+            role: admin.role
+          }, { onConflict: 'email' })
+
+        if (dbError) {
+          results.adminUsers.errors.push(`${admin.email} (db): ${dbError.message}`)
           results.adminUsers.failed++
         } else {
           results.adminUsers.success++

@@ -1,6 +1,13 @@
+// Modern Supabase configuration using @supabase/ssr
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
 import { logEnvironmentStatus, requireValidEnvironment } from './env-validation'
+
+// Re-export browser client for client-side use
+export { createClient as createBrowserClient } from './supabase/client'
+
+// Server clients are exported separately to avoid importing next/headers in client components
+// Import these directly from './supabase/server' in server components and API routes
 
 // Log environment status in development
 if (process.env.NODE_ENV === 'development') {
@@ -12,11 +19,11 @@ requireValidEnvironment()
 
 // Environment variable validation with better error messages
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-// Client-side Supabase client with explicit configuration
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+// Legacy client-side Supabase client for backward compatibility
+export const supabase = createClient<Database>(supabaseUrl, supabasePublishableKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
@@ -27,20 +34,20 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   }
 })
 
-// Client component Supabase client with explicit environment variables
+// Legacy client component function for backward compatibility
 export const createClientSupabaseClient = () => {
   // Validate environment variables are available on client-side
   if (typeof window !== 'undefined') {
-    if (!supabaseUrl || !supabaseAnonKey) {
+    if (!supabaseUrl || !supabasePublishableKey) {
       console.error('Supabase environment variables not available on client-side:', {
         url: !!supabaseUrl,
-        anonKey: !!supabaseAnonKey
+        publishableKey: !!supabasePublishableKey
       })
       throw new Error('Supabase configuration error: Missing environment variables on client-side')
     }
   }
 
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  return createClient<Database>(supabaseUrl, supabasePublishableKey, {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
@@ -70,8 +77,8 @@ export async function isAdmin(email: string): Promise<boolean> {
   return adminEmails.includes(email)
 }
 
-// Helper function to get admin client with validation
-function getAdminClient() {
+// Helper function to get admin client with validation (legacy - use createAdminClient from server.ts instead)
+export function getAdminClient() {
   if (!supabaseAdmin) {
     throw new Error('Admin client not available. SUPABASE_SERVICE_ROLE_KEY is required for admin operations.')
   }
@@ -242,7 +249,7 @@ export async function uploadPhoto(file: File, guestId?: string) {
   const filePath = `photos/${fileName}`
 
   // Upload file to Supabase Storage
-  const { data: uploadData, error: uploadError } = await supabase.storage
+  const { error: uploadError } = await supabase.storage
     .from('wedding-photos')
     .upload(filePath, file)
 

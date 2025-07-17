@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 import { isValidAdminEmail } from '@/lib/admin-auth'
 import { cookies } from 'next/headers'
 
@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
     const cookieStore = cookies()
 
     // Get current session

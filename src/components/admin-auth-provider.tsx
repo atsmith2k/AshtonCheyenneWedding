@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { createClientSupabaseClient } from '@/lib/supabase'
+import { createBrowserClient } from '@/lib/supabase'
 import { User } from '@supabase/supabase-js'
 
 interface AdminUser {
@@ -40,7 +40,7 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const supabase = createClientSupabaseClient()
+  const supabase = createBrowserClient()
 
   // Check admin status
   const checkAdminStatus = async (currentUser: User | null) => {

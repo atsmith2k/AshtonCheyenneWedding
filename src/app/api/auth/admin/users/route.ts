@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { createAdminClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/admin-auth'
 
 // Force dynamic rendering - this route handles authentication
@@ -14,12 +14,7 @@ export async function GET(request: NextRequest) {
     // Require admin authentication
     await requireAdmin()
 
-    if (!supabaseAdmin) {
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      )
-    }
+    const supabaseAdmin = createAdminClient()
 
     // Get all admin users
     const { data: adminUsers, error } = await supabaseAdmin
@@ -82,12 +77,7 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    if (!supabaseAdmin) {
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      )
-    }
+    const supabaseAdmin = createAdminClient()
 
     const { userId, isActive, role } = await request.json()
 

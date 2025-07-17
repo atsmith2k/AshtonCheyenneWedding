@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { createClient } from '@/lib/supabase/middleware'
 
 /**
  * Security middleware for protecting admin routes and implementing rate limiting
@@ -56,9 +57,12 @@ function addRateLimitHeaders(response: NextResponse, request: NextRequest, type:
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  
-  // Security headers for all requests
-  const response = NextResponse.next()
+
+  // Create Supabase client for session management
+  const { supabase, response: supabaseResponse } = createClient(request)
+
+  // Use the Supabase response as base (includes cookie handling)
+  const response = supabaseResponse
 
   // Add comprehensive security headers
   response.headers.set('X-Frame-Options', 'DENY')

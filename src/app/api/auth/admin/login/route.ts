@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 import { isValidAdminEmail } from '@/lib/admin-auth'
 import { mapSupabaseAuthError, createAuthError, AUTH_ERROR_CODES } from '@/lib/auth-errors'
 import { cookies } from 'next/headers'
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Supabase client for authentication
-    const supabase = createServerSupabaseClient()
+    const supabase = createServerClient()
 
     // Attempt to sign in with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({

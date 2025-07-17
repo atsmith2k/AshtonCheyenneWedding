@@ -28,7 +28,7 @@ export function validateEnvironment(): EnvValidationResult {
   // Required client-side variables (NEXT_PUBLIC_)
   const clientVars = {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL
   }
 
@@ -75,13 +75,13 @@ export function validateEnvironment(): EnvValidationResult {
   }
 
   // Additional validations
-  if (clientVars.NEXT_PUBLIC_SUPABASE_URL && clientVars.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  if (clientVars.NEXT_PUBLIC_SUPABASE_URL && clientVars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY) {
     // Check if Supabase URL and key seem to match
     const url = clientVars.NEXT_PUBLIC_SUPABASE_URL
-    const key = clientVars.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    
-    if (url.includes('supabase.co') && !key.startsWith('eyJ')) {
-      warnings.push('Supabase anon key format looks suspicious - should start with "eyJ"')
+    const key = clientVars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+
+    if (url.includes('supabase.co') && !key.startsWith('sb_publishable_')) {
+      warnings.push('Supabase publishable key format looks suspicious - should start with "sb_publishable_"')
     }
   }
 
@@ -149,7 +149,7 @@ export function getEnvironmentInfo() {
     environment: result.debug.environment,
     nodeEnv: result.debug.nodeEnv,
     hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    hasSupabaseAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    hasSupabasePublishableKey: !!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY,
     hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
     errors: result.errors,
     warnings: result.warnings
