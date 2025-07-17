@@ -1,31 +1,38 @@
-import { redirect } from 'next/navigation'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { isAdminUser } from '@/lib/admin-auth'
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { AdminAuthProvider, useAdminAuth } from '@/components/admin-auth-provider'
 import { AdminSidebar } from '@/components/admin/sidebar'
 import { AdminHeader } from '@/components/admin/header'
 
-// Force dynamic rendering for admin routes
-export const dynamic = 'force-dynamic'
+function AdminLayoutContent({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const { isLoading, isAuthenticated, isAdmin } = useAdminAuth()
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const supabase = createServerSupabaseClient()
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        router.push('/auth/admin-login')
+      } else if (!isAdmin) {
+        router.push('/')
+      }
+    }
+  }, [isLoading, isAuthenticated, isAdmin, router])
 
-  // Check if user is authenticated
-  const { data: { session } } = await supabase.auth.getSession()
-
-  if (!session) {
-    redirect('/admin/login')
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4" />
+          <p className="text-neutral-600">Loading admin dashboard...</p>
+        </div>
+      </div>
+    )
   }
 
-  // Use secure server-side admin authentication
-  const userIsAdmin = await isAdminUser()
-
-  if (!userIsAdmin) {
-    redirect('/')
+  if (!isAuthenticated || !isAdmin) {
+    return null // Will redirect via useEffect
   }
 
   return (
@@ -38,5 +45,19 @@ export default async function AdminLayout({
         </main>
       </div>
     </div>
+  )
+}
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <AdminAuthProvider>
+      <AdminLayoutContent>
+        {children}
+      </AdminLayoutContent>
+    </AdminAuthProvider>
   )
 }

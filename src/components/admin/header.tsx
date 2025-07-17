@@ -2,11 +2,11 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { useAuth } from '@/components/providers'
+import { useAdminAuth } from '@/components/admin-auth-provider'
 import { Bell, User, LogOut, Menu } from 'lucide-react'
 
 export function AdminHeader() {
-  const { user, signOut } = useAuth()
+  const { user, adminUser, signOut } = useAdminAuth()
   const [showUserMenu, setShowUserMenu] = useState(false)
 
   return (
@@ -40,7 +40,7 @@ export function AdminHeader() {
             >
               <User className="w-5 h-5" />
               <span className="hidden md:inline">
-                {user?.email?.split('@')[0] || 'Admin'}
+                {adminUser?.firstName || user?.email?.split('@')[0] || 'Admin'}
               </span>
             </Button>
 
@@ -48,9 +48,14 @@ export function AdminHeader() {
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-neutral-200 py-2 z-50">
                 <div className="px-4 py-2 border-b border-neutral-100">
                   <p className="text-sm font-medium text-neutral-800">
-                    {user?.email}
+                    {adminUser?.firstName && adminUser?.lastName
+                      ? `${adminUser.firstName} ${adminUser.lastName}`
+                      : user?.email
+                    }
                   </p>
-                  <p className="text-xs text-neutral-500">Administrator</p>
+                  <p className="text-xs text-neutral-500">
+                    {adminUser?.role === 'super_admin' ? 'Super Administrator' : 'Administrator'}
+                  </p>
                 </div>
                 <button
                   onClick={() => signOut()}

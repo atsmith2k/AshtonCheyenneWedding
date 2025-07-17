@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/components/providers'
-import { Heart, Lock, ArrowRight, Home } from 'lucide-react'
+import { getErrorMessage } from '@/lib/auth-errors'
+import { Heart, Lock, ArrowRight, Home, AlertCircle } from 'lucide-react'
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -32,32 +33,33 @@ export default function AdminLoginPage() {
     setError('')
 
     try {
-      // This will be replaced with actual Supabase admin authentication
-      // For now, simulate authentication
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Check admin status server-side via API
-      const adminCheckResponse = await fetch('/api/auth/validate-admin', {
+      // Use the new admin login API
+      const loginResponse = await fetch('/api/auth/admin/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password.trim()
+        }),
         credentials: 'include'
       })
 
-      if (adminCheckResponse.ok) {
-        const { isAdmin } = await adminCheckResponse.json()
-        if (isAdmin) {
-          router.push('/admin')
-        } else {
-          setError('Access denied. Admin privileges required.')
-        }
+      const loginData = await loginResponse.json()
+
+      if (loginResponse.ok && loginData.success) {
+        // Login successful, redirect to admin dashboard
+        router.push('/admin')
       } else {
-        setError('Authentication failed. Please try again.')
+        // Use standardized error handling
+        const errorMessage = getErrorMessage(loginData)
+        setError(errorMessage)
       }
     } catch (error) {
-      setError('Authentication failed. Please try again.')
+      console.error('Login error:', error)
+      const errorMessage = getErrorMessage(error)
+      setError(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -143,10 +145,18 @@ export default function AdminLoginPage() {
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600 text-center">
-                  {error}
-                </p>
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-red-600 font-medium mb-1">
+                      Authentication Error
+                    </p>
+                    <p className="text-sm text-red-600">
+                      {error}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 

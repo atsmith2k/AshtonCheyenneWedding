@@ -59,12 +59,53 @@ export function middleware(request: NextRequest) {
   
   // Security headers for all requests
   const response = NextResponse.next()
-  
-  // Add security headers
+
+  // Add comprehensive security headers
   response.headers.set('X-Frame-Options', 'DENY')
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   response.headers.set('X-XSS-Protection', '1; mode=block')
+
+  // Content Security Policy
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: https: blob:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'"
+  ].join('; ')
+
+  response.headers.set('Content-Security-Policy', csp)
+
+  // Additional security headers
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
+
+  // CSRF protection for state-changing requests
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
+    const origin = request.headers.get('origin')
+    const host = request.headers.get('host')
+
+    // Allow same-origin requests and localhost for development
+    const allowedOrigins = [
+      `https://${host}`,
+      `http://${host}`,
+      process.env.NEXT_PUBLIC_APP_URL,
+      'http://localhost:3000',
+      'http://127.0.0.1:3000'
+    ].filter(Boolean)
+
+    if (origin && !allowedOrigins.includes(origin)) {
+      return NextResponse.json(
+        { error: 'CSRF protection: Invalid origin' },
+        { status: 403 }
+      )
+    }
+  }
   
   // Handle admin API routes
   if (pathname.startsWith('/api/admin/')) {
@@ -77,10 +118,15 @@ export function middleware(request: NextRequest) {
       addRateLimitHeaders(rateLimitResponse, request, 'admin')
       return rateLimitResponse
     }
-    
+
     // Add admin rate limit headers
     addRateLimitHeaders(response, request, 'admin')
-    
+
+    // Skip auth check for initialize route (used for setup)
+    if (pathname === '/api/admin/initialize') {
+      return response
+    }
+
     // Note: Actual admin authentication is handled in individual API routes
     // using the requireAdmin() function from admin-auth.ts
     return response
@@ -118,6 +164,11 @@ export function middleware(request: NextRequest) {
     return response
   }
   
+  // Handle legacy admin login redirect
+  if (pathname === '/admin/login') {
+    return NextResponse.redirect(new URL('/auth/admin-login', request.url))
+  }
+
   // Handle admin pages
   if (pathname.startsWith('/admin')) {
     // Admin pages are protected by the layout.tsx file
