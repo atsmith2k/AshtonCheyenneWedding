@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -201,10 +202,10 @@ function InvitationPageContent() {
                   Recover Code via Email
                 </Button>
                 <Button variant="outline" size="sm" asChild>
-                  <a href="/">
+                  <Link href="/">
                     <Home className="w-4 h-4 mr-2" />
                     Return to Homepage
-                  </a>
+                  </Link>
                 </Button>
               </div>
             </div>

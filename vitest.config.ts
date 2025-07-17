@@ -41,15 +41,16 @@ export default defineConfig({
     // Test file patterns
     include: [
       'src/**/*.{test,spec}.{js,ts,jsx,tsx}',
-      'src/**/__tests__/**/*.{js,ts,jsx,tsx}'
+      'src/**/__tests__/**/*.{test,spec}.{js,ts,jsx,tsx}'
     ],
-    
+
     // Exclude patterns
     exclude: [
       'node_modules/',
       'dist/',
       '.next/',
-      'tests/' // Playwright E2E tests
+      'tests/', // Playwright E2E tests
+      'src/__tests__/setup.ts' // Test setup file
     ],
     
     // Test timeout

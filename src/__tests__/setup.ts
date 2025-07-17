@@ -60,6 +60,25 @@ vi.mock('@/lib/supabase', () => ({
       single: vi.fn(),
       order: vi.fn().mockReturnThis()
     }))
+  },
+  supabaseAdmin: {
+    auth: {
+      admin: {
+        getUserById: vi.fn(),
+        createUser: vi.fn(),
+        updateUserById: vi.fn()
+      }
+    },
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      upsert: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn(),
+      order: vi.fn().mockReturnThis()
+    }))
   }
 }))
 
@@ -90,7 +109,11 @@ vi.mock('@/lib/crypto', () => ({
   encryptGuestData: vi.fn((data) => `encrypted_${JSON.stringify(data)}`),
   decryptGuestData: vi.fn((data) => JSON.parse(data.replace('encrypted_', ''))),
   hashPassword: vi.fn((password) => `hashed_${password}`),
-  verifyPassword: vi.fn((password, hash) => hash === `hashed_${password}`)
+  verifyPassword: vi.fn((password, hash) => hash === `hashed_${password}`),
+  sanitizeText: vi.fn((text) => text?.trim() || ''),
+  sanitizeEmail: vi.fn((email) => email?.trim().toLowerCase() || ''),
+  sanitizePhone: vi.fn((phone) => phone?.trim() || ''),
+  sanitizeDietaryRestrictions: vi.fn((restrictions) => restrictions?.trim() || '')
 }))
 
 // Mock email service

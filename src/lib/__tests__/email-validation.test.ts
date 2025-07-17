@@ -149,9 +149,9 @@ describe('Email Validation', () => {
 
     it('should reject invalid email formats', () => {
       const result = validateEmail('invalid-email')
-      
+
       expect(result.isValid).toBe(false)
-      expect(result.error).toBe('Please enter a valid email address')
+      expect(result.error).toBe('Email address must include a domain')
     })
 
     it('should provide warnings for disposable emails', () => {
