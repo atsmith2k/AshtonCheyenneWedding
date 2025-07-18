@@ -11,9 +11,25 @@ import { useMobileDetection } from '@/hooks/use-mobile-detection'
 import { Check, X, Heart, Users } from 'lucide-react'
 import WeddingNavigation from '@/components/wedding-navigation'
 
+interface GuestRSVPData {
+  id: string
+  firstName: string
+  lastName: string
+  email?: string
+  invitationCode: string
+  rsvpStatus: 'pending' | 'attending' | 'not_attending'
+  mealPreference?: string
+  dietaryRestrictions?: string
+  plusOneAllowed: boolean
+  plusOneName?: string
+  plusOneMeal?: string
+  specialNotes?: string
+  rsvpSubmittedAt?: string
+}
+
 export default function RSVPPage() {
   const router = useRouter()
-  const { user, guest, isLoading } = useAuth()
+  const { user, guest, isLoading, refreshGuestData } = useAuth()
   const { isMobile, isTouchDevice } = useMobileDetection()
   const [formData, setFormData] = useState({
     attending: '',
@@ -27,6 +43,7 @@ export default function RSVPPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isLoadingData, setIsLoadingData] = useState(false)
 
   useEffect(() => {
     // If user is not authenticated, redirect to landing page
@@ -35,16 +52,76 @@ export default function RSVPPage() {
     }
   }, [user, guest, isLoading, router])
 
-  useEffect(() => {
-    // Check if guest has already submitted RSVP
-    if (guest?.rsvp_status && guest.rsvp_status !== 'pending') {
+  // Function to populate form with guest RSVP data
+  const populateFormWithGuestData = (guestData: any) => {
+    if (!guestData) return
+
+    setFormData({
+      attending: guestData.rsvpStatus === 'attending' ? 'yes' : guestData.rsvpStatus === 'not_attending' ? 'no' : '',
+      mealPreference: guestData.mealPreference || '',
+      dietaryRestrictions: guestData.dietaryRestrictions || '',
+      childrenAttending: false, // This field isn't stored in the database currently
+      plusOneName: guestData.plusOneName || '',
+      plusOneMeal: guestData.plusOneMeal || '',
+      specialNotes: guestData.specialNotes || ''
+    })
+
+    // Set submitted state if RSVP has been submitted
+    if (guestData.rsvpStatus && guestData.rsvpStatus !== 'pending') {
       setSubmitted(true)
-      setFormData(prev => ({
-        ...prev,
-        attending: guest.rsvp_status === 'attending' ? 'yes' : 'no'
-      }))
+    } else {
+      setSubmitted(false)
     }
-  }, [guest])
+  }
+
+  // Function to fetch current guest data
+  const fetchCurrentGuestData = async () => {
+    if (!guest?.id && !guest?.invitation_code) return
+
+    setIsLoadingData(true)
+    try {
+      const response = await fetch('/api/guest/current', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-guest-id': guest?.id || '',
+          'x-invitation-code': guest?.invitation_code || ''
+        }
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success && result.guest) {
+          populateFormWithGuestData(result.guest)
+          // Also refresh the guest data in auth context
+          await refreshGuestData()
+        }
+      } else {
+        console.error('Failed to fetch guest data:', response.status, response.statusText)
+        // Fallback to using existing guest data if API call fails
+        if (guest) {
+          populateFormWithGuestData(guest)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching current guest data:', error)
+      // Fallback to using existing guest data if API call fails
+      if (guest) {
+        populateFormWithGuestData(guest)
+      }
+    } finally {
+      setIsLoadingData(false)
+    }
+  }
+
+  useEffect(() => {
+    // Populate form with existing guest data when component mounts
+    if (guest) {
+      populateFormWithGuestData(guest)
+      // Also fetch fresh data from server to ensure it's up to date
+      fetchCurrentGuestData()
+    }
+  }, [guest?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
@@ -107,6 +184,8 @@ export default function RSVPPage() {
 
       if (response.ok && result.success) {
         setSubmitted(true)
+        // Refresh guest data to get the latest RSVP information
+        await refreshGuestData()
       } else {
         console.error('RSVP submission failed:', result.error)
         alert('Failed to submit RSVP. Please try again.')
@@ -173,8 +252,23 @@ export default function RSVPPage() {
                 }
               </p>
               <div className="space-y-4">
-                <Button variant="outline" onClick={() => setSubmitted(false)}>
-                  Update Response
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    setSubmitted(false)
+                    // Fetch fresh data when updating response
+                    await fetchCurrentGuestData()
+                  }}
+                  disabled={isLoadingData}
+                >
+                  {isLoadingData ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                      Loading...
+                    </>
+                  ) : (
+                    'Update Response'
+                  )}
                 </Button>
                 <div>
                   <Button variant="wedding" onClick={() => router.push('/wedding')}>
@@ -192,8 +286,13 @@ export default function RSVPPage() {
                 {guest.first_name} {guest.last_name}
               </CardTitle>
               <p className="text-center text-muted-foreground">
-                Please complete your RSVP below
+                {isLoadingData ? 'Loading your RSVP information...' : 'Please complete your RSVP below'}
               </p>
+              {isLoadingData && (
+                <div className="flex justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+                </div>
+              )}
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">

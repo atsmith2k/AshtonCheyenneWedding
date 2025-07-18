@@ -13,6 +13,7 @@ interface AuthContextType {
   isLoading: boolean
   isAdmin: boolean
   signInWithInvitationCode: (code: string) => Promise<{ success: boolean; error?: string }>
+  refreshGuestData: () => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -153,6 +154,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
+  const refreshGuestData = async () => {
+    try {
+      if (!guest?.id && !guest?.invitation_code) {
+        return
+      }
+
+      // Fetch fresh guest data from the server
+      const response = await fetch('/api/guest/current', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-guest-id': guest?.id || '',
+          'x-invitation-code': guest?.invitation_code || ''
+        }
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success && result.guest) {
+          // Update guest data in state and localStorage
+          setGuest(result.guest)
+          localStorage.setItem('wedding_guest', JSON.stringify(result.guest))
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing guest data:', error)
+    }
+  }
+
   const signOut = async () => {
     localStorage.removeItem('wedding_guest')
     setUser(null)
@@ -166,6 +196,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isLoading,
     isAdmin,
     signInWithInvitationCode,
+    refreshGuestData,
     signOut,
   }
 
