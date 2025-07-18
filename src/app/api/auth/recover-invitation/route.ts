@@ -199,53 +199,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`✅ Resend API key configured: ${process.env.RESEND_API_KEY.substring(0, 10)}...`)
-    // Prepare template variables
-    const baseVariables: EmailTemplateVariables = {
-      couple_names: 'Ashton & Cheyenne',
-      website_url: process.env.NEXT_PUBLIC_APP_URL || 'https://ashtonandcheyenne.com'
-    }
+    console.log(`✅ Resend API key configured: ${process.env.RESEND_API_KEY?.substring(0, 10)}...`)
+    console.log(`🌐 Website URL configured: ${process.env.NEXT_PUBLIC_APP_URL || 'https://ashtonandcheyenne.com'}`)
 
-    const guestVariables: EmailTemplateVariables = {
-      ...baseVariables,
+    // Prepare template variables for the email service
+    const templateVariables: EmailTemplateVariables = {
+      couple_names: 'Ashton & Cheyenne',
+      website_url: process.env.NEXT_PUBLIC_APP_URL || 'https://ashtonandcheyenne.com',
       guest_first_name: guest.first_name,
       guest_last_name: guest.last_name,
       guest_full_name: `${guest.first_name} ${guest.last_name}`,
       invitation_code: guest.invitation_code
     }
 
-    // Process template variables in the template content
-    const processedSubject = template.subject.replace(/{{couple_names}}/g, guestVariables.couple_names || 'Ashton & Cheyenne')
+    console.log(`📧 Sending recovery email to ${guest.email} using template: ${template.template_type}`)
+    console.log(`🔗 Website URL in variables: ${templateVariables.website_url}`)
 
-    let processedHtmlContent = template.html_content
-    let processedTextContent = template.text_content || ''
-
-    // Replace all template variables
-    Object.entries(guestVariables).forEach(([key, value]) => {
-      if (value !== undefined) {
-        const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g')
-        processedHtmlContent = processedHtmlContent.replace(regex, value)
-        processedTextContent = processedTextContent.replace(regex, value)
-      }
-    })
-
-    // Remove any unreplaced variables
-    processedHtmlContent = processedHtmlContent.replace(/{{[^}]+}}/g, '')
-    processedTextContent = processedTextContent.replace(/{{[^}]+}}/g, '')
-
-    console.log(`Sending recovery email to ${guest.email} with subject: ${processedSubject}`)
-
-    // Send invitation code via email with timeout and enhanced error handling
-    // Use the same pattern as working admin emails - pass content directly
+    // Send invitation code via email using the centralized email service
+    // This will handle all template variable processing automatically
     try {
       const emailResult = await Promise.race([
         sendEmail({
           to: guest.email,
-          subject: processedSubject,
-          htmlContent: processedHtmlContent,
-          textContent: processedTextContent,
+          templateType: 'invitation_recovery',
           guestId: guest.id,
-          variables: guestVariables
+          variables: templateVariables
         }),
         new Promise<{ success: false; error: string }>((_, reject) =>
           setTimeout(() => reject(new Error('Email send timeout (30s)')), 30000)
