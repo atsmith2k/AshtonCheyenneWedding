@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
     // Step 5: Test Email Sending (only if all previous steps passed and guest exists)
     if (guest && template && resendConfigured && debug) {
       try {
-        const guestVariables = {
+        const templateVariables = {
           couple_names: 'Ashton & Cheyenne',
           website_url: process.env.NEXT_PUBLIC_APP_URL || 'https://ashtonandcheyenne.com',
           guest_first_name: guest.first_name,
@@ -108,27 +108,14 @@ export async function POST(request: NextRequest) {
           invitation_code: guest.invitation_code
         }
 
-        // Process template content
-        let processedSubject = template.subject
-        let processedHtmlContent = template.html_content
-        let processedTextContent = template.text_content || ''
+        console.log(`🔗 Test email - Website URL: ${templateVariables.website_url}`)
 
-        Object.entries(guestVariables).forEach(([key, value]) => {
-          if (value !== undefined) {
-            const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g')
-            processedSubject = processedSubject.replace(regex, value)
-            processedHtmlContent = processedHtmlContent.replace(regex, value)
-            processedTextContent = processedTextContent.replace(regex, value)
-          }
-        })
-
+        // Use the centralized email service for consistent template processing
         const emailResult = await sendEmail({
           to: guest.email,
-          subject: processedSubject,
-          htmlContent: processedHtmlContent,
-          textContent: processedTextContent,
+          templateType: 'invitation_recovery',
           guestId: guest.id,
-          variables: guestVariables
+          variables: templateVariables
         })
 
         debugInfo.steps.push({
