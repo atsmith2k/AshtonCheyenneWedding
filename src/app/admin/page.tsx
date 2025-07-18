@@ -8,6 +8,14 @@ import { Badge } from '@/components/ui/badge'
 import { MobileDashboard } from '@/components/admin/mobile-dashboard'
 import { useMobileDetection } from '@/hooks/use-mobile-detection'
 import {
+  DashboardStats,
+  RSVPAnalytics,
+  EmailAnalytics,
+  PhotoAnalytics,
+  MessageAnalytics,
+  AnalyticsApiResponse
+} from '@/types/analytics'
+import {
   Users,
   UserCheck,
   UserX,
@@ -17,20 +25,9 @@ import {
   MessageCircle,
   TrendingUp,
   Calendar,
-  MapPin
+  MapPin,
+  RefreshCw
 } from 'lucide-react'
-
-interface DashboardStats {
-  totalGuests: number
-  attending: number
-  notAttending: number
-  pending: number
-  emailsSent: number
-  emailOpenRate: number
-  photosUploaded: number
-  pendingPhotos: number
-  newMessages: number
-}
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -40,11 +37,15 @@ export default function AdminDashboard() {
     attending: 0,
     notAttending: 0,
     pending: 0,
+    responseRate: 0,
     emailsSent: 0,
     emailOpenRate: 0,
+    emailDeliveryRate: 0,
     photosUploaded: 0,
+    photosApproved: 0,
     pendingPhotos: 0,
-    newMessages: 0
+    newMessages: 0,
+    urgentMessages: 0
   })
 
   // Calculate days until wedding (placeholder date)
@@ -52,56 +53,87 @@ export default function AdminDashboard() {
   const today = new Date()
   const daysUntilWedding = Math.ceil((weddingDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
   useEffect(() => {
     fetchDashboardStats()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchDashboardStats = async () => {
     try {
-      // Fetch guests stats
-      const guestsResponse = await fetch('/api/admin/guests')
-      const guestsResult = await guestsResponse.json()
+      setLoading(true)
+      setError(null)
 
-      // Fetch photos stats
-      const photosResponse = await fetch('/api/photos/upload')
-      const photosResult = await photosResponse.json()
+      // Fetch all analytics in parallel
+      const [rsvpResponse, emailResponse, photoResponse, messageResponse] = await Promise.all([
+        fetch('/api/admin/rsvp-analytics'),
+        fetch('/api/admin/email-analytics'),
+        fetch('/api/admin/photos/analytics'),
+        fetch('/api/admin/messages/analytics')
+      ])
 
-      // Fetch messages stats
-      const messagesResponse = await fetch('/api/messages/submit')
-      const messagesResult = await messagesResponse.json()
+      // Parse responses
+      const rsvpResult: AnalyticsApiResponse<RSVPAnalytics> = await rsvpResponse.json()
+      const emailResult: AnalyticsApiResponse<EmailAnalytics> = await emailResponse.json()
+      const photoResult: AnalyticsApiResponse<PhotoAnalytics> = await photoResponse.json()
+      const messageResult: AnalyticsApiResponse<MessageAnalytics> = await messageResponse.json()
 
-      if (guestsResult.success && photosResult.success && messagesResult.success) {
-        const guests = guestsResult.data
-        const photos = photosResult.data
-        const messages = messagesResult.data
-
-        setStats({
-          totalGuests: guests.length,
-          attending: guests.filter((g: any) => g.rsvp_status === 'attending').length,
-          notAttending: guests.filter((g: any) => g.rsvp_status === 'not_attending').length,
-          pending: guests.filter((g: any) => g.rsvp_status === 'pending').length,
-          emailsSent: 0, // Will be implemented with email tracking
-          emailOpenRate: 0, // Will be implemented with email tracking
-          photosUploaded: photos.length,
-          pendingPhotos: photos.filter((p: any) => !p.approved).length,
-          newMessages: messages.filter((m: any) => m.status === 'new').length
-        })
+      // Check for errors
+      if (!rsvpResult.success || !emailResult.success || !photoResult.success || !messageResult.success) {
+        throw new Error('Failed to fetch one or more analytics endpoints')
       }
+
+      const rsvpData = rsvpResult.analytics!
+      const emailData = emailResult.analytics!
+      const photoData = photoResult.analytics!
+      const messageData = messageResult.analytics!
+
+      // Calculate correct response rate (attending + not_attending) / total
+      const responseRate = rsvpData.overview.total > 0
+        ? ((rsvpData.overview.attending + rsvpData.overview.notAttending) / rsvpData.overview.total) * 100
+        : 0
+
+      setStats({
+        totalGuests: rsvpData.overview.total,
+        attending: rsvpData.overview.attending,
+        notAttending: rsvpData.overview.notAttending,
+        pending: rsvpData.overview.pending,
+        responseRate: Math.round(responseRate * 100) / 100,
+        emailsSent: emailData.overview.total_emails_sent,
+        emailOpenRate: emailData.overview.open_rate,
+        emailDeliveryRate: emailData.overview.delivery_rate,
+        photosUploaded: photoData.overview.total_photos,
+        photosApproved: photoData.overview.approved_photos,
+        pendingPhotos: photoData.overview.pending_photos,
+        newMessages: messageData.overview.new_messages,
+        urgentMessages: messageData.overview.urgent_messages
+      })
+
+      setLastUpdated(new Date())
     } catch (error) {
       console.error('Error fetching dashboard stats:', error)
-      // Fallback to placeholder data
-      setStats({
-        totalGuests: 0,
-        attending: 0,
-        notAttending: 0,
-        pending: 0,
-        emailsSent: 0,
-        emailOpenRate: 0,
-        photosUploaded: 0,
-        pendingPhotos: 0,
-        newMessages: 0
-      })
+      setError(error instanceof Error ? error.message : 'Failed to fetch dashboard statistics')
+
+      // Don't reset stats on error, keep previous values if available
+      if (stats.totalGuests === 0) {
+        // Only set fallback if no previous data
+        setStats({
+          totalGuests: 0,
+          attending: 0,
+          notAttending: 0,
+          pending: 0,
+          responseRate: 0,
+          emailsSent: 0,
+          emailOpenRate: 0,
+          emailDeliveryRate: 0,
+          photosUploaded: 0,
+          photosApproved: 0,
+          pendingPhotos: 0,
+          newMessages: 0,
+          urgentMessages: 0
+        })
+      }
     } finally {
       setLoading(false)
     }
@@ -142,7 +174,11 @@ export default function AdminDashboard() {
     router.push(path)
   }
 
-  if (loading) {
+  const handleRefresh = () => {
+    fetchDashboardStats()
+  }
+
+  if (loading && stats.totalGuests === 0) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -194,9 +230,24 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here's what's happening with your wedding.</p>
+          <p className="text-muted-foreground">
+            Welcome back! Here's what's happening with your wedding.
+            {lastUpdated && (
+              <span className="text-xs block mt-1">
+                Last updated: {lastUpdated.toLocaleTimeString()}
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={loading}
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
           <Button variant="outline">
             <Calendar className="w-4 h-4 mr-2" />
             Wedding Timeline
@@ -207,6 +258,25 @@ export default function AdminDashboard() {
           </Button>
         </div>
       </div>
+
+      {/* Error Alert */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <div className="text-red-600 text-sm">
+              <strong>Error loading dashboard data:</strong> {error}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              className="ml-auto"
+            >
+              Retry
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -221,7 +291,7 @@ export default function AdminDashboard() {
           value={stats.attending}
           icon={UserCheck}
           color="green"
-          subtitle={`${Math.round((stats.attending / stats.totalGuests) * 100)}% response rate`}
+          subtitle={`${stats.responseRate}% response rate`}
         />
         <StatCard
           title="Not Attending"
@@ -244,21 +314,21 @@ export default function AdminDashboard() {
           value={`${stats.emailOpenRate}%`}
           icon={Mail}
           color="blue"
-          subtitle={`${stats.emailsSent} emails sent`}
+          subtitle={`${stats.emailsSent} emails sent • ${stats.emailDeliveryRate}% delivered`}
         />
         <StatCard
-          title="Photo Uploads"
-          value={stats.photosUploaded}
+          title="Photo Gallery"
+          value={stats.photosApproved}
           icon={Image}
           color="purple"
-          subtitle={`${stats.pendingPhotos} pending approval`}
+          subtitle={`${stats.pendingPhotos} pending • ${stats.photosUploaded} total`}
         />
         <StatCard
-          title="New Messages"
+          title="Messages"
           value={stats.newMessages}
           icon={MessageCircle}
           color="orange"
-          subtitle="Requires response"
+          subtitle={stats.urgentMessages > 0 ? `${stats.urgentMessages} urgent` : "All up to date"}
         />
       </div>
 
