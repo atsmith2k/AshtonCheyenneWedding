@@ -76,7 +76,7 @@ export default function RSVPPage() {
 
   // Function to fetch current guest data
   const fetchCurrentGuestData = async () => {
-    if (!guest?.id && !guest?.invitationCode) return
+    if (!guest?.id && !guest?.invitation_code) return
 
     setIsLoadingData(true)
     try {
@@ -85,7 +85,7 @@ export default function RSVPPage() {
         headers: {
           'Content-Type': 'application/json',
           'x-guest-id': guest?.id || '',
-          'x-invitation-code': guest?.invitationCode || ''
+          'x-invitation-code': guest?.invitation_code || ''
         }
       })
 

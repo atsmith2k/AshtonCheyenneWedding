@@ -156,7 +156,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const refreshGuestData = async () => {
     try {
-      if (!guest?.id && !guest?.invitationCode) {
+      if (!guest?.id && !guest?.invitation_code) {
         return
       }
 
@@ -166,7 +166,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         headers: {
           'Content-Type': 'application/json',
           'x-guest-id': guest?.id || '',
-          'x-invitation-code': guest?.invitationCode || ''
+          'x-invitation-code': guest?.invitation_code || ''
         }
       })
 

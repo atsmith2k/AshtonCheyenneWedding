@@ -58,8 +58,10 @@ describe('/api/guest/current', () => {
         }))
       }))
     }
-    
-    vi.mocked(supabaseAdmin.from).mockReturnValue(mockQuery as any)
+
+    if (supabaseAdmin) {
+      vi.mocked(supabaseAdmin.from).mockReturnValue(mockQuery as any)
+    }
 
     const request = new NextRequest('http://localhost:3000/api/guest/current', {
       method: 'GET',
