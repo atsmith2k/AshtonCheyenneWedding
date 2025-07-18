@@ -493,35 +493,6 @@ export interface Database {
           created_at?: string
         }
       }
-      admin_users: {
-        Row: {
-          id: string
-          email: string
-          first_name: string
-          last_name: string
-          role: string
-          is_active: boolean
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          email: string
-          first_name: string
-          last_name: string
-          role?: string
-          is_active?: boolean
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          email?: string
-          first_name?: string
-          last_name?: string
-          role?: string
-          is_active?: boolean
-          created_at?: string
-        }
-      }
       email_templates: {
         Row: {
           id: string
