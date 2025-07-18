@@ -4,6 +4,7 @@ import { requireAdmin } from '@/lib/admin-auth'
 import { supabaseAdmin } from '@/lib/supabase'
 import { accessRequestUpdateSchema, bulkAccessRequestSchema } from '@/lib/validation'
 import { decrypt } from '@/lib/crypto'
+import { approveAccessRequestWorkflow } from '@/lib/guest-creation'
 
 // Force dynamic rendering - admin routes use authentication
 export const dynamic = 'force-dynamic'
@@ -154,19 +155,38 @@ export async function POST(request: NextRequest) {
               action: 'deleted'
             })
           }
+        } else if (action === 'approve') {
+          // Use the automated approval workflow
+          const workflowResult = await approveAccessRequestWorkflow(
+            accessRequest.id,
+            adminUser.id,
+            admin_notes,
+            send_invitations
+          )
+
+          if (workflowResult.success) {
+            results.push({
+              request_id: accessRequest.id,
+              success: true,
+              action: 'approved',
+              guest_created: true,
+              guest_id: workflowResult.guestId,
+              invitation_code: workflowResult.invitationCode,
+              send_invitation: send_invitations
+            })
+          } else {
+            results.push({
+              request_id: accessRequest.id,
+              success: false,
+              error: workflowResult.error || 'Failed to approve request'
+            })
+          }
         } else {
-          // Update status (approve/deny)
-          const newStatus = action === 'approve' ? 'approved' : 'denied'
-          
+          // Handle denial
           const updateData: any = {
-            status: newStatus,
+            status: 'denied',
             updated_at: now,
             admin_notes: admin_notes || null
-          }
-
-          if (action === 'approve') {
-            updateData.approved_by = adminUser.id
-            updateData.approved_at = now
           }
 
           const { error: updateError } = await supabaseAdmin
@@ -184,12 +204,8 @@ export async function POST(request: NextRequest) {
             results.push({
               request_id: accessRequest.id,
               success: true,
-              action: newStatus,
-              send_invitation: action === 'approve' && send_invitations
+              action: 'denied'
             })
-
-            // TODO: If approved and send_invitations is true, trigger invitation email
-            // This will be implemented in the email integration phase
           }
         }
       } catch (requestError) {
