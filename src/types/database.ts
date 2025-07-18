@@ -27,6 +27,9 @@ export interface Database {
           plus_one_meal: 'chicken' | 'beef' | 'fish' | 'vegetarian' | 'vegan' | 'kids_meal' | null
           notes: string | null
           rsvp_submitted_at: string | null
+          invitation_sent_at: string | null
+          group_name: string | null
+          table_number: number | null
           created_at: string
           updated_at: string
         }
@@ -47,6 +50,9 @@ export interface Database {
           plus_one_meal?: 'chicken' | 'beef' | 'fish' | 'vegetarian' | 'vegan' | 'kids_meal' | null
           notes?: string | null
           rsvp_submitted_at?: string | null
+          invitation_sent_at?: string | null
+          group_name?: string | null
+          table_number?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -67,6 +73,9 @@ export interface Database {
           plus_one_meal?: 'chicken' | 'beef' | 'fish' | 'vegetarian' | 'vegan' | 'kids_meal' | null
           notes?: string | null
           rsvp_submitted_at?: string | null
+          invitation_sent_at?: string | null
+          group_name?: string | null
+          table_number?: number | null
           created_at?: string
           updated_at?: string
         }
@@ -196,6 +205,8 @@ export interface Database {
           tags: string[] | null
           sort_order: number
           moderation_notes: string | null
+          uploaded_at: string
+          is_deleted: boolean
           created_at: string
           approved_at: string | null
           approved_by: string | null
@@ -219,6 +230,8 @@ export interface Database {
           tags?: string[] | null
           sort_order?: number
           moderation_notes?: string | null
+          uploaded_at?: string
+          is_deleted?: boolean
           created_at?: string
           approved_at?: string | null
           approved_by?: string | null
@@ -242,9 +255,157 @@ export interface Database {
           tags?: string[] | null
           sort_order?: number
           moderation_notes?: string | null
+          uploaded_at?: string
+          is_deleted?: boolean
           created_at?: string
           approved_at?: string | null
           approved_by?: string | null
+        }
+      }
+      admin_users: {
+        Row: {
+          id: string
+          email: string
+          first_name: string
+          last_name: string
+          role: 'admin' | 'super_admin'
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          email: string
+          first_name: string
+          last_name: string
+          role?: 'admin' | 'super_admin'
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          first_name?: string
+          last_name?: string
+          role?: 'admin' | 'super_admin'
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      email_campaigns: {
+        Row: {
+          id: string
+          name: string
+          template_id: string
+          recipient_filter: Json
+          status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed'
+          scheduled_at: string | null
+          sent_at: string | null
+          total_recipients: number
+          successful_sends: number
+          failed_sends: number
+          created_by: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          template_id: string
+          recipient_filter?: Json
+          status?: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed'
+          scheduled_at?: string | null
+          sent_at?: string | null
+          total_recipients?: number
+          successful_sends?: number
+          failed_sends?: number
+          created_by: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          template_id?: string
+          recipient_filter?: Json
+          status?: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed'
+          scheduled_at?: string | null
+          sent_at?: string | null
+          total_recipients?: number
+          successful_sends?: number
+          failed_sends?: number
+          created_by?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      analytics_events: {
+        Row: {
+          id: string
+          event_type: string
+          guest_id: string | null
+          admin_id: string | null
+          metadata: Json
+          ip_address: string | null
+          user_agent: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          event_type: string
+          guest_id?: string | null
+          admin_id?: string | null
+          metadata?: Json
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          event_type?: string
+          guest_id?: string | null
+          admin_id?: string | null
+          metadata?: Json
+          ip_address?: string | null
+          user_agent?: string | null
+          created_at?: string
+        }
+      }
+      albums: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          cover_photo_id: string | null
+          is_public: boolean
+          sort_order: number
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          cover_photo_id?: string | null
+          is_public?: boolean
+          sort_order?: number
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          cover_photo_id?: string | null
+          is_public?: boolean
+          sort_order?: number
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
         }
       }
       photo_albums: {
@@ -458,6 +619,8 @@ export interface Database {
       message_status: 'new' | 'responded' | 'archived'
       meal_option: 'chicken' | 'beef' | 'fish' | 'vegetarian' | 'vegan' | 'kids_meal'
       access_request_status: 'pending' | 'approved' | 'denied'
+      admin_role: 'admin' | 'super_admin'
+      email_campaign_status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed'
     }
   }
 }
