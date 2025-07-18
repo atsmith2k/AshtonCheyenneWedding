@@ -16,6 +16,7 @@ export interface Database {
           first_name: string
           last_name: string
           phone: string | null
+          address: string | null
           invitation_code: string
           group_id: string | null
           rsvp_status: 'pending' | 'attending' | 'not_attending'
@@ -35,6 +36,7 @@ export interface Database {
           first_name: string
           last_name: string
           phone?: string | null
+          address?: string | null
           invitation_code: string
           group_id?: string | null
           rsvp_status?: 'pending' | 'attending' | 'not_attending'
@@ -53,6 +55,7 @@ export interface Database {
           email?: string | null
           first_name?: string
           last_name?: string
+          address?: string | null
           phone?: string | null
           invitation_code?: string
           group_id?: string | null
@@ -402,6 +405,7 @@ export interface Database {
           admin_notes: string | null
           invitation_code: string | null
           invitation_sent_at: string | null
+          guest_id: string | null
           created_at: string
           updated_at: string
           approved_by: string | null
@@ -418,6 +422,7 @@ export interface Database {
           admin_notes?: string | null
           invitation_code?: string | null
           invitation_sent_at?: string | null
+          guest_id?: string | null
           created_at?: string
           updated_at?: string
           approved_by?: string | null
@@ -434,6 +439,7 @@ export interface Database {
           admin_notes?: string | null
           invitation_code?: string | null
           invitation_sent_at?: string | null
+          guest_id?: string | null
           created_at?: string
           updated_at?: string
           approved_by?: string | null
