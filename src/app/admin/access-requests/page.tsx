@@ -77,6 +77,7 @@ export default function AccessRequestsPage() {
   const [adminNotes, setAdminNotes] = useState('')
   const [sendInvitation, setSendInvitation] = useState(true)
   const [processing, setProcessing] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const fetchRequests = async (status?: string) => {
     try {
@@ -157,14 +158,33 @@ export default function AccessRequestsPage() {
           const data = await response.json()
           throw new Error(data.error || `Failed to ${actionType} request`)
         }
+
+        // Handle success response for approvals
+        if (actionType === 'approve') {
+          const result = await response.json()
+          if (result.guest_created) {
+            setSuccessMessage(
+              `Access request approved successfully! Guest record created with invitation code: ${result.invitation_code}${
+                result.invitation_sent ? ' (Invitation email sent)' : ''
+              }`
+            )
+          } else {
+            setSuccessMessage('Access request approved successfully!')
+          }
+        }
       }
-      
+
       // Refresh the list
       await fetchRequests(selectedStatus)
-      
+
       // Close modal
       setShowActionModal(false)
       setSelectedRequest(null)
+
+      // Clear success message after 5 seconds
+      if (successMessage) {
+        setTimeout(() => setSuccessMessage(null), 5000)
+      }
       
     } catch (err) {
       console.error(`Error ${actionType}ing request:`, err)
@@ -241,6 +261,14 @@ export default function AccessRequestsPage() {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Success Alert */}
+      {successMessage && (
+        <Alert className="border-green-200 bg-green-50">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
         </Alert>
       )}
 
