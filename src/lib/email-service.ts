@@ -2,8 +2,19 @@ import { Resend } from 'resend'
 import { supabaseAdmin } from '@/lib/supabase'
 import { randomUUID } from 'crypto'
 
-// Initialize Resend client
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Initialize Resend client (lazy initialization)
+let resend: Resend | null = null
+
+function getResendClient(): Resend {
+  if (!resend) {
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY environment variable is not set')
+    }
+    resend = new Resend(apiKey)
+  }
+  return resend
+}
 
 // Email template variables that can be used in templates
 export interface EmailTemplateVariables {
@@ -224,7 +235,8 @@ export async function sendEmail(options: SendEmailOptions): Promise<EmailSendRes
     const processedTextContent = textContent ? replaceTemplateVariables(textContent, allVariables) : undefined
 
     // Send email via Resend
-    const { data, error } = await resend.emails.send({
+    const resendClient = getResendClient()
+    const { data, error } = await resendClient.emails.send({
       from: 'Ashton & Cheyenne <noreply@ashtonandcheyenne.com>', // Update with your domain
       to: options.to,
       subject: processedSubject,

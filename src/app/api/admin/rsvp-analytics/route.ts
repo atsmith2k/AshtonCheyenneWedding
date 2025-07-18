@@ -53,12 +53,15 @@ export async function GET(request: NextRequest) {
 
     // Calculate meal preferences breakdown
     const mealBreakdown: Record<string, number> = {}
+    let totalMeals = 0
     guests.forEach(guest => {
       if (guest.meal_preference) {
         mealBreakdown[guest.meal_preference] = (mealBreakdown[guest.meal_preference] || 0) + 1
+        totalMeals++
       }
       if (guest.plus_one_meal) {
         mealBreakdown[guest.plus_one_meal] = (mealBreakdown[guest.plus_one_meal] || 0) + 1
+        totalMeals++
       }
     })
 
@@ -90,10 +93,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Calculate total meal count (including plus ones)
-    const totalMeals = attending + guests.filter(g => 
-      g.rsvp_status === 'attending' && g.plus_one_name
-    ).length
+
 
     // Most common dietary restrictions
     const dietaryRestrictionsList = guests

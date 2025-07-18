@@ -17,6 +17,14 @@ const testEmailSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check if email service is configured
+    if (!process.env.RESEND_API_KEY) {
+      return NextResponse.json(
+        { error: 'Email service not configured. RESEND_API_KEY is missing.' },
+        { status: 503 }
+      )
+    }
+
     // Require admin authentication
     await requireAdmin()
 
