@@ -234,6 +234,15 @@ export async function sendEmail(options: SendEmailOptions): Promise<EmailSendRes
     const processedHtmlContent = replaceTemplateVariables(htmlContent, allVariables)
     const processedTextContent = textContent ? replaceTemplateVariables(textContent, allVariables) : undefined
 
+    // Check if Resend is configured
+    if (!resend) {
+      console.warn('Resend API key not configured, skipping email send')
+      return {
+        success: false,
+        error: 'Email service not configured'
+      }
+    }
+
     // Send email via Resend
     const resendClient = getResendClient()
     const { data, error } = await resendClient.emails.send({
