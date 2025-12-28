@@ -4,10 +4,6 @@
         {
             "source": "/api/(.*)",
             "destination": "/api/index.js"
-        },
-        {
-            "source": "/(.*)",
-            "destination": "/api/index.js"
         }
     ],
     "headers": [
@@ -32,7 +28,7 @@
                 },
                 {
                     "key": "Content-Security-Policy",
-                    "value": "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+                    "value": "default-src 'self' https://*.vercel.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.app; img-src 'self' data: https://*.vercel.app; connect-src 'self' https://*.vercel.app https://*.turso.io;"
                 }
             ]
         }

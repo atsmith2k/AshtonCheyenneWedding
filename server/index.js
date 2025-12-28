@@ -18,11 +18,12 @@ const PORT = process.env.PORT || 3000;
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
-            defaultSrc: ["'self'"],
+            defaultSrc: ["'self'", "https://*.vercel.app"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
-            imgSrc: ["'self'", "data:"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://vercel.live", "https://*.vercel.app"],
+            imgSrc: ["'self'", "data:", "https://*.vercel.app"],
+            connectSrc: ["'self'", "https://*.vercel.app", "https://*.turso.io"],
         },
     },
 }));
@@ -62,6 +63,14 @@ const sanitizeInput = (input) => {
     if (typeof input !== 'string') return input;
     return input.trim().substring(0, 500);
 };
+
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        environment: process.env.NODE_ENV,
+        database: !!process.env.TURSO_DATABASE_URL ? 'configured' : 'not-configured'
+    });
+});
 
 // ============================================
 // RSVP Routes
