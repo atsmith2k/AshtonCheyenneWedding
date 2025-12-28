@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Wedding RSVP</title>
+    <link rel="stylesheet" href="styles.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--bg-dark);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-dark);
+            border-bottom: 2px solid var(--bg);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--bg);
+        }
+
+        tr:hover {
+            background: var(--bg);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-attending {
+            background: rgba(122, 184, 122, 0.2);
+            color: var(--success);
+        }
+
+        .status-declined {
+            background: rgba(214, 112, 112, 0.2);
+            color: var(--error);
+        }
+
+        .status-pending {
+            background: rgba(160, 160, 160, 0.2);
+            color: var(--text-muted);
+        }
+
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-card {
+            background: white;
+            padding: 3rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid var(--bg-dark);
+            background: white;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all var(--transition-normal);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Invitation Styles */
+        .invitation-card {
+            width: 5in;
+            height: 7in;
+            border: 1px solid #eee;
+            margin: 1rem auto;
+            padding: 0.5in;
+            text-align: center;
+            background: white;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .invitation-card::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            border: 1px solid #dfd3c3;
+            pointer-events: none;
+        }
+
+        .invitation-names {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.75rem;
+            color: #bfa37e;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+
+        .invitation-date {
+            font-size: 1.2rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-top: 1rem;
+            color: #666;
+        }
+
+        .invitation-location {
+            font-size: 1rem;
+            color: #888;
+            margin-top: 0.5rem;
+        }
+
+        .invitation-back-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 0.25in;
+        }
+
+        .invitation-divider {
+            width: 40px;
+            height: 1px;
+            background: #bfa37e;
+            margin: 2rem auto;
+        }
+
+        .invitation-code-box {
+            background: #fdfaf6;
+            border: 1px dashed #d1b894;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .invitation-code {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: 0.25em;
+            color: #333;
+        }
+
+        .preview-grid {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        #export-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: #f5f5f5;
+            max-width: 11in;
+            margin: 0 auto;
+            padding: 3rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #export-modal,
+            #export-modal * {
+                visibility: visible;
+            }
+
+            #export-modal {
+                display: block !important;
+                position: absolute;
+                left: 0;
+                top: 0;
+                background: white;
+                padding: 0;
+            }
+
+            .modal-content {
+                padding: 0;
+                background: white;
+            }
+
+            button,
+            p.mb-lg {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-card slide-up">
+            <h2 class="text-center mb-md">Admin Access</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" id="admin-password" class="form-input" placeholder="Enter admin password"
+                        required>
+                    <span id="login-error" class="form-error hidden"></span>
+                </div>
+                <button type="submit" id="login-btn" class="btn btn-primary" style="width: 100%;">
+                    Login
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="hidden">
+        <div class="admin-container">
+            <!-- Header -->
+            <div class="admin-header">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h1 style="margin-bottom: 0.5rem;">Wedding RSVP Dashboard</h1>
+                        <p style="opacity: 0.9;">Manage your guest list and RSVP codes</p>
+                    </div>
+                    <a href="index.html" class="btn btn-secondary" style="background: white; color: var(--primary);">
+                        ← Back to Website
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-total-codes">0</div>
+                    <div class="stat-label">Total Codes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-used-codes">0</div>
+                    <div class="stat-label">Used Codes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-attending">0</div>
+                    <div class="stat-label">Parties Attending</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-total-guests">0</div>
+                    <div class="stat-label">Total Guests</div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="guests">Guest List</button>
+                <button class="tab-btn" data-tab="codes">RSVP Codes</button>
+                <button class="tab-btn" data-tab="generate">Generate Code</button>
+                <button class="tab-btn" data-tab="print">Print Invitations</button>
+            </div>
+
+            <!-- Guest List Tab -->
+            <div id="guests-tab" class="tab-content active">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Code</th>
+                                <th>Status</th>
+                                <th>Guests</th>
+                                <th>Message</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="guests-table-body">
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Codes Tab -->
+            <div id="codes-tab" class="tab-content">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Max Guests</th>
+                                <th>Status</th>
+                                <th>Notes</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="codes-table-body">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Generate Code Tab -->
+            <div id="generate-tab" class="tab-content">
+                <div class="card" style="max-width: 600px; margin: 0 auto;">
+                    <h3 class="mb-md">Generate New RSVP Code</h3>
+                    <div id="generate-alert"></div>
+                    <form id="generate-form">
+                        <div class="form-group">
+                            <label class="form-label">Maximum Guests</label>
+                            <select id="max-guests-input" class="form-select">
+                                <option value="1">1 Guest</option>
+                                <option value="2" selected>2 Guests</option>
+                                <option value="3">3 Guests</option>
+                                <option value="4">4 Guests</option>
+                                <option value="5">5 Guests</option>
+                                <option value="6">6 Guests</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Notes (Optional)</label>
+                            <input type="text" id="code-notes" class="form-input"
+                                placeholder="e.g., Smith Family, John Doe">
+                        </div>
+                        <button type="submit" id="generate-btn" class="btn btn-primary" style="width: 100%;">
+                            Generate Code
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Print Invitations Tab -->
+            <div id="print-tab" class="tab-content">
+                <div class="card">
+                    <h3 class="mb-md">Invitation Generator</h3>
+                    <p class="mb-lg">Select a code to generate printable "Save the Date" designs (Front & Back).</p>
+                    <div class="form-group">
+                        <label class="form-label">Select RSVP Code</label>
+                        <select id="print-code-select" class="form-select">
+                            <option value="">-- Choose a code --</option>
+                        </select>
+                    </div>
+                    <button id="generate-print-btn" class="btn btn-primary" style="width: 100%;">
+                        Generate Preview
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="export-modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2 style="margin: 0;">Invitation Preview (Front & Back)</h2>
+                <button onclick="document.getElementById('export-modal').style.display='none'"
+                    class="btn btn-secondary">Close Preview</button>
+            </div>
+            <p class="mb-lg" style="color: #666;">These high-resolution designs are sized 5" x 7". You can right-click
+                and save the cards or use your browser's print to PDF function.</p>
+
+            <div class="preview-grid" id="printable-area">
+                <!-- Front Card -->
+                <div class="invitation-card">
+                    <p
+                        style="text-transform: uppercase; letter-spacing: 0.4em; font-size: 0.8rem; color: #999; margin-bottom: 3rem;">
+                        Save the Date</p>
+                    <h1 class="invitation-names">Ashton & Cheyenne</h1>
+                    <div class="invitation-divider"></div>
+                    <p class="invitation-date">September 12, 2026</p>
+                    <p class="invitation-location">Otisco, Indiana</p>
+                </div>
+
+                <!-- Back Card -->
+                <div class="invitation-card">
+                    <div class="invitation-back-content">
+                        <p
+                            style="text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.75rem; color: #999; margin-bottom: 2rem;">
+                            RSVP Online</p>
+                        <p style="font-size: 0.95rem; line-height: 1.6; color: #555;">To view wedding details,
+                            accommodations,<br>and to RSVP, please visit our website:</p>
+                        <p style="font-weight: 600; color: #bfa37e; margin: 1rem 0; font-size: 1.1rem;"
+                            id="invitation-url-text"></p>
+
+                        <div class="invitation-code-box">
+                            <p
+                                style="font-size: 0.7rem; color: #999; letter-spacing: 0.1em; margin-bottom: 0.5rem; text-transform: uppercase;">
+                                Your Unique Access Code</p>
+                            <div class="invitation-code" id="invitation-code-text">XXXXXX</div>
+                        </div>
+
+                        <p style="margin-top: 1rem; font-style: italic; color: #aaa; font-size: 0.85rem;">Official
+                            invitation to follow</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 3rem;">
+                <button onclick="window.print()" class="btn btn-primary">Save as PDF / Print</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000/api'
+            : '/api';
+
+        let adminPassword = '';
+
+        // Login
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('admin-password').value;
+            const loginBtn = document.getElementById('login-btn');
+            const loginError = document.getElementById('login-error');
+
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<span class="spinner"></span>';
+            loginError.classList.add('hidden');
+
+            try {
+                const response = await fetch(`${API_URL}/admin/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                const data = await response.json();
+
+                if (data.authorized) {
+                    adminPassword = password;
+                    document.getElementById('login-overlay').style.display = 'none';
+                    document.getElementById('admin-dashboard').classList.remove('hidden');
+                    loadDashboard();
+                } else {
+                    loginError.textContent = 'Invalid password';
+                    loginError.classList.remove('hidden');
+                }
+            } catch (error) {
+                loginError.textContent = 'Connection error';
+                loginError.classList.remove('hidden');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+            }
+        });
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                btn.classList.add('active');
+                document.getElementById(`${tab}-tab`).classList.add('active');
+            });
+        });
+
+        // Load dashboard data
+        async function loadDashboard() {
+            await Promise.all([
+                loadStats(),
+                loadGuests(),
+                loadCodes(),
+                loadCodesToSelect()
+            ]);
+        }
+
+        async function loadCodesToSelect() {
+            try {
+                const response = await fetch(`${API_URL}/admin/codes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: adminPassword })
+                });
+
+                const { codes } = await response.json();
+                const select = document.getElementById('print-code-select');
+
+                select.innerHTML = '<option value="">-- Choose a code --</option>';
+
+                codes.forEach(code => {
+                    const option = document.createElement('option');
+                    option.value = code.code;
+                    option.textContent = `${code.code} (${code.notes || 'No notes'})`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to load codes for selection:', error);
+            }
+        }
+
+        // Preview functionality
+        document.getElementById('generate-print-btn').addEventListener('click', () => {
+            const code = document.getElementById('print-code-select').value;
+            if (!code) {
+                alert('Please select a code first');
+                return;
+            }
+
+            const url = window.location.origin;
+            document.getElementById('invitation-url-text').textContent = url.replace('http://', '').replace('https://', '');
+            document.getElementById('invitation-code-text').textContent = code;
+
+            document.getElementById('export-modal').style.display = 'block';
+        });
+
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_URL}/admin/stats`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: adminPassword })
+                });
+
+                const { stats } = await response.json();
+
+                document.getElementById('stat-total-codes').textContent = stats.total_codes || 0;
+                document.getElementById('stat-used-codes').textContent = stats.used_codes || 0;
+                document.getElementById('stat-attending').textContent = stats.attending_count || 0;
+                document.getElementById('stat-total-guests').textContent = stats.total_guests_attending || 0;
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        async function loadGuests() {
+            try {
+                const response = await fetch(`${API_URL}/admin/guests`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: adminPassword })
+                });
+
+                const { guests } = await response.json();
+                const tbody = document.getElementById('guests-table-body');
+
+                if (guests.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No RSVPs yet</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = guests.map(guest => {
+                    const status = guest.attending === 1 ? 'attending' : guest.attending === 0 ? 'declined' : 'pending';
+                    const statusText = guest.attending === 1 ? 'Attending' : guest.attending === 0 ? 'Declined' : 'Pending';
+
+                    return `
+                        <tr>
+                            <td><strong>${guest.name}</strong></td>
+                            <td><code>${guest.code}</code></td>
+                            <td><span class="status-badge status-${status}">${statusText}</span></td>
+                            <td>${guest.guest_count || '-'}</td>
+                            <td>${guest.message || '-'}</td>
+                            <td>${new Date(guest.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Failed to load guests:', error);
+            }
+        }
+
+        async function loadCodes() {
+            try {
+                const response = await fetch(`${API_URL}/admin/codes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: adminPassword })
+                });
+
+                const { codes } = await response.json();
+                const tbody = document.getElementById('codes-table-body');
+
+                if (codes.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No codes generated yet</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = codes.map(code => `
+                    <tr>
+                        <td><strong><code>${code.code}</code></strong></td>
+                        <td>${code.max_guests}</td>
+                        <td><span class="status-badge ${code.used ? 'status-attending' : 'status-pending'}">${code.used ? 'Used' : 'Available'}</span></td>
+                        <td>${code.notes || '-'}</td>
+                        <td>${new Date(code.created_at).toLocaleDateString()}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load codes:', error);
+            }
+        }
+
+        // Generate code
+        document.getElementById('generate-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const maxGuests = document.getElementById('max-guests-input').value;
+            const notes = document.getElementById('code-notes').value;
+            const generateBtn = document.getElementById('generate-btn');
+            const generateAlert = document.getElementById('generate-alert');
+
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<span class="spinner"></span>';
+
+            try {
+                const response = await fetch(`${API_URL}/admin/generate-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: adminPassword, maxGuests, notes })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    generateAlert.innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>Code Generated:</strong> <code style="font-size: 1.2rem; letter-spacing: 0.1em;">${data.code}</code>
+                        </div>
+                    `;
+                    document.getElementById('code-notes').value = '';
+                    await loadDashboard();
+                } else {
+                    generateAlert.innerHTML = `<div class="alert alert-error">Failed to generate code</div>`;
+                }
+            } catch (error) {
+                generateAlert.innerHTML = `<div class="alert alert-error">Connection error</div>`;
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Code';
+            }
+        });
+    </script>
+</body>
+
+</html>
