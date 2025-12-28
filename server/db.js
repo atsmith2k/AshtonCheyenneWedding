@@ -2,21 +2,22 @@ const { createClient } = require('@libsql/client');
 const path = require('path');
 
 // Initialize database client
-const isVercel = process.env.VERCEL === '1';
+const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL;
 const url = process.env.TURSO_DATABASE_URL || (isVercel ? "" : `file:${path.join(__dirname, '..', 'wedding.db')}`);
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
 if (isVercel && !process.env.TURSO_DATABASE_URL) {
-  console.warn('⚠️ TURSO_DATABASE_URL is not set in Vercel environment.');
+  console.warn('⚠️ TURSO_DATABASE_URL is not set. Database operations will fail.');
 }
 
-const client = createClient({
+const client = url ? createClient({
   url: url,
   authToken: authToken,
-});
+}) : null;
 
 // Create tables (Async)
 const createTables = async () => {
+  if (!client) return;
   try {
     // Admin codes table
     await client.execute(`
@@ -56,41 +57,54 @@ createTables();
 // Helper functions for better performance/abstraction
 const statements = {
   // Admin codes
-  createCode: async (code, maxGuests, notes) =>
-    client.execute({ sql: 'INSERT INTO admin_codes (code, max_guests, notes) VALUES (?, ?, ?)', args: [code, maxGuests, notes] }),
+  createCode: async (code, maxGuests, notes) => {
+    if (!client) throw new Error('Database not connected');
+    return client.execute({ sql: 'INSERT INTO admin_codes (code, max_guests, notes) VALUES (?, ?, ?)', args: [code, maxGuests, notes] });
+  },
 
   getCode: async (code) => {
+    if (!client) throw new Error('Database not connected');
     const rs = await client.execute({ sql: 'SELECT * FROM admin_codes WHERE code = ?', args: [code] });
     return rs.rows[0];
   },
 
   getAllCodes: async () => {
+    if (!client) throw new Error('Database not connected');
     const rs = await client.execute('SELECT * FROM admin_codes ORDER BY created_at DESC');
     return rs.rows;
   },
 
-  markCodeUsed: async (code) =>
-    client.execute({ sql: 'UPDATE admin_codes SET used = 1 WHERE code = ?', args: [code] }),
+  markCodeUsed: async (code) => {
+    if (!client) throw new Error('Database not connected');
+    return client.execute({ sql: 'UPDATE admin_codes SET used = 1 WHERE code = ?', args: [code] });
+  },
 
   // Guests
-  createGuest: async (name, code, attending, guestCount, message) =>
-    client.execute({ sql: 'INSERT INTO guests (name, code, attending, guest_count, message) VALUES (?, ?, ?, ?, ?)', args: [name, code, attending, guestCount, message] }),
+  createGuest: async (name, code, attending, guestCount, message) => {
+    if (!client) throw new Error('Database not connected');
+    return client.execute({ sql: 'INSERT INTO guests (name, code, attending, guest_count, message) VALUES (?, ?, ?, ?, ?)', args: [name, code, attending, guestCount, message] });
+  },
 
   getGuest: async (code) => {
+    if (!client) throw new Error('Database not connected');
     const rs = await client.execute({ sql: 'SELECT * FROM guests WHERE code = ?', args: [code] });
     return rs.rows[0];
   },
 
   getAllGuests: async () => {
+    if (!client) throw new Error('Database not connected');
     const rs = await client.execute('SELECT * FROM guests ORDER BY created_at DESC');
     return rs.rows;
   },
 
-  updateGuest: async (attending, guestCount, message, code) =>
-    client.execute({ sql: 'UPDATE guests SET attending = ?, guest_count = ?, message = ?, updated_at = CURRENT_TIMESTAMP WHERE code = ?', args: [attending, guestCount, message, code] }),
+  updateGuest: async (attending, guestCount, message, code) => {
+    if (!client) throw new Error('Database not connected');
+    return client.execute({ sql: 'UPDATE guests SET attending = ?, guest_count = ?, message = ?, updated_at = CURRENT_TIMESTAMP WHERE code = ?', args: [attending, guestCount, message, code] });
+  },
 
   // Stats
   getStats: async () => {
+    if (!client) throw new Error('Database not connected');
     const rs = await client.execute(`
       SELECT 
         COUNT(*) as total_codes,

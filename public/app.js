@@ -53,8 +53,12 @@ async function validateAuthCode(code, silent = false) {
             body: JSON.stringify({ code })
         });
 
-        const data = await response.json();
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `Server error: ${response.status}`);
+        }
 
+        const data = await response.json();
         if (data.valid) {
             // Authentication successful
             currentCode = code;
@@ -90,13 +94,13 @@ async function validateAuthCode(code, silent = false) {
             initScrollAnimations();
         } else {
             if (!silent) {
-                showError(authError, 'Invalid code. Please check your invitation and try again.');
+                showError(authError, data.message || 'Invalid code. Please check your invitation and try again.');
             }
         }
     } catch (error) {
         console.error('Authentication error:', error);
         if (!silent) {
-            showError(authError, 'Unable to validate code. Please try again.');
+            showError(authError, error.message.includes('fetch') ? 'Unable to validate code. Please try again.' : error.message);
         }
     } finally {
         if (!silent) setLoading(authBtn, false);

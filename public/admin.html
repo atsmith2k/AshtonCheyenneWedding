@@ -536,6 +536,11 @@
                     body: JSON.stringify({ password })
                 });
 
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `Server error: ${response.status}`);
+                }
+
                 const data = await response.json();
 
                 if (data.authorized) {
@@ -548,7 +553,7 @@
                     loginError.classList.remove('hidden');
                 }
             } catch (error) {
-                loginError.textContent = 'Connection error';
+                loginError.textContent = error.message.includes('fetch') ? 'Connection error' : error.message;
                 loginError.classList.remove('hidden');
             } finally {
                 loginBtn.disabled = false;
