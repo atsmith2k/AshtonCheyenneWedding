@@ -5,8 +5,6 @@ const API_URL = window.location.hostname === 'localhost' || window.location.host
 
 // State
 let currentCode = '';
-let maxGuests = 2;
-let isAuthenticated = false;
 
 // ============================================
 // AUTHENTICATION GATE
@@ -60,7 +58,6 @@ async function validateAuthCode(code, silent = false) {
         if (data.valid) {
             // Authentication successful
             currentCode = code;
-            isAuthenticated = true;
             sessionStorage.setItem('weddingAuthCode', code);
 
             // Hide auth gate and show content
@@ -75,7 +72,6 @@ async function validateAuthCode(code, silent = false) {
             document.getElementById('current-code-display').textContent = code;
 
             if (data.maxGuests) {
-                maxGuests = data.maxGuests;
                 updateGuestCountOptions(data.maxGuests);
             }
 

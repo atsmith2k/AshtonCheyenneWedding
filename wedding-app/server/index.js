@@ -271,8 +271,8 @@ app.post('/api/admin/stats',
 );
 
 // Error handling
-app.use((err, req, res, next) => {
-    console.error('Unhandled error:', error);
+app.use((err, req, res, _next) => {
+    console.error('Unhandled error:', err);
     res.status(500).json({ error: 'Internal server error' });
 });
 
