@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Join us in celebrating Ashton & Cheyenne's special day">
+    <title>Ashton & Cheyenne's Wedding</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Authentication Gate Styles */
+        .auth-gate {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--bg) 0%, var(--bg-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: var(--spacing-md);
+        }
+
+        .auth-container {
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .auth-card {
+            padding: var(--spacing-xl);
+            animation: fadeIn 0.6s ease;
+        }
+
+        #main-content {
+            transition: opacity 0.5s ease;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- AUTHENTICATION GATE -->
+    <div id="auth-gate" class="auth-gate">
+        <div class="auth-container">
+            <div class="auth-card glass-card">
+                <h1 class="script"
+                    style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem; text-align: center;">
+                    Ashton & Cheyenne
+                </h1>
+                <p class="text-center mb-lg" style="color: var(--text-muted);">
+                    September 12, 2026 • Otisco, Indiana
+                </p>
+                <hr style="border: none; border-top: 1px solid var(--border); margin: 2rem 0;">
+                <p class="text-center mb-md">
+                    Please enter your unique RSVP code from your invitation to view wedding details
+                </p>
+                <div class="form-group">
+                    <input type="text" id="auth-code" class="form-input" placeholder="Enter your code"
+                        style="text-align: center; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;">
+                    <span id="auth-error" class="form-error hidden"></span>
+                </div>
+                <button id="auth-btn" class="btn btn-primary" style="width: 100%;">
+                    Access Wedding Details
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT (hidden until authenticated) -->
+    <div id="main-content" class="hidden">
+        <!-- HERO SECTION -->
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <h1 class="hero-names">
+                    Ashton <span class="hero-ampersand">&</span> Cheyenne
+                </h1>
+                <p class="hero-details">
+                    September 12, 2026 • Otisco, Indiana
+                </p>
+            </div>
+            <div class="scroll-indicator"
+                onclick="document.getElementById('details').scrollIntoView({behavior: 'smooth'})">
+                ↓
+            </div>
+        </section>
+
+        <!-- DETAILS SECTION -->
+        <section class="section" id="details" style="background: var(--bg-dark);">
+            <div class="container">
+                <h2 class="section-title">Wedding Details</h2>
+                <div class="grid grid-3">
+                    <div class="card text-center">
+                        <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;">💒</div>
+                        <h3 class="mb-sm">Ceremony & Reception</h3>
+                        <p><strong>Private Residence</strong></p>
+                        <p class="text-muted">123 Cattail Road<br>Otisco, IN 47163</p>
+                        <p class="text-muted">4:00 PM</p>
+                    </div>
+                    <div class="card text-center">
+                        <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;">📍</div>
+                        <h3 class="mb-sm">Location</h3>
+                        <p><strong>Southern Indiana</strong></p>
+                        <p class="text-muted">Scenic countryside setting<br>15 minutes from Scottsburg</p>
+                        <p class="text-muted">Directions will be provided closer to the date</p>
+                    </div>
+                    <div class="card text-center">
+                        <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;">👔</div>
+                        <h3 class="mb-sm">Dress Code</h3>
+                        <p><strong>Formal Attire</strong></p>
+                        <p class="text-muted">Suits and cocktail dresses</p>
+                        <p class="text-muted" style="margin-top: 1rem;">Colors: Ivory, Champagne, Navy</p>
+                    </div>
+                </div>
+
+                <div class="card mt-lg">
+                    <h3 class="text-primary mb-md text-center">Travel from Louisville</h3>
+                    <p class="text-center text-muted mb-md">Otisco is a convenient 35-minute drive from downtown
+                        Louisville</p>
+                    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+                        <p class="mb-md">Take <strong>I-65 North</strong> across the Ohio River into Indiana, then
+                            follow <strong>IN-60 East</strong> through the scenic countryside directly to Otisco.</p>
+                        <p class="text-muted">The venue is located in the rolling hills of Southern Indiana, offering a
+                            beautiful drive for our guests traveling from the city.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RSVP SECTION -->
+        <section class="section" id="rsvp">
+            <div class="container">
+                <h2 class="section-title">RSVP</h2>
+                <div style="max-width: 600px; margin: 0 auto;">
+                    <div class="glass-card">
+                        <div id="rsvp-code-section">
+                            <p class="text-center mb-md">You can update your RSVP details below</p>
+                            <div id="rsvp-code-display" class="text-center mb-md">
+                                <p class="text-muted" style="font-size: 0.875rem;">Your RSVP code:</p>
+                                <p id="current-code-display"
+                                    style="font-weight: 600; font-size: 1.25rem; letter-spacing: 0.1em; color: var(--primary);">
+                                </p>
+                            </div>
+                        </div>
+
+                        <div id="rsvp-form-section">
+                            <div id="rsvp-alert"></div>
+
+                            <form id="rsvp-form">
+                                <div class="form-group">
+                                    <label class="form-label">Your Name(s)</label>
+                                    <input type="text" id="guest-name" class="form-input" placeholder="John & Jane Doe"
+                                        required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Will you be attending?</label>
+                                    <div style="display: flex; gap: 1rem;">
+                                        <label style="flex: 1;">
+                                            <input type="radio" name="attending" value="yes" required>
+                                            <span style="margin-left: 0.5rem;">✓ Joyfully Accept</span>
+                                        </label>
+                                        <label style="flex: 1;">
+                                            <input type="radio" name="attending" value="no">
+                                            <span style="margin-left: 0.5rem;">✗ Regretfully Decline</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" id="guest-count-section">
+                                    <label class="form-label">Number of Guests</label>
+                                    <select id="guest-count" class="form-select">
+                                        <option value="1">1 Guest</option>
+                                        <option value="2" selected>2 Guests</option>
+                                        <option value="3">3 Guests</option>
+                                        <option value="4">4 Guests</option>
+                                        <option value="5">5 Guests</option>
+                                    </select>
+                                    <small class="text-muted" id="max-guests-note"></small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Message to the Couple (Optional)</label>
+                                    <textarea id="guest-message" class="form-textarea"
+                                        placeholder="We're so excited to celebrate with you!"></textarea>
+                                </div>
+
+                                <button type="submit" id="submit-rsvp-btn" class="btn btn-primary" style="width: 100%;">
+                                    Submit RSVP
+                                </button>
+                            </form>
+                        </div>
+
+                        <div id="rsvp-success-section" class="hidden text-center">
+                            <div style="font-size: 4rem; color: var(--success); margin-bottom: 1rem;">✓</div>
+                            <h3 class="text-primary mb-md">Thank You!</h3>
+                            <p class="mb-md">Your RSVP has been received. We can't wait to celebrate with you!</p>
+                            <p class="text-muted">You'll receive more details closer to the wedding date.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- REGISTRY SECTION -->
+        <section class="section" id="registry" style="background: var(--bg-dark);">
+            <div class="container">
+                <h2 class="section-title">Registry</h2>
+                <div style="max-width: 700px; margin: 0 auto; text-align: center;">
+                    <p class="mb-lg">Your presence at our wedding is the greatest gift of all.</p>
+                    <div class="card" style="padding: 3rem;">
+                        <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;">🎁</div>
+                        <h3 class="text-primary mb-md">Coming Soon</h3>
+                        <p class="text-muted">Registry details will be added closer to the wedding date.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer style="background: var(--text-dark); color: var(--white); padding: 3rem 0;">
+            <div class="container text-center">
+                <p class="script" style="font-size: 2rem; color: var(--primary); margin-bottom: 1rem;">
+                    Ashton & Cheyenne
+                </p>
+                <p style="color: rgba(255, 255, 255, 0.7);">
+                    September 12, 2026 • Otisco, IN
+                </p>
+                <p style="color: rgba(255, 255, 255, 0.5); margin-top: 2rem; font-size: 0.875rem;">
+                    Questions? Email at atsmith2k@gmail.com
+                </p>
+                <div style="margin-top: 2rem;">
+                    <a href="admin.html"
+                        style="color: rgba(255, 255, 255, 0.3); text-decoration: none; font-size: 0.75rem;">Admin</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
