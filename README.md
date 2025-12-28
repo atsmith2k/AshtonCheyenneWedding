@@ -73,14 +73,18 @@ Environment variables (`.env` file):
 ## File Structure
 
 ```
-wedding-app/
+AshtonCheyenneWedding/
 ├── index.html          # Main wedding website
 ├── admin.html          # Admin dashboard
 ├── styles.css          # Design system
 ├── app.js             # Client-side logic
 ├── server/
-│   ├── index.js       # Express server (secured)
-│   └── db.js          # Database setup
+│   ├── index.js       # Express server (shared)
+│   └── db.js          # Turso/LibSQL database logic
+├── api/
+│   └── index.js       # Vercel serverless entry point
+├── vercel.json        # Vercel routing & security
+├── wedding.db         # Local SQLite (for development)
 ├── package.json
 ├── .env.example       # Environment template
 ├── .gitignore
@@ -90,35 +94,32 @@ wedding-app/
 ## Tech Stack
 
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
-- **Backend**: Node.js, Express
-- **Database**: SQLite (better-sqlite3)
-- **Security**: Helmet, express-rate-limit, express-validator
-- **Other**: nanoid for code generation
-
-## Security Best Practices
-
-1. **Change the admin password** in production
-2. Use HTTPS in production
-3. Set strong `ADMIN_PASSWORD` environment variable
-4. Keep dependencies updated
-5. Review rate limits based on expected traffic
-6. Monitor logs for suspicious activity
-
-## Rate Limits
-
-- General API: 100 requests per 15 minutes per IP
-- Admin login: 5 attempts per 15 minutes per IP  
-- RSVP submission: 10 requests per hour per IP
+- **Backend**: Node.js, Express (Serverless on Vercel)
+- **Database**: Turso (LibSQL) for production, SQLite for local dev
+- **Security**: Helmet, express-rate-limit, express-validator, CSP headers
+- **Hosting**: Vercel
 
 ## Deployment
 
-### Recommended Hosts
+### Deploying to Vercel
 
-- **Vercel** / **Netlify**: For static files
-- **Railway** / **Render**: For full-stack deployment
-- **DigitalOcean** / **AWS**: For custom server deployment
+1. **Database Setup (Turso)**:
+   - Create a database at [Turso](https://turso.tech).
+   - Get your `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN`.
+   - Use the Turso CLI or UI to upload your initial `wedding.db` if you have existing data.
 
-**Important**: Set `ADMIN_PASSWORD` environment variable on your hosting platform!
+2. **Vercel Settings**:
+   - Push your code to GitHub/GitLab/Bitbucket.
+   - Import project in Vercel.
+   - Set the following **Environment Variables**:
+     - `ADMIN_PASSWORD`: Your dashboard password.
+     - `TURSO_DATABASE_URL`: From Turso.
+     - `TURSO_AUTH_TOKEN`: From Turso.
+     - `NODE_ENV`: `production`.
+
+3. **Deploy**! Vercel will automatically detect the `vercel.json` and `api/` directory.
+
+**Important**: Ensure `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` are set, or the RSVP system will not work in production!
 
 ## License
 

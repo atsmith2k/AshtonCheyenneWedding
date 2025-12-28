@@ -70,7 +70,7 @@ const sanitizeInput = (input) => {
 app.post('/api/validate-code',
     rsvpLimiter,
     [body('code').isString().trim().isLength({ min: 1, max: 20 }).matches(/^[A-Z0-9]+$/)],
-    (req, res) => {
+    async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ error: 'Invalid code format' });
@@ -79,14 +79,14 @@ app.post('/api/validate-code',
         const { code } = req.body;
 
         try {
-            const adminCode = statements.getCode.get(code);
+            const adminCode = await statements.getCode(code);
 
             if (!adminCode) {
                 return res.json({ valid: false, message: 'Invalid code' });
             }
 
             if (adminCode.used) {
-                const guest = statements.getGuest.get(code);
+                const guest = await statements.getGuest(code);
                 return res.json({
                     valid: true,
                     alreadyUsed: true,
@@ -115,7 +115,7 @@ app.post('/api/rsvp',
         body('guestCount').optional().isInt({ min: 0, max: 10 }),
         body('message').optional().isString().trim().isLength({ max: 1000 })
     ],
-    (req, res) => {
+    async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ error: 'Invalid input data' });
@@ -126,18 +126,18 @@ app.post('/api/rsvp',
         const sanitizedMessage = sanitizeInput(message || '');
 
         try {
-            const adminCode = statements.getCode.get(code);
+            const adminCode = await statements.getCode(code);
             if (!adminCode) {
                 return res.status(400).json({ error: 'Invalid code' });
             }
 
-            const existingGuest = statements.getGuest.get(code);
+            const existingGuest = await statements.getGuest(code);
 
             if (existingGuest) {
-                statements.updateGuest.run(attending ? 1 : 0, guestCount || 1, sanitizedMessage, code);
+                await statements.updateGuest(attending ? 1 : 0, guestCount || 1, sanitizedMessage, code);
             } else {
-                statements.createGuest.run(sanitizedName, code, attending ? 1 : 0, guestCount || 1, sanitizedMessage);
-                statements.markCodeUsed.run(code);
+                await statements.createGuest(sanitizedName, code, attending ? 1 : 0, guestCount || 1, sanitizedMessage);
+                await statements.markCodeUsed(code);
             }
 
             res.json({ success: true, message: 'RSVP submitted successfully' });
@@ -173,7 +173,7 @@ app.post('/api/admin/generate-code',
         body('maxGuests').optional().isInt({ min: 1, max: 20 }),
         body('notes').optional().isString().trim().isLength({ max: 500 })
     ],
-    (req, res) => {
+    async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ error: 'Invalid input' });
@@ -188,7 +188,7 @@ app.post('/api/admin/generate-code',
         try {
             const code = nanoid(8).toUpperCase();
             const sanitizedNotes = sanitizeInput(notes || '');
-            statements.createCode.run(code, maxGuests || 2, sanitizedNotes);
+            await statements.createCode(code, maxGuests || 2, sanitizedNotes);
 
             res.json({ success: true, code });
         } catch (error) {
@@ -200,7 +200,7 @@ app.post('/api/admin/generate-code',
 
 app.post('/api/admin/codes',
     [body('password').isString().trim()],
-    (req, res) => {
+    async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ error: 'Invalid password' });
@@ -213,7 +213,7 @@ app.post('/api/admin/codes',
         }
 
         try {
-            const codes = statements.getAllCodes.all();
+            const codes = await statements.getAllCodes();
             res.json({ codes });
         } catch (error) {
             console.error('Get codes error:', error);
@@ -224,7 +224,7 @@ app.post('/api/admin/codes',
 
 app.post('/api/admin/guests',
     [body('password').isString().trim()],
-    (req, res) => {
+    async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ error: 'Invalid password' });
@@ -237,7 +237,7 @@ app.post('/api/admin/guests',
         }
 
         try {
-            const guests = statements.getAllGuests.all();
+            const guests = await statements.getAllGuests();
             res.json({ guests });
         } catch (error) {
             console.error('Get guests error:', error);
@@ -248,7 +248,7 @@ app.post('/api/admin/guests',
 
 app.post('/api/admin/stats',
     [body('password').isString().trim()],
-    (req, res) => {
+    async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ error: 'Invalid password' });
@@ -261,7 +261,7 @@ app.post('/api/admin/stats',
         }
 
         try {
-            const stats = statements.getStats.get();
+            const stats = await statements.getStats();
             res.json({ stats });
         } catch (error) {
             console.error('Get stats error:', error);
@@ -277,9 +277,13 @@ app.use((err, req, res, _next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-    console.log(`\n🎉 Wedding Website Server (SECURE)`);
-    console.log(`📍 Running on http://localhost:${PORT}`);
-    console.log(`🔐 Security: Helmet (CSP relaxed for admin), Rate Limiting, Input Validation`);
-    console.log(`🔑 Admin password: ${ADMIN_PASSWORD}\n`);
-});
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`\n🎉 Wedding Website Server (SECURE)`);
+        console.log(`📍 Running on http://localhost:${PORT}`);
+        console.log(`🔐 Security: Helmet (CSP relaxed for admin), Rate Limiting, Input Validation`);
+        console.log(`🔑 Admin password: ${ADMIN_PASSWORD}\n`);
+    });
+}
+
+module.exports = app;
