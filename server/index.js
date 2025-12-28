@@ -4,7 +4,7 @@ const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { body, validationResult } = require('express-validator');
-const { nanoid } = require('nanoid');
+const crypto = require('crypto');
 const { statements } = require('./db');
 
 const app = express();
@@ -195,7 +195,7 @@ app.post('/api/admin/generate-code',
         }
 
         try {
-            const code = nanoid(8).toUpperCase();
+            const code = crypto.randomBytes(4).toString('hex').toUpperCase();
             const sanitizedNotes = sanitizeInput(notes || '');
             await statements.createCode(code, maxGuests || 2, sanitizedNotes);
 
