@@ -1,79 +1,129 @@
-# 💒 Ashton & Cheyenne's Wedding Website
+# Wedding Website - Security Optimized
 
-A beautiful, secure wedding website built with Next.js to celebrate our special day.
+A beautiful, lightweight, and **secure** wedding website with RSVP functionality.
 
-## 🌟 **Live Website**
-[Visit Our Wedding Website](https://your-domain.vercel.app)
+## Features
 
-## 📅 **Wedding Details**
-- **Date**: September 12, 2026
-- **Location**: The Otisco Disco
-- **RSVP Deadline**: September 1, 2026
+- 🎨 **Modern Design**: Beautiful, responsive design with elegant color palette
+- 💌 **RSVP System**: Guests can RSVP using unique codes
+- 🔐 **Admin Dashboard**: Manage guest lists and generate RSVP codes
+- ⚡ **Lightweight**: Minimal dependencies, fast performance
+- 📱 **Mobile-Friendly**: Fully responsive design
+- 🛡️ **Security Hardened**: Helmet, rate limiting, input validation
 
-## ✨ **Features**
+## Security Features
 
-### **For Guests**
-- 🎫 **Digital Invitations** - Secure invitation code access
-- 🔑 **Access Requests** - Request access if you don't have an invitation code
-- 📝 **RSVP Management** - Easy online RSVP with meal preferences
-- 📸 **Photo Sharing** - Upload and share wedding memories
-- 💌 **Guest Messages** - Send messages to the couple
-- 📱 **Mobile Responsive** - Perfect on all devices
+✅ **HTTP Security Headers** (Helmet.js)
+✅ **Rate Limiting** - Prevents abuse
+✅ **Input Validation** - Protects against injection
+✅ **Request Size Limits** - Prevents DoS
+✅ **Prepared Statements** - SQL injection protection
 
-### **For Couple (Admin)**
-- 👥 **Guest Management** - Comprehensive guest list management
-- 🔐 **Access Request Management** - Review and approve guest access requests
-- 📊 **RSVP Tracking** - Real-time RSVP status and analytics
-- 🖼️ **Photo Moderation** - Review and approve guest photos
-- 💬 **Message Center** - Manage guest communications
+## Getting Started
 
-## 🛠️ **Technology Stack**
+### Prerequisites
 
-- **Next.js 14** with TypeScript
-- **Tailwind CSS** + **shadcn/ui** components
-- **Supabase** for database and authentication
-- **Vercel** for deployment
-- **Resend** for email delivery
+- Node.js (v14 or higher)
 
-## 🔒 **Security Features**
+### Installation
 
-- ✅ **Secure Authentication** - Invitation-based guest access
-- ✅ **Data Protection** - Encrypted sensitive information
-- ✅ **Input Validation** - Comprehensive form sanitization
-- ✅ **Rate Limiting** - Protection against abuse
-- ✅ **Admin Controls** - Secure admin dashboard
+1. Install dependencies:
+```bash
+npm install
+```
 
-## 🚀 **Quick Start**
+2. (Optional) Create `.env` file for production:
+```bash
+cp .env.example .env
+# Edit .env and change ADMIN_PASSWORD
+```
 
-1. **Install dependencies**
-   ```bash
-   npm install
-   ```
+3. Start the server:
+```bash
+npm start
+```
 
-2. **Set up environment variables**
-   ```bash
-   cp .env.example .env.local
-   # Fill in your Supabase and other credentials
-   ```
+4. Open your browser to `http://localhost:3000`
 
-3. **Run development server**
-   ```bash
-   npm run dev
-   ```
+## Usage
 
-4. **Deploy to Vercel**
-   - Connect GitHub repository to Vercel
-   - Configure environment variables
-   - Deploy automatically
+### For Guests
 
-## 📱 **Mobile Optimized**
+1. Navigate to the RSVP section
+2. Enter your unique RSVP code (from your invitation)
+3. Fill out the RSVP form
+4. Submit!
 
-Fully responsive design optimized for all devices with touch-friendly interface and fast loading.
+### For Admins
 
-## 🎉 **Celebrating Love**
+1. Go to `/admin.html`
+2. Login with admin password (default: `wedding2025`)
+3. Generate RSVP codes
+4. View guest list and RSVPs
+5. Monitor attendance statistics
 
-This website brings family and friends together to celebrate Ashton and Cheyenne's special day.
+## Configuration
+
+Environment variables (`.env` file):
+
+- `PORT` - Server port (default: 3000)
+- `ADMIN_PASSWORD` - Admin dashboard password (⚠️ **CHANGE IN PRODUCTION**)
+- `NODE_ENV` - Environment (production/development)
+
+## File Structure
+
+```
+wedding-app/
+├── index.html          # Main wedding website
+├── admin.html          # Admin dashboard
+├── styles.css          # Design system
+├── app.js             # Client-side logic
+├── server/
+│   ├── index.js       # Express server (secured)
+│   └── db.js          # Database setup
+├── package.json
+├── .env.example       # Environment template
+├── .gitignore
+└── README.md
+```
+
+## Tech Stack
+
+- **Frontend**: HTML5, CSS3, Vanilla JavaScript
+- **Backend**: Node.js, Express
+- **Database**: SQLite (better-sqlite3)
+- **Security**: Helmet, express-rate-limit, express-validator
+- **Other**: nanoid for code generation
+
+## Security Best Practices
+
+1. **Change the admin password** in production
+2. Use HTTPS in production
+3. Set strong `ADMIN_PASSWORD` environment variable
+4. Keep dependencies updated
+5. Review rate limits based on expected traffic
+6. Monitor logs for suspicious activity
+
+## Rate Limits
+
+- General API: 100 requests per 15 minutes per IP
+- Admin login: 5 attempts per 15 minutes per IP  
+- RSVP submission: 10 requests per hour per IP
+
+## Deployment
+
+### Recommended Hosts
+
+- **Vercel** / **Netlify**: For static files
+- **Railway** / **Render**: For full-stack deployment
+- **DigitalOcean** / **AWS**: For custom server deployment
+
+**Important**: Set `ADMIN_PASSWORD` environment variable on your hosting platform!
+
+## License
+
+MIT
 
 ---
 
-*Built with ❤️ for our wedding celebration*
+Made with ❤️ for Ashton & Cheyenne • September 12, 2026
