@@ -6,7 +6,6 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node server/index.js",
-    "build": "echo \"Building... (Vanilla JS app, no compilation needed)\"",
     "lint": "eslint ."
   },
   "dependencies": {
