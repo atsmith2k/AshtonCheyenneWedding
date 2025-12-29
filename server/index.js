@@ -22,6 +22,7 @@ app.use(helmet({
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             scriptSrc: ["'self'", "'unsafe-inline'", "https://vercel.live", "https://*.vercel.app"],
+            scriptSrcAttr: ["'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https://*.vercel.app"],
             connectSrc: ["'self'", "https://*.vercel.app", "https://*.turso.io"],
         },
@@ -68,7 +69,7 @@ app.get('/api/health', (req, res) => {
     res.json({
         status: 'ok',
         environment: process.env.NODE_ENV,
-        database: !!process.env.TURSO_DATABASE_URL ? 'configured' : 'not-configured'
+        database: process.env.TURSO_DATABASE_URL ? 'configured' : 'not-configured'
     });
 });
 
@@ -279,6 +280,193 @@ app.post('/api/admin/stats',
     }
 );
 
+app.post('/api/admin/bulk-generate',
+    authLimiter,
+    [
+        body('password').isString().trim(),
+        body('count').isInt({ min: 1, max: 50 }),
+        body('maxGuests').isInt({ min: 1, max: 20 })
+    ],
+    async (req, res) => {
+        const { password, count, maxGuests } = req.body;
+        if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+
+        try {
+            const generated = [];
+            for (let i = 0; i < count; i++) {
+                const code = crypto.randomBytes(4).toString('hex').toUpperCase();
+                await statements.createCode(code, maxGuests, `Bulk Generated ${new Date().toLocaleDateString()}`);
+                generated.push(code);
+            }
+            res.json({ success: true, count: generated.length, codes: generated });
+        } catch {
+            res.status(500).json({ error: 'Server error during bulk generation' });
+        }
+    }
+);
+
+app.post('/api/admin/update-max-guests',
+    [body('password').isString().trim(), body('code').isString().trim(), body('maxGuests').isInt({ min: 1, max: 20 })],
+    async (req, res) => {
+        const { password, code, maxGuests } = req.body;
+        if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+        try {
+            await statements.updateCodeMaxGuests(code, maxGuests);
+            res.json({ success: true });
+        } catch { res.status(500).json({ error: 'Failed' }); }
+    }
+);
+
+app.post('/api/admin/delete-guest',
+    [body('password').isString().trim(), body('code').isString().trim()],
+    async (req, res) => {
+        const { password, code } = req.body;
+        if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+        try {
+            await statements.deleteGuest(code);
+            res.json({ success: true });
+        } catch {
+            res.status(500).json({ error: 'Failed to delete guest' });
+        }
+    }
+);
+
+app.post('/api/admin/delete-code',
+    [body('password').isString().trim(), body('code').isString().trim()],
+    async (req, res) => {
+        const { password, code } = req.body;
+        if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+        try {
+            const guest = await statements.getGuest(code);
+            if (guest) return res.status(400).json({ error: 'Cannot delete code with active RSVP' });
+            await statements.deleteCode(code);
+            res.json({ success: true });
+        } catch {
+            res.status(500).json({ error: 'Failed to delete code' });
+        }
+    }
+);
+
+app.post('/api/admin/update-guest-details',
+    [
+        body('password').isString().trim(),
+        body('code').isString().trim(),
+        body('attending').isBoolean(),
+        body('guestCount').isInt({ min: 0, max: 10 }),
+        body('message').optional().isString().trim()
+    ],
+    async (req, res) => {
+        const { password, code, attending, guestCount, message } = req.body;
+        if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+        try {
+            const sanitizedMessage = sanitizeInput(message || '');
+            await statements.updateGuest(attending ? 1 : 0, guestCount, sanitizedMessage, code);
+            res.json({ success: true });
+        } catch {
+            res.status(500).json({ error: 'Failed to update guest details' });
+        }
+    }
+);
+
+app.post('/api/admin/update-rsvp-full',
+    [
+        body('password').isString().trim(),
+        body('oldCode').isString().trim(),
+        body('newCode').isString().trim(),
+        body('maxGuests').isInt({ min: 1, max: 20 }),
+        body('used').isInt({ min: 0, max: 1 }),
+        body('notes').optional().isString().trim(),
+        body('guestName').optional().isString().trim(),
+        body('attending').optional().isInt({ min: 0, max: 1 }),
+        body('guestCount').optional().isInt({ min: 0, max: 20 }),
+        body('guestMessage').optional().isString().trim()
+    ],
+    async (req, res) => {
+        const { password, oldCode, newCode, maxGuests, used, notes, guestName, attending, guestCount, guestMessage } = req.body;
+        if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+
+        try {
+            // 1. Handle code rename if necessary
+            if (oldCode !== newCode) {
+                const existing = await statements.getCode(newCode);
+                if (existing) return res.status(400).json({ error: 'New code already exists' });
+                await statements.renameCode(oldCode, newCode);
+            }
+
+            // 2. Update admin code entry
+            await statements.updateAdminCodeCompletely(newCode, maxGuests, used, sanitizeInput(notes || ''));
+
+            // 3. Update guest entry if it exists (or if name is provided)
+            const guest = await statements.getGuest(newCode);
+            if (guest) {
+                await statements.updateGuestCompletely(
+                    newCode,
+                    sanitizeInput(guestName || guest.name),
+                    attending !== undefined ? attending : guest.attending,
+                    guestCount !== undefined ? guestCount : guest.guest_count,
+                    sanitizeInput(guestMessage || guest.message || '')
+                );
+            } else if (used === 1 && guestName) {
+                // If marked as used but no guest record, create one
+                await statements.createGuest(
+                    sanitizeInput(guestName),
+                    newCode,
+                    attending || 1,
+                    guestCount || 1,
+                    sanitizeInput(guestMessage || '')
+                );
+            }
+
+            res.json({ success: true });
+        } catch (error) {
+            console.error('Update RSVP Full error:', error);
+            res.status(500).json({ error: 'Failed' });
+        }
+    }
+);
+
+app.post('/api/admin/settings',
+    [body('password').isString().trim()],
+    async (req, res) => {
+        const { password } = req.body;
+        if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+        try {
+            const settings = await statements.getSettings();
+            res.json({ settings });
+        } catch {
+            res.status(500).json({ error: 'Failed to fetch settings' });
+        }
+    }
+);
+
+app.post('/api/admin/update-settings',
+    [
+        body('password').isString().trim(),
+        body('settings').isObject()
+    ],
+    async (req, res) => {
+        const { password, settings } = req.body;
+        if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+        try {
+            for (const [key, value] of Object.entries(settings)) {
+                await statements.updateSetting(key, sanitizeInput(value));
+            }
+            res.json({ success: true });
+        } catch {
+            res.status(500).json({ error: 'Failed to update settings' });
+        }
+    }
+);
+
+app.get('/api/settings', async (req, res) => {
+    try {
+        const settings = await statements.getSettings();
+        res.json({ settings });
+    } catch {
+        res.status(500).json({ error: 'Failed to fetch settings' });
+    }
+});
+
 // Error handling
 app.use((err, req, res, _next) => {
     console.error('Unhandled error:', err);
@@ -291,7 +479,10 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
         console.log(`\n🎉 Wedding Website Server (SECURE)`);
         console.log(`📍 Running on http://localhost:${PORT}`);
         console.log(`🔐 Security: Helmet (CSP relaxed for admin), Rate Limiting, Input Validation`);
-        console.log(`🔑 Admin password: ${ADMIN_PASSWORD}\n`);
+        console.log(`🔐 Admin dashboard is protected`);
+        if (ADMIN_PASSWORD === 'wedding2025') {
+            console.log(`⚠️  Warning: Using default admin password. Change this in production!`);
+        }
     });
 }
 

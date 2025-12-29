@@ -23,6 +23,48 @@ if (storedCode) {
     validateAuthCode(storedCode, true);
 }
 
+// Load dynamic settings
+async function loadSiteSettings() {
+    try {
+        const res = await fetch(`${API_URL}/settings`);
+        const { settings } = await res.json();
+        if (settings) {
+            const names = settings.wedding_names || 'Ashton & Cheyenne';
+            const details = `${settings.wedding_date} • ${settings.wedding_location}`;
+
+            // Update all instances of names
+            document.querySelectorAll('.script, .hero-names, h1, footer p.script').forEach(el => {
+                if (el.classList.contains('hero-names')) {
+                    const namesArr = names.split('&');
+                    if (namesArr.length === 2) {
+                        el.innerHTML = `${namesArr[0]} <span class="hero-ampersand">&</span> ${namesArr[1]}`;
+                    } else {
+                        el.textContent = names;
+                    }
+                } else if (el.tagName === 'H1' && el.parentElement.classList.contains('auth-card')) {
+                    el.textContent = names;
+                } else if (el.classList.contains('script') && !el.closest('.auth-card')) {
+                    // Update specific script text if needed
+                    if (el.textContent.includes('&')) el.textContent = names;
+                }
+            });
+
+            // Update all instances of date/location
+            document.querySelectorAll('.hero-details, .auth-card p.text-center.mb-lg, footer p:nth-child(2)').forEach(el => {
+                if (el.textContent.includes('•') || el.classList.contains('hero-details')) {
+                    el.textContent = details;
+                }
+            });
+
+            // Update footer
+            const footerDate = document.querySelector('footer p:nth-child(2)');
+            if (footerDate) footerDate.textContent = `${settings.wedding_date} • ${settings.wedding_location}`;
+        }
+    } catch (e) { console.error('Settings load failed', e); }
+}
+
+loadSiteSettings();
+
 function showError(element, message) {
     element.textContent = message;
     element.classList.remove('hidden');

@@ -45,6 +45,19 @@ const createTables = async () => {
       )
     `);
 
+    // Settings table
+    await client.execute(`
+      CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT
+      )
+    `);
+
+    // Insert default settings if not exists
+    await client.execute(`INSERT OR IGNORE INTO settings (key, value) VALUES ('wedding_names', 'Ashton & Cheyenne')`);
+    await client.execute(`INSERT OR IGNORE INTO settings (key, value) VALUES ('wedding_date', 'September 12, 2026')`);
+    await client.execute(`INSERT OR IGNORE INTO settings (key, value) VALUES ('wedding_location', 'Otisco, Indiana')`);
+
     console.log('✓ Database tables verified');
   } catch (error) {
     console.error('Database initialization error:', error);
@@ -114,6 +127,61 @@ const statements = {
       FROM admin_codes
     `);
     return rs.rows[0];
+  },
+
+  // Delete/Cleanup
+  deleteCode: async (code) => {
+    if (!client) throw new Error('Database not connected');
+    return client.execute({ sql: 'DELETE FROM admin_codes WHERE code = ?', args: [code] });
+  },
+
+  deleteGuest: async (code) => {
+    if (!client) throw new Error('Database not connected');
+    const rs = await client.execute({ sql: 'DELETE FROM guests WHERE code = ?', args: [code] });
+    await client.execute({ sql: 'UPDATE admin_codes SET used = 0 WHERE code = ?', args: [code] });
+    return rs;
+  },
+
+  updateCodeMaxGuests: async (code, maxGuests) => {
+    if (!client) throw new Error('Database not connected');
+    return client.execute({ sql: 'UPDATE admin_codes SET max_guests = ? WHERE code = ?', args: [maxGuests, code] });
+  },
+
+  updateAdminCodeCompletely: async (code, maxGuests, used, notes) => {
+    if (!client) throw new Error('Database not connected');
+    return client.execute({
+      sql: 'UPDATE admin_codes SET max_guests = ?, used = ?, notes = ? WHERE code = ?',
+      args: [maxGuests, used, notes, code]
+    });
+  },
+
+  updateGuestCompletely: async (code, name, attending, guestCount, message) => {
+    if (!client) throw new Error('Database not connected');
+    return client.execute({
+      sql: 'UPDATE guests SET name = ?, attending = ?, guest_count = ?, message = ?, updated_at = CURRENT_TIMESTAMP WHERE code = ?',
+      args: [name, attending, guestCount, message, code]
+    });
+  },
+
+  renameCode: async (oldCode, newCode) => {
+    if (!client) throw new Error('Database not connected');
+    // Using multiple statements for the rename to handle both tables
+    await client.execute({ sql: 'UPDATE admin_codes SET code = ? WHERE code = ?', args: [newCode, oldCode] });
+    await client.execute({ sql: 'UPDATE guests SET code = ? WHERE code = ?', args: [newCode, oldCode] });
+  },
+
+  // Settings
+  getSettings: async () => {
+    if (!client) throw new Error('Database not connected');
+    const rs = await client.execute('SELECT * FROM settings');
+    const settings = {};
+    rs.rows.forEach(row => settings[row.key] = row.value);
+    return settings;
+  },
+
+  updateSetting: async (key, value) => {
+    if (!client) throw new Error('Database not connected');
+    return client.execute({ sql: 'UPDATE settings SET value = ? WHERE key = ?', args: [value, key] });
   }
 };
 
