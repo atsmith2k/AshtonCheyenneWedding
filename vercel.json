@@ -28,7 +28,7 @@
                 },
                 {
                     "key": "Content-Security-Policy",
-                    "value": "default-src 'self' https://*.vercel.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.app; script-src-attr 'unsafe-inline'; imgSrc 'self' data: https://*.vercel.app; connect-src 'self' https://*.vercel.app https://*.turso.io;"
+                    "value": "default-src 'self' https://*.vercel.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://vercel.live https://*.vercel.app https://maps.googleapis.com; script-src-attr 'unsafe-inline'; imgSrc 'self' data: https://*.vercel.app https://maps.gstatic.com https://*.googleapis.com; connect-src 'self' https://*.vercel.app https://*.turso.io https://maps.googleapis.com;"
                 }
             ]
         }

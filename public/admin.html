@@ -487,7 +487,7 @@
                         <h1>Wedding RSVP Dashboard</h1>
                         <p>Manage your guest list and RSVP codes</p>
                     </div>
-                    <a href="index.html" class="btn btn-secondary" style="background: white; color: var(--primary);">
+                    <a href="/" class="btn btn-secondary" style="background: white; color: var(--primary);">
                         ← Back to Website
                     </a>
                 </div>
@@ -511,11 +511,16 @@
                     <div class="stat-number" id="stat-total-guests">0</div>
                     <div class="stat-label">Total Guests</div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-pending-addresses">0</div>
+                    <div class="stat-label">Address Requests</div>
+                </div>
             </div>
 
             <!-- Tabs -->
             <div class="tab-buttons">
                 <button class="tab-btn active" data-tab="guests">Guest List</button>
+                <button class="tab-btn" data-tab="addresses">Address Requests</button>
                 <button class="tab-btn" data-tab="codes">RSVP Codes</button>
                 <button class="tab-btn" data-tab="generate">Generate Code</button>
                 <button class="tab-btn" data-tab="print">Print Invitations</button>
@@ -548,6 +553,40 @@
                             </tr>
                         </thead>
                         <tbody id="guests-table-body">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Address Requests Tab -->
+            <div id="addresses-tab" class="tab-content">
+                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                    <input type="text" id="address-search" class="form-input" style="flex: 2; min-width: 250px;"
+                        placeholder="Search by name, city, or zip...">
+                    <select id="address-filter-status" class="form-select" style="flex: 1; min-width: 150px;">
+                        <option value="all">All Submissions</option>
+                        <option value="pending">Pending Review</option>
+                        <option value="approved">Approved</option>
+                        <option value="denied">Denied</option>
+                    </select>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Household</th>
+                                <th>Guests</th>
+                                <th>Address</th>
+                                <th>Status</th>
+                                <th>Notes/Dietary</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="addresses-table-body">
                             <tr>
                                 <td colspan="7" class="text-center text-muted">Loading...</td>
                             </tr>
@@ -899,6 +938,8 @@
 
         let allGuests = [];
         let allCodes = [];
+        let allAddressSubmissions = [];
+        let addressStats = {};
 
         // Load dashboard data
         async function loadDashboard() {
@@ -1006,9 +1047,122 @@
                 document.getElementById('stat-used-codes').textContent = stats.used_codes || 0;
                 document.getElementById('stat-attending').textContent = stats.attending_count || 0;
                 document.getElementById('stat-total-guests').textContent = stats.total_guests_attending || 0;
+
+                // Get address stats as well
+                loadAddressSubmissions();
             } catch (error) {
                 console.error('Failed to load stats:', error);
             }
+        }
+
+        async function loadAddressSubmissions() {
+            try {
+                const response = await fetch(`${API_URL}/admin/address-submissions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: adminPassword })
+                });
+                const data = await response.json();
+                allAddressSubmissions = data.submissions || [];
+                addressStats = data.stats || {};
+
+                document.getElementById('stat-pending-addresses').textContent = addressStats.pending_count || 0;
+                renderAddresses();
+            } catch (error) { console.error(error); }
+        }
+
+        function renderAddresses() {
+            const searchTerm = document.getElementById('address-search').value.toLowerCase();
+            const filterStatus = document.getElementById('address-filter-status').value;
+            const tbody = document.getElementById('addresses-table-body');
+
+            const filtered = allAddressSubmissions.filter(s => {
+                const matchesSearch = s.household_name.toLowerCase().includes(searchTerm) ||
+                    s.city.toLowerCase().includes(searchTerm) ||
+                    s.zip_code.includes(searchTerm);
+                const matchesFilter = filterStatus === 'all' || s.status === filterStatus;
+                return matchesSearch && matchesFilter;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No address requests found</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(sub => {
+                const statusClass = sub.status === 'approved' ? 'status-attending' :
+                    sub.status === 'denied' ? 'status-declined' : 'status-pending';
+
+                return `
+                    <tr>
+                        <td>
+                            <strong>${sub.household_name}</strong>
+                            ${sub.generated_code ? `<br><small>Code: <code>${sub.generated_code}</code></small>` : ''}
+                        </td>
+                        <td>${sub.guest_count}</td>
+                        <td>
+                            <small>
+                                ${sub.address_line1}${sub.address_line2 ? `, ${sub.address_line2}` : ''}<br>
+                                ${sub.city}, ${sub.state} ${sub.zip_code}
+                            </small>
+                        </td>
+                        <td><span class="status-badge ${statusClass}">${sub.status}</span></td>
+                        <td>
+                            <small>
+                                ${sub.dietary_restrictions ? `<strong>Dietary:</strong> ${sub.dietary_restrictions}<br>` : ''}
+                                ${sub.note_to_couple ? `<strong>Note:</strong> ${sub.note_to_couple}` : ''}
+                                ${(!sub.dietary_restrictions && !sub.note_to_couple) ? '-' : ''}
+                            </small>
+                        </td>
+                        <td>${new Date(sub.created_at).toLocaleDateString()}</td>
+                        <td>
+                            ${sub.status === 'pending' ? `
+                                <button data-action="approve-address" data-id="${sub.id}" class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-bottom: 0.25rem; width: 100%;">Approve</button>
+                                <button data-action="deny-address" data-id="${sub.id}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; border-color: var(--error); color: var(--error); width: 100%;">Deny</button>
+                            ` : `<small class="text-muted">Reviewed ${new Date(sub.reviewed_at).toLocaleDateString()}</small>`}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function approveAddress(id) {
+            const sub = allAddressSubmissions.find(s => s.id == id);
+            if (!confirm(`Approve address for "${sub.household_name}"? This will generate a new RSVP code.`)) return;
+
+            try {
+                const res = await fetch(`${API_URL}/admin/approve-address`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: adminPassword, id: parseInt(id) })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert(`Approved! Generated Code: ${data.code}`);
+                    loadDashboard();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) { alert('Approval failed'); }
+        }
+
+        async function denyAddress(id) {
+            const sub = allAddressSubmissions.find(s => s.id == id);
+            if (!confirm(`Are you sure you want to deny the request from "${sub.household_name}"?`)) return;
+
+            try {
+                const res = await fetch(`${API_URL}/admin/deny-address`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: adminPassword, id: parseInt(id) })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    loadDashboard();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) { alert('Deny failed'); }
         }
 
         async function renderGuests() {
@@ -1153,6 +1307,8 @@
         document.getElementById('guest-filter-status').addEventListener('change', renderGuests);
         document.getElementById('code-search').addEventListener('input', renderCodes);
         document.getElementById('code-filter-status').addEventListener('change', renderCodes);
+        document.getElementById('address-search').addEventListener('input', renderAddresses);
+        document.getElementById('address-filter-status').addEventListener('change', renderAddresses);
 
         // Event Delegation for Table Actions
         document.getElementById('guests-table-body').addEventListener('click', (e) => {
@@ -1172,6 +1328,15 @@
             if (action === 'edit') editRSVP(code);
             if (action === 'quick-max') updateMaxGuests(code, parseInt(btn.dataset.current));
             if (action === 'delete-code') deleteCode(code);
+        });
+
+        document.getElementById('addresses-table-body').addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            const id = btn.dataset.id;
+            if (action === 'approve-address') approveAddress(id);
+            if (action === 'deny-address') denyAddress(id);
         });
 
         // Modal Close Listeners

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Help us prepare for our special day by providing your mailing address">
+    <title>Address Collection - Ashton & Cheyenne</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="manifest" href="assets/site.webmanifest">
+    <link rel="shortcut icon" href="assets/favicon.ico">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .address-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-md);
+            background: linear-gradient(135deg, var(--bg) 0%, var(--bg-dark) 100%);
+        }
+
+        .address-card {
+            max-width: 600px;
+            width: 100%;
+            margin: 2rem 0;
+        }
+
+        .success-animation {
+            font-size: 4rem;
+            color: var(--success);
+            margin-bottom: 1rem;
+            animation: scaleIn 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="address-container">
+        <div class="address-card glass-card fade-in">
+            <h1 class="script text-center" style="font-size: 3rem; color: var(--primary); margin-bottom: 0.5rem;">
+                Ashton & Cheyenne
+            </h1>
+            <p class="text-center mb-lg"
+                style="color: var(--text-muted); font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;">
+                September 12, 2026 • Otisco, Indiana
+            </p>
+
+            <div id="form-container">
+                <p class="text-center mb-md">
+                    We're preparing to send out our Save the Dates and Invitations! Please provide your mailing address
+                    so we can ensure you receive yours.
+                </p>
+                <hr style="border: none; border-top: 1px solid var(--border); margin: 2rem 0;">
+
+                <div id="address-alert"></div>
+
+                <form id="address-form">
+                    <div class="form-group">
+                        <label class="form-label">Household or Guest Name(s)</label>
+                        <input type="text" id="householdName" class="form-input"
+                            placeholder="e.g., The Smith Family or John Doe" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Estimated Number of Guests in Party</label>
+                        <select id="guestCount" class="form-select" required>
+                            <option value="1">1 Guest</option>
+                            <option value="2" selected>2 Guests</option>
+                            <option value="3">3 Guests</option>
+                            <option value="4">4 Guests</option>
+                            <option value="5">5 Guests</option>
+                            <option value="6">6 Guests</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Address Line 1</label>
+                        <input type="text" id="addressLine1" class="form-input"
+                            placeholder="Start typing your address..." autocomplete="off" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Address Line 2 (Optional)</label>
+                        <input type="text" id="addressLine2" class="form-input"
+                            placeholder="Apartment, suite, unit, building, floor, etc.">
+                    </div>
+
+                    <div class="grid grid-2" style="gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">City</label>
+                            <input type="text" id="city" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">State</label>
+                            <select id="state" class="form-select" required>
+                                <option value="" disabled selected>Select State</option>
+                                <option value="AL">Alabama</option>
+                                <option value="AK">Alaska</option>
+                                <option value="AZ">Arizona</option>
+                                <option value="AR">Arkansas</option>
+                                <option value="CA">California</option>
+                                <option value="CO">Colorado</option>
+                                <option value="CT">Connecticut</option>
+                                <option value="DE">Delaware</option>
+                                <option value="DC">District Of Columbia</option>
+                                <option value="FL">Florida</option>
+                                <option value="GA">Georgia</option>
+                                <option value="HI">Hawaii</option>
+                                <option value="ID">Idaho</option>
+                                <option value="IL">Illinois</option>
+                                <option value="IN">Indiana</option>
+                                <option value="IA">Iowa</option>
+                                <option value="KS">Kansas</option>
+                                <option value="KY">Kentucky</option>
+                                <option value="LA">Louisiana</option>
+                                <option value="ME">Maine</option>
+                                <option value="MD">Maryland</option>
+                                <option value="MA">Massachusetts</option>
+                                <option value="MI">Michigan</option>
+                                <option value="MN">Minnesota</option>
+                                <option value="MS">Mississippi</option>
+                                <option value="MO">Missouri</option>
+                                <option value="MT">Montana</option>
+                                <option value="NE">Nebraska</option>
+                                <option value="NV">Nevada</option>
+                                <option value="NH">New Hampshire</option>
+                                <option value="NJ">New Jersey</option>
+                                <option value="NM">New Mexico</option>
+                                <option value="NY">New York</option>
+                                <option value="NC">North Carolina</option>
+                                <option value="ND">North Dakota</option>
+                                <option value="OH">Ohio</option>
+                                <option value="OK">Oklahoma</option>
+                                <option value="OR">Oregon</option>
+                                <option value="PA">Pennsylvania</option>
+                                <option value="RI">Rhode Island</option>
+                                <option value="SC">South Carolina</option>
+                                <option value="SD">South Dakota</option>
+                                <option value="TN">Tennessee</option>
+                                <option value="TX">Texas</option>
+                                <option value="UT">Utah</option>
+                                <option value="VT">Vermont</option>
+                                <option value="VA">Virginia</option>
+                                <option value="WA">Washington</option>
+                                <option value="WV">West Virginia</option>
+                                <option value="WI">Wisconsin</option>
+                                <option value="WY">Wyoming</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">ZIP Code</label>
+                        <input type="text" id="zipCode" class="form-input" placeholder="12345" pattern="\d{5}(-\d{4})?"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Dietary Restrictions (Optional)</label>
+                        <textarea id="dietaryRestrictions" class="form-textarea"
+                            placeholder="Please list any allergies or dietary requirements for your party."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Note to the Couple (Optional)</label>
+                        <textarea id="noteToCouple" class="form-textarea"
+                            placeholder="Anything else you'd like us to know?"></textarea>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="btn btn-primary" style="width: 100%;">
+                        Submit Address
+                    </button>
+                    <div class="text-center mt-md">
+                        <a href="/" style="color: var(--text-muted); font-size: 0.9rem; text-decoration: none;">← Back
+                            to
+                            Home</a>
+                    </div>
+                </form>
+            </div>
+
+            <div id="success-container" class="hidden text-center slide-up">
+                <div class="success-animation">✓</div>
+                <h2 class="text-primary mb-md">Information Received</h2>
+                <p class="mb-lg">Thank you! Your address has been successfully saved. We'll mail your invitation (which
+                    will include your unique RSVP code) very soon!</p>
+                <a href="/" class="btn btn-secondary">Back to Website</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let autocomplete;
+
+        // Securely load Google Maps API
+        async function loadGoogleMaps() {
+            try {
+                const response = await fetch(`${API_URL}/config/google-maps`);
+                const { apiKey } = await response.json();
+
+                if (!apiKey) {
+                    console.warn('Google Maps API key not configured on server.');
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initAutocomplete`;
+                script.async = true;
+                script.defer = true;
+                document.head.appendChild(script);
+            } catch (error) {
+                console.error('Failed to load Google Maps config:', error);
+            }
+        }
+
+        function initAutocomplete() {
+            // Create the autocomplete object, restricting the search to geographical location types.
+            autocomplete = new google.maps.places.Autocomplete(
+                document.getElementById('addressLine1'),
+                {
+                    types: ['address'],
+                    componentRestrictions: { country: ['us', 'ca'] },
+                    fields: ['address_components', 'geometry']
+                }
+            );
+
+            // When the user selects an address from the dropdown, populate the address fields in the form.
+            autocomplete.addListener('place_changed', fillInAddress);
+        }
+
+        function fillInAddress() {
+            const place = autocomplete.getPlace();
+            if (!place.address_components) return;
+
+            let streetNumber = '';
+            let route = '';
+            let postcode = '';
+
+            // Clear existing fields before filling
+            document.getElementById('city').value = '';
+            document.getElementById('state').value = '';
+            document.getElementById('zipCode').value = '';
+
+            for (const component of place.address_components) {
+                const componentType = component.types[0];
+
+                switch (componentType) {
+                    case 'street_number':
+                        streetNumber = component.long_name;
+                        break;
+                    case 'route':
+                        route = component.short_name;
+                        break;
+                    case 'postal_code':
+                        postcode = component.long_name;
+                        break;
+                    case 'postal_code_suffix':
+                        postcode = `${postcode}-${component.long_name}`;
+                        break;
+                    case 'locality':
+                        document.getElementById('city').value = component.long_name;
+                        break;
+                    case 'administrative_area_level_1':
+                        document.getElementById('state').value = component.short_name;
+                        break;
+                }
+            }
+
+            document.getElementById('addressLine1').value = `${streetNumber} ${route}`.trim();
+            document.getElementById('zipCode').value = postcode;
+        }
+
+        // Make it globally accessible for the script callback
+        window.initAutocomplete = initAutocomplete;
+
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3000/api'
+            : '/api';
+
+        const addressForm = document.getElementById('address-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const addressAlert = document.getElementById('address-alert');
+        const formContainer = document.getElementById('form-container');
+        const successContainer = document.getElementById('success-container');
+
+        function showAlert(message, type = 'error') {
+            addressAlert.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            addressAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                submitBtn.disabled = true;
+                submitBtn.dataset.originalText = submitBtn.textContent;
+                submitBtn.innerHTML = '<span class="spinner"></span>';
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.textContent = submitBtn.dataset.originalText || submitBtn.textContent;
+            }
+        }
+
+        addressForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setLoading(true);
+            addressAlert.innerHTML = '';
+
+            const formData = {
+                householdName: document.getElementById('householdName').value.trim(),
+                guestCount: parseInt(document.getElementById('guestCount').value),
+                addressLine1: document.getElementById('addressLine1').value.trim(),
+                addressLine2: document.getElementById('addressLine2').value.trim(),
+                city: document.getElementById('city').value.trim(),
+                state: document.getElementById('state').value,
+                zipCode: document.getElementById('zipCode').value.trim(),
+                dietaryRestrictions: document.getElementById('dietaryRestrictions').value.trim(),
+                noteToCouple: document.getElementById('noteToCouple').value.trim()
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/address-submit`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    formContainer.classList.add('hidden');
+                    successContainer.classList.remove('hidden');
+                } else {
+                    showAlert(data.error || 'Something went wrong. Please try again.');
+                }
+            } catch (error) {
+                console.error('Submission error:', error);
+                showAlert('Unable to connect to the server. Please try again later.');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // Load site settings (names and date)
+        async function loadSiteSettings() {
+            try {
+                const res = await fetch(`${API_URL}/settings`);
+                const { settings } = await res.json();
+                if (settings) {
+                    const names = settings.wedding_names || 'Ashton & Cheyenne';
+                    const date = settings.wedding_date || 'September 12, 2026';
+                    const location = settings.wedding_location || 'Otisco, Indiana';
+
+                    document.querySelector('h1.script').textContent = names;
+                    document.querySelector('p.text-center.mb-lg').textContent = `${date} • ${location}`;
+                }
+            } catch (e) { console.error('Settings load failed', e); }
+        }
+
+        // Initial setup
+        loadSiteSettings();
+        loadGoogleMaps();
+    </script>
+</body>
+
+</html>

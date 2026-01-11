@@ -21,10 +21,10 @@ app.use(helmet({
             defaultSrc: ["'self'", "https://*.vercel.app"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://vercel.live", "https://*.vercel.app"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://vercel.live", "https://*.vercel.app", "https://maps.googleapis.com"],
             scriptSrcAttr: ["'unsafe-inline'"],
-            imgSrc: ["'self'", "data:", "https://*.vercel.app"],
-            connectSrc: ["'self'", "https://*.vercel.app", "https://*.turso.io"],
+            imgSrc: ["'self'", "data:", "https://*.vercel.app", "https://maps.gstatic.com", "https://*.googleapis.com"],
+            connectSrc: ["'self'", "https://*.vercel.app", "https://*.turso.io", "https://maps.googleapis.com"],
         },
     },
 }));
@@ -48,6 +48,12 @@ const rsvpLimiter = rateLimit({
     message: 'Too many RSVP submissions, please try again later.'
 });
 
+const addressLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 5,
+    message: 'Too many address submissions, please try again later.'
+});
+
 app.use(generalLimiter);
 
 // ============================================
@@ -56,7 +62,10 @@ app.use(generalLimiter);
 
 app.use(cors());
 app.use(express.json({ limit: '10kb' }));
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, '../public'), {
+    extensions: ['html'],
+    index: 'index.html'
+}));
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'wedding2025';
 
@@ -71,6 +80,13 @@ app.get('/api/health', (req, res) => {
         environment: process.env.NODE_ENV,
         database: process.env.TURSO_DATABASE_URL ? 'configured' : 'not-configured'
     });
+});
+
+app.get('/api/config/google-maps', (req, res) => {
+    // Note: Even when served via API, the key is technically visible to anyone who visits the site.
+    // SECURE PRACTICE: You MUST restrict this key in the Google Cloud Console to only allow
+    // requests from your specific domains (e.g., your-wedding.vercel.app and localhost).
+    res.json({ apiKey: process.env.GOOGLE_MAPS_API_KEY || '' });
 });
 
 // ============================================
@@ -466,6 +482,133 @@ app.get('/api/settings', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch settings' });
     }
 });
+
+// ============================================
+// Address Submission Routes
+// ============================================
+
+app.post('/api/address-submit',
+    addressLimiter,
+    [
+        body('householdName').isString().trim().isLength({ min: 1, max: 200 }),
+        body('guestCount').isInt({ min: 1, max: 10 }),
+        body('addressLine1').isString().trim().isLength({ min: 1, max: 200 }),
+        body('addressLine2').optional().isString().trim().isLength({ max: 200 }),
+        body('city').isString().trim().isLength({ min: 1, max: 100 }),
+        body('state').isString().trim().isLength({ min: 2, max: 50 }),
+        body('zipCode').isString().trim().matches(/^\d{5}(-\d{4})?$/),
+        body('dietaryRestrictions').optional().isString().trim().isLength({ max: 500 }),
+        body('noteToCouple').optional().isString().trim().isLength({ max: 1000 })
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ error: 'Invalid input. Please check all fields.' });
+        }
+
+        const { householdName, guestCount, addressLine1, addressLine2, city, state, zipCode, dietaryRestrictions, noteToCouple } = req.body;
+
+        try {
+            await statements.createAddressSubmission({
+                householdName: sanitizeInput(householdName),
+                guestCount,
+                addressLine1: sanitizeInput(addressLine1),
+                addressLine2: sanitizeInput(addressLine2 || ''),
+                city: sanitizeInput(city),
+                state: sanitizeInput(state),
+                zipCode: sanitizeInput(zipCode),
+                dietaryRestrictions: sanitizeInput(dietaryRestrictions || ''),
+                noteToCouple: sanitizeInput(noteToCouple || '')
+            });
+
+            res.json({ success: true, message: 'Thank you! Your address has been submitted successfully.' });
+        } catch (error) {
+            console.error('Address submission error:', error);
+            res.status(500).json({ error: 'Server error. Please try again later.' });
+        }
+    }
+);
+
+app.post('/api/admin/address-submissions',
+    [body('password').isString().trim()],
+    async (req, res) => {
+        const { password } = req.body;
+        if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+
+        try {
+            const submissions = await statements.getAllAddressSubmissions();
+            const stats = await statements.getAddressStats();
+            res.json({ submissions, stats });
+        } catch (error) {
+            console.error('Get address submissions error:', error);
+            res.status(500).json({ error: 'Failed to fetch submissions' });
+        }
+    }
+);
+
+app.post('/api/admin/approve-address',
+    [
+        body('password').isString().trim(),
+        body('id').isInt({ min: 1 })
+    ],
+    async (req, res) => {
+        const { password, id } = req.body;
+        if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+
+        try {
+            const submission = await statements.getAddressSubmissionById(id);
+            if (!submission) {
+                return res.status(404).json({ error: 'Submission not found' });
+            }
+            if (submission.status !== 'pending') {
+                return res.status(400).json({ error: 'Submission has already been reviewed' });
+            }
+
+            // Generate RSVP code
+            const code = crypto.randomBytes(4).toString('hex').toUpperCase();
+            const notes = `Address: ${submission.household_name}, ${submission.city}, ${submission.state}`;
+
+            // Create admin code
+            await statements.createCode(code, submission.guest_count, notes);
+
+            // Update submission status
+            await statements.approveAddressSubmission(id, code);
+
+            res.json({ success: true, code, message: 'Submission approved and RSVP code generated' });
+        } catch (error) {
+            console.error('Approve address error:', error);
+            res.status(500).json({ error: 'Failed to approve submission' });
+        }
+    }
+);
+
+app.post('/api/admin/deny-address',
+    [
+        body('password').isString().trim(),
+        body('id').isInt({ min: 1 })
+    ],
+    async (req, res) => {
+        const { password, id } = req.body;
+        if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+
+        try {
+            const submission = await statements.getAddressSubmissionById(id);
+            if (!submission) {
+                return res.status(404).json({ error: 'Submission not found' });
+            }
+            if (submission.status !== 'pending') {
+                return res.status(400).json({ error: 'Submission has already been reviewed' });
+            }
+
+            await statements.denyAddressSubmission(id);
+
+            res.json({ success: true, message: 'Submission denied' });
+        } catch (error) {
+            console.error('Deny address error:', error);
+            res.status(500).json({ error: 'Failed to deny submission' });
+        }
+    }
+);
 
 // Error handling
 app.use((err, req, res, _next) => {

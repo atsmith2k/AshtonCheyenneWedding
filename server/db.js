@@ -53,6 +53,26 @@ const createTables = async () => {
       )
     `);
 
+    // Address submissions table for pre-invitation collection
+    await client.execute(`
+      CREATE TABLE IF NOT EXISTS address_submissions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        household_name TEXT NOT NULL,
+        guest_count INTEGER DEFAULT 1,
+        address_line1 TEXT NOT NULL,
+        address_line2 TEXT,
+        city TEXT NOT NULL,
+        state TEXT NOT NULL,
+        zip_code TEXT NOT NULL,
+        dietary_restrictions TEXT,
+        note_to_couple TEXT,
+        status TEXT DEFAULT 'pending',
+        generated_code TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        reviewed_at TEXT
+      )
+    `);
+
     // Insert default settings if not exists
     await client.execute(`INSERT OR IGNORE INTO settings (key, value) VALUES ('wedding_names', 'Ashton & Cheyenne')`);
     await client.execute(`INSERT OR IGNORE INTO settings (key, value) VALUES ('wedding_date', 'September 12, 2026')`);
@@ -182,6 +202,57 @@ const statements = {
   updateSetting: async (key, value) => {
     if (!client) throw new Error('Database not connected');
     return client.execute({ sql: 'UPDATE settings SET value = ? WHERE key = ?', args: [value, key] });
+  },
+
+  // Address Submissions
+  createAddressSubmission: async (data) => {
+    if (!client) throw new Error('Database not connected');
+    return client.execute({
+      sql: `INSERT INTO address_submissions (household_name, guest_count, address_line1, address_line2, city, state, zip_code, dietary_restrictions, note_to_couple) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [data.householdName, data.guestCount, data.addressLine1, data.addressLine2 || '', data.city, data.state, data.zipCode, data.dietaryRestrictions || '', data.noteToCouple || '']
+    });
+  },
+
+  getAllAddressSubmissions: async () => {
+    if (!client) throw new Error('Database not connected');
+    const rs = await client.execute('SELECT * FROM address_submissions ORDER BY created_at DESC');
+    return rs.rows;
+  },
+
+  getAddressSubmissionById: async (id) => {
+    if (!client) throw new Error('Database not connected');
+    const rs = await client.execute({ sql: 'SELECT * FROM address_submissions WHERE id = ?', args: [id] });
+    return rs.rows[0];
+  },
+
+  approveAddressSubmission: async (id, generatedCode) => {
+    if (!client) throw new Error('Database not connected');
+    return client.execute({
+      sql: 'UPDATE address_submissions SET status = ?, generated_code = ?, reviewed_at = CURRENT_TIMESTAMP WHERE id = ?',
+      args: ['approved', generatedCode, id]
+    });
+  },
+
+  denyAddressSubmission: async (id) => {
+    if (!client) throw new Error('Database not connected');
+    return client.execute({
+      sql: 'UPDATE address_submissions SET status = ?, reviewed_at = CURRENT_TIMESTAMP WHERE id = ?',
+      args: ['denied', id]
+    });
+  },
+
+  getAddressStats: async () => {
+    if (!client) throw new Error('Database not connected');
+    const rs = await client.execute(`
+      SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_count,
+        SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved_count,
+        SUM(CASE WHEN status = 'denied' THEN 1 ELSE 0 END) as denied_count
+      FROM address_submissions
+    `);
+    return rs.rows[0];
   }
 };
 
