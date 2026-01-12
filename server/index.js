@@ -24,10 +24,10 @@ app.use(helmet({
             defaultSrc: ["'self'", "https://*.vercel.app"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://vercel.live", "https://*.vercel.app", "https://maps.googleapis.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://vercel.live", "https://*.vercel.app"],
             scriptSrcAttr: ["'unsafe-inline'"],
-            imgSrc: ["'self'", "data:", "https://*.vercel.app", "https://maps.gstatic.com", "https://*.googleapis.com"],
-            connectSrc: ["'self'", "https://*.vercel.app", "https://*.turso.io", "https://maps.googleapis.com"],
+            imgSrc: ["'self'", "data:", "https://*.vercel.app"],
+            connectSrc: ["'self'", "https://*.vercel.app", "https://*.turso.io"],
         },
     },
 }));
@@ -77,19 +77,13 @@ const sanitizeInput = (input) => {
     return input.trim().substring(0, 500);
 };
 
+// Health check
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'ok',
         environment: process.env.NODE_ENV,
         database: process.env.TURSO_DATABASE_URL ? 'configured' : 'not-configured'
     });
-});
-
-app.get('/api/config/google-maps', (req, res) => {
-    // Note: Even when served via API, the key is technically visible to anyone who visits the site.
-    // SECURE PRACTICE: You MUST restrict this key in the Google Cloud Console to only allow
-    // requests from your specific domains (e.g., your-wedding.vercel.app and localhost).
-    res.json({ apiKey: process.env.GOOGLE_MAPS_API_KEY || '' });
 });
 
 // ============================================

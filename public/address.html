@@ -46,6 +46,13 @@
                 opacity: 1;
             }
         }
+
+        .form-section-title {
+            color: var(--primary);
+            font-family: var(--font-fancy);
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem;
+        }
     </style>
 </head>
 
@@ -57,7 +64,7 @@
             </h1>
             <p class="text-center mb-lg"
                 style="color: var(--text-muted); font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;">
-                September 12, 2026 • Otisco, Indiana
+                September 12, 2026
             </p>
 
             <div id="form-container">
@@ -71,13 +78,13 @@
 
                 <form id="address-form">
                     <div class="form-group">
-                        <label class="form-label">Household or Guest Name(s)</label>
+                        <label class="form-label" for="householdName">Household or Guest Name(s)</label>
                         <input type="text" id="householdName" class="form-input"
                             placeholder="e.g., The Smith Family or John Doe" required>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Estimated Number of Guests in Party</label>
+                        <label class="form-label" for="guestCount">Estimated Number of Guests in Party</label>
                         <select id="guestCount" class="form-select" required>
                             <option value="1">1 Guest</option>
                             <option value="2" selected>2 Guests</option>
@@ -89,24 +96,23 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Address Line 1</label>
-                        <input type="text" id="addressLine1" class="form-input"
-                            placeholder="Start typing your address..." autocomplete="off" required>
+                        <label class="form-label" for="addressLine1">Address Line 1</label>
+                        <input type="text" id="addressLine1" class="form-input" placeholder="Street Address" required>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Address Line 2 (Optional)</label>
+                        <label class="form-label" for="addressLine2">Address Line 2 (Optional)</label>
                         <input type="text" id="addressLine2" class="form-input"
                             placeholder="Apartment, suite, unit, building, floor, etc.">
                     </div>
 
                     <div class="grid grid-2" style="gap: 1rem;">
                         <div class="form-group">
-                            <label class="form-label">City</label>
+                            <label class="form-label" for="city">City</label>
                             <input type="text" id="city" class="form-input" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">State</label>
+                            <label class="form-label" for="state">State</label>
                             <select id="state" class="form-select" required>
                                 <option value="" disabled selected>Select State</option>
                                 <option value="AL">Alabama</option>
@@ -165,19 +171,19 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">ZIP Code</label>
+                        <label class="form-label" for="zipCode">ZIP Code</label>
                         <input type="text" id="zipCode" class="form-input" placeholder="12345" pattern="\d{5}(-\d{4})?"
                             required>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Dietary Restrictions (Optional)</label>
+                        <label class="form-label" for="dietaryRestrictions">Dietary Restrictions (Optional)</label>
                         <textarea id="dietaryRestrictions" class="form-textarea"
                             placeholder="Please list any allergies or dietary requirements for your party."></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Note to the Couple (Optional)</label>
+                        <label class="form-label" for="noteToCouple">Note to the Couple (Optional)</label>
                         <textarea id="noteToCouple" class="form-textarea"
                             placeholder="Anything else you'd like us to know?"></textarea>
                     </div>
@@ -204,89 +210,6 @@
     </div>
 
     <script>
-        let autocomplete;
-
-        // Securely load Google Maps API
-        async function loadGoogleMaps() {
-            try {
-                const response = await fetch(`${API_URL}/config/google-maps`);
-                const { apiKey } = await response.json();
-
-                if (!apiKey) {
-                    console.warn('Google Maps API key not configured on server.');
-                    return;
-                }
-
-                const script = document.createElement('script');
-                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initAutocomplete`;
-                script.async = true;
-                script.defer = true;
-                document.head.appendChild(script);
-            } catch (error) {
-                console.error('Failed to load Google Maps config:', error);
-            }
-        }
-
-        function initAutocomplete() {
-            // Create the autocomplete object, restricting the search to geographical location types.
-            autocomplete = new google.maps.places.Autocomplete(
-                document.getElementById('addressLine1'),
-                {
-                    types: ['address'],
-                    componentRestrictions: { country: ['us', 'ca'] },
-                    fields: ['address_components', 'geometry']
-                }
-            );
-
-            // When the user selects an address from the dropdown, populate the address fields in the form.
-            autocomplete.addListener('place_changed', fillInAddress);
-        }
-
-        function fillInAddress() {
-            const place = autocomplete.getPlace();
-            if (!place.address_components) return;
-
-            let streetNumber = '';
-            let route = '';
-            let postcode = '';
-
-            // Clear existing fields before filling
-            document.getElementById('city').value = '';
-            document.getElementById('state').value = '';
-            document.getElementById('zipCode').value = '';
-
-            for (const component of place.address_components) {
-                const componentType = component.types[0];
-
-                switch (componentType) {
-                    case 'street_number':
-                        streetNumber = component.long_name;
-                        break;
-                    case 'route':
-                        route = component.short_name;
-                        break;
-                    case 'postal_code':
-                        postcode = component.long_name;
-                        break;
-                    case 'postal_code_suffix':
-                        postcode = `${postcode}-${component.long_name}`;
-                        break;
-                    case 'locality':
-                        document.getElementById('city').value = component.long_name;
-                        break;
-                    case 'administrative_area_level_1':
-                        document.getElementById('state').value = component.short_name;
-                        break;
-                }
-            }
-
-            document.getElementById('addressLine1').value = `${streetNumber} ${route}`.trim();
-            document.getElementById('zipCode').value = postcode;
-        }
-
-        // Make it globally accessible for the script callback
-        window.initAutocomplete = initAutocomplete;
-
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:3000/api'
             : '/api';
@@ -371,7 +294,6 @@
 
         // Initial setup
         loadSiteSettings();
-        loadGoogleMaps();
     </script>
 </body>
 
