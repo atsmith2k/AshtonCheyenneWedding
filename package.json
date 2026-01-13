@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node server/index.js",
+    "build": "echo 'No build step needed for serverless functions'",
+    "vercel-build": "echo 'Build completed successfully'",
     "lint": "eslint ."
   },
   "dependencies": {
