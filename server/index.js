@@ -1,5 +1,7 @@
-// Load environment variables from .env.local for local development
-require('dotenv').config({ path: '.env.local' });
+// Environment variables are loaded from:
+// - Local development: Set in your shell or use a .env file with another method
+// - Vercel production: Set via Vercel dashboard (Settings > Environment Variables)
+
 
 const express = require('express');
 const cors = require('cors');

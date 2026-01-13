@@ -115,7 +115,9 @@ AshtonCheyenneWedding/
      - `ADMIN_PASSWORD`: Your dashboard password.
      - `TURSO_DATABASE_URL`: From Turso.
      - `TURSO_AUTH_TOKEN`: From Turso.
+     - `GOOGLE_MAPS_API_KEY`: Your Google Maps API key (optional, for address autofill).
      - `NODE_ENV`: `production`.
+
 
 3. **Deploy**! Vercel will automatically detect the `vercel.json` and `api/` directory.
 
