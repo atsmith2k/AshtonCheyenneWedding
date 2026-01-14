@@ -3,7 +3,10 @@ const path = require('path');
 
 // Initialize database client
 const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL;
-const url = process.env.TURSO_DATABASE_URL || (isVercel ? "" : `file:${path.join(__dirname, '..', 'wedding.db')}`);
+// Use libsql:// protocol for HTTP transport in production (more reliable in serverless)
+const rawUrl = process.env.TURSO_DATABASE_URL || (isVercel ? "" : `file:${path.join(__dirname, '..', 'wedding.db')}`);
+// Convert wss:// to libsql:// for HTTP transport - avoids WebSocket connection issues in serverless
+const url = rawUrl && rawUrl.startsWith('wss://') ? rawUrl.replace('wss://', 'libsql://') : rawUrl;
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
 if (isVercel && !process.env.TURSO_DATABASE_URL) {
