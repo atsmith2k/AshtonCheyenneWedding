@@ -570,6 +570,24 @@ app.post('/api/admin/approve-address',
             // Create admin code
             await statements.createCode(code, submission.guest_count, notes);
 
+            // Create guest list entry with full address submission data
+            await statements.createGuestWithAddress({
+                name: submission.household_name,
+                code: code,
+                attending: null, // pending until they RSVP
+                guestCount: submission.guest_count,
+                message: submission.note_to_couple || '',
+                addressLine1: submission.address_line1,
+                addressLine2: submission.address_line2,
+                city: submission.city,
+                state: submission.state,
+                zipCode: submission.zip_code,
+                dietaryRestrictions: submission.dietary_restrictions
+            });
+
+            // Mark code as used since we created a guest entry
+            await statements.markCodeUsed(code);
+
             // Update submission status
             await statements.approveAddressSubmission(id, code);
 

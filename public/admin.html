@@ -237,38 +237,221 @@
             }
         }
 
-        /* Responsive Adjustments */
+        /* ============================================
+           MOBILE-FIRST RESPONSIVE STYLES
+           ============================================ */
+
+        /* Mobile Card View for Tables */
+        .mobile-card-view {
+            display: none;
+        }
+
+        .data-card {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--bg-dark);
+        }
+
+        .data-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+            gap: 0.5rem;
+        }
+
+        .data-card-title {
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 1rem;
+            word-break: break-word;
+        }
+
+        .data-card-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem 1rem;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .data-card-body.single-col {
+            grid-template-columns: 1fr;
+        }
+
+        .data-card-row {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .data-card-row.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .data-card-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #888;
+            margin-bottom: 0.15rem;
+        }
+
+        .data-card-value {
+            color: var(--text-dark);
+        }
+
+        .data-card-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .data-card-actions .btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 0.6rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        /* Tablet Adjustments */
+        @media (max-width: 1024px) {
+            .grid-2 {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        /* Mobile Responsive Adjustments */
         @media (max-width: 768px) {
+
+            /* Container */
             .admin-container {
-                padding: 1rem;
+                padding: 0.75rem;
             }
 
+            /* Header */
             .admin-header {
-                padding: 1.5rem;
+                padding: 1.25rem;
+                margin-bottom: 1rem;
             }
 
             .admin-header-content {
                 flex-direction: column;
                 text-align: center;
+                gap: 1rem;
             }
 
-            .stat-number {
-                font-size: 2.25rem;
+            .admin-header-content .btn {
+                width: 100%;
+                padding: 0.75rem 1rem;
+            }
+
+            /* Stats Grid */
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+                margin-bottom: 1rem;
             }
 
             .stat-card {
-                padding: 1.5rem;
+                padding: 1rem;
             }
 
-            .login-card {
-                padding: 2rem;
+            .stat-number {
+                font-size: 1.75rem;
+            }
+
+            .stat-label {
+                font-size: 0.7rem;
+            }
+
+            /* Tab Buttons */
+            .tab-buttons {
+                margin-bottom: 1rem;
+                padding: 0 0 0.5rem 0;
+                gap: 0.5rem;
+                position: relative;
+            }
+
+            .tab-buttons::after {
+                content: '';
+                position: absolute;
+                right: 0;
+                top: 0;
+                bottom: 0.5rem;
+                width: 30px;
+                background: linear-gradient(to right, transparent, var(--bg));
+                pointer-events: none;
             }
 
             .tab-btn {
-                padding: 0.65rem 1rem;
-                font-size: 0.9rem;
+                padding: 0.6rem 0.9rem;
+                font-size: 0.8rem;
+                flex-shrink: 0;
             }
 
+            /* Search and Filter Bars */
+            .filter-bar {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .filter-bar .form-input,
+            .filter-bar .form-select {
+                min-width: 100% !important;
+                flex: none !important;
+            }
+
+            .filter-bar .btn {
+                width: 100%;
+            }
+
+            /* Login Card */
+            .login-card {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+
+            /* Table to Card View */
+            .table-container {
+                display: none;
+            }
+
+            .mobile-card-view {
+                display: block;
+            }
+
+            /* Modals */
+            .login-overlay {
+                padding: 1rem;
+                align-items: flex-start;
+                padding-top: 2rem;
+            }
+
+            #edit-modal .login-card {
+                max-width: 100%;
+                max-height: calc(100vh - 3rem);
+                overflow-y: auto;
+            }
+
+            #edit-modal .grid-2 {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Cards */
+            .card {
+                padding: 1.25rem;
+                margin-bottom: 1rem;
+            }
+
+            .card h3 {
+                font-size: 1.1rem;
+            }
+
+            /* Invitation Preview */
             .invitation-card {
                 width: 100% !important;
                 height: auto !important;
@@ -278,15 +461,104 @@
             }
 
             .invitation-names {
-                font-size: 2rem !important;
+                font-size: 1.75rem !important;
+            }
+
+            .invitation-date {
+                font-size: 1rem;
+            }
+
+            .invitation-code {
+                font-size: 1.5rem;
             }
 
             .preview-grid {
                 gap: 1rem;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #export-modal {
+                padding: 1rem;
             }
 
             .modal-content {
-                padding: 1.5rem;
+                padding: 1.25rem;
+                margin: 1rem auto;
+            }
+
+            .modal-content h2 {
+                font-size: 1.25rem;
+            }
+
+            /* Form Elements */
+            .form-input,
+            .form-select,
+            .form-textarea {
+                font-size: 16px;
+                /* Prevents iOS zoom */
+                padding: 0.85rem 1rem;
+            }
+
+            /* Buttons */
+            .btn {
+                padding: 0.85rem 1.25rem;
+                font-size: 0.9rem;
+            }
+
+            /* Alerts */
+            .alert {
+                padding: 0.75rem 1rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Extra Small Screens */
+        @media (max-width: 400px) {
+            .admin-container {
+                padding: 0.5rem;
+            }
+
+            .admin-header {
+                padding: 1rem;
+                border-radius: var(--radius-md);
+            }
+
+            .admin-header h1 {
+                font-size: 1.25rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .stat-card {
+                padding: 0.75rem;
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+            }
+
+            .stat-label {
+                font-size: 0.65rem;
+            }
+
+            .tab-btn {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
+            }
+
+            .data-card-body {
+                grid-template-columns: 1fr;
+            }
+
+            .data-card-actions {
+                flex-direction: column;
+            }
+
+            .data-card-actions .btn {
+                width: 100%;
             }
         }
 
@@ -529,7 +801,7 @@
 
             <!-- Guest List Tab -->
             <div id="guests-tab" class="tab-content active">
-                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                <div class="filter-bar" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
                     <input type="text" id="guest-search" class="form-input" style="flex: 2; min-width: 250px;"
                         placeholder="Search guests by name or code...">
                     <select id="guest-filter-status" class="form-select" style="flex: 1; min-width: 150px;">
@@ -547,6 +819,8 @@
                                 <th>Code</th>
                                 <th>Status</th>
                                 <th>Guests</th>
+                                <th>Address</th>
+                                <th>Dietary</th>
                                 <th>Message</th>
                                 <th>Date</th>
                                 <th>Actions</th>
@@ -554,16 +828,22 @@
                         </thead>
                         <tbody id="guests-table-body">
                             <tr>
-                                <td colspan="7" class="text-center text-muted">Loading...</td>
+                                <td colspan="9" class="text-center text-muted">Loading...</td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+                <!-- Mobile Card View -->
+                <div class="mobile-card-view" id="guests-mobile-cards">
+                    <div class="data-card">
+                        <p class="text-center text-muted">Loading...</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Address Requests Tab -->
             <div id="addresses-tab" class="tab-content">
-                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                <div class="filter-bar" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
                     <input type="text" id="address-search" class="form-input" style="flex: 2; min-width: 250px;"
                         placeholder="Search by name, city, or zip...">
                     <select id="address-filter-status" class="form-select" style="flex: 1; min-width: 150px;">
@@ -593,11 +873,17 @@
                         </tbody>
                     </table>
                 </div>
+                <!-- Mobile Card View -->
+                <div class="mobile-card-view" id="addresses-mobile-cards">
+                    <div class="data-card">
+                        <p class="text-center text-muted">Loading...</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Codes Tab -->
             <div id="codes-tab" class="tab-content">
-                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                <div class="filter-bar" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
                     <input type="text" id="code-search" class="form-input" style="flex: 2; min-width: 250px;"
                         placeholder="Search codes or notes...">
                     <select id="code-filter-status" class="form-select" style="flex: 1; min-width: 150px;">
@@ -625,6 +911,12 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+                <!-- Mobile Card View -->
+                <div class="mobile-card-view" id="codes-mobile-cards">
+                    <div class="data-card">
+                        <p class="text-center text-muted">Loading...</p>
+                    </div>
                 </div>
             </div>
 
@@ -1075,6 +1367,7 @@
             const searchTerm = document.getElementById('address-search').value.toLowerCase();
             const filterStatus = document.getElementById('address-filter-status').value;
             const tbody = document.getElementById('addresses-table-body');
+            const mobileCards = document.getElementById('addresses-mobile-cards');
 
             const filtered = allAddressSubmissions.filter(s => {
                 const matchesSearch = s.household_name.toLowerCase().includes(searchTerm) ||
@@ -1086,9 +1379,11 @@
 
             if (filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No address requests found</td></tr>`;
+                mobileCards.innerHTML = `<div class="data-card"><p class="text-center text-muted">No address requests found</p></div>`;
                 return;
             }
 
+            // Desktop table
             tbody.innerHTML = filtered.map(sub => {
                 const statusClass = sub.status === 'approved' ? 'status-attending' :
                     sub.status === 'denied' ? 'status-declined' : 'status-pending';
@@ -1122,6 +1417,60 @@
                             ` : `<small class="text-muted">Reviewed ${new Date(sub.reviewed_at).toLocaleDateString()}</small>`}
                         </td>
                     </tr>
+                `;
+            }).join('');
+
+            // Mobile cards
+            mobileCards.innerHTML = filtered.map(sub => {
+                const statusClass = sub.status === 'approved' ? 'status-attending' :
+                    sub.status === 'denied' ? 'status-declined' : 'status-pending';
+
+                return `
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <div class="data-card-title">${sub.household_name}</div>
+                            <span class="status-badge ${statusClass}">${sub.status}</span>
+                        </div>
+                        <div class="data-card-body">
+                            <div class="data-card-row">
+                                <span class="data-card-label">Guests</span>
+                                <span class="data-card-value">${sub.guest_count}</span>
+                            </div>
+                            <div class="data-card-row">
+                                <span class="data-card-label">Date</span>
+                                <span class="data-card-value">${new Date(sub.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <div class="data-card-row full-width">
+                                <span class="data-card-label">Address</span>
+                                <span class="data-card-value">
+                                    ${sub.address_line1}${sub.address_line2 ? `, ${sub.address_line2}` : ''}<br>
+                                    ${sub.city}, ${sub.state} ${sub.zip_code}
+                                </span>
+                            </div>
+                            ${sub.generated_code ? `
+                            <div class="data-card-row full-width">
+                                <span class="data-card-label">Code</span>
+                                <span class="data-card-value"><code>${sub.generated_code}</code></span>
+                            </div>` : ''}
+                            ${sub.dietary_restrictions ? `
+                            <div class="data-card-row full-width">
+                                <span class="data-card-label">Dietary</span>
+                                <span class="data-card-value">${sub.dietary_restrictions}</span>
+                            </div>` : ''}
+                            ${sub.note_to_couple ? `
+                            <div class="data-card-row full-width">
+                                <span class="data-card-label">Note</span>
+                                <span class="data-card-value">${sub.note_to_couple}</span>
+                            </div>` : ''}
+                        </div>
+                        ${sub.status === 'pending' ? `
+                        <div class="data-card-actions">
+                            <button data-action="approve-address" data-id="${sub.id}" class="btn btn-primary">Approve</button>
+                            <button data-action="deny-address" data-id="${sub.id}" class="btn btn-secondary" style="border-color: var(--error); color: var(--error);">Deny</button>
+                        </div>` : `
+                        <div style="margin-top: 0.75rem; font-size: 0.8rem; color: #888;">Reviewed ${new Date(sub.reviewed_at).toLocaleDateString()}</div>
+                        `}
+                    </div>
                 `;
             }).join('');
         }
@@ -1169,6 +1518,7 @@
             const searchTerm = document.getElementById('guest-search').value.toLowerCase();
             const filterStatus = document.getElementById('guest-filter-status').value;
             const tbody = document.getElementById('guests-table-body');
+            const mobileCards = document.getElementById('guests-mobile-cards');
 
             const filtered = allGuests.filter(g => {
                 const matchesSearch = g.name.toLowerCase().includes(searchTerm) || g.code.toLowerCase().includes(searchTerm);
@@ -1178,13 +1528,22 @@
             });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No guests found</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center text-muted">No guests found</td></tr>`;
+                mobileCards.innerHTML = `<div class="data-card"><p class="text-center text-muted">No guests found</p></div>`;
                 return;
             }
 
+            // Desktop table
             tbody.innerHTML = filtered.map(guest => {
                 const status = guest.attending === 1 ? 'attending' : guest.attending === 0 ? 'declined' : 'pending';
                 const statusText = guest.attending === 1 ? 'Attending' : guest.attending === 0 ? 'Declined' : 'Pending';
+
+                // Build address string
+                const addressParts = [guest.address_line1, guest.address_line2].filter(Boolean);
+                const cityState = [guest.city, guest.state, guest.zip_code].filter(Boolean).join(', ');
+                const fullAddress = addressParts.length || cityState
+                    ? `${addressParts.join(', ')}${addressParts.length && cityState ? '<br>' : ''}${cityState}`
+                    : '-';
 
                 return `
                     <tr>
@@ -1192,6 +1551,8 @@
                         <td><code>${guest.code}</code></td>
                         <td><span class="status-badge status-${status}">${statusText}</span></td>
                         <td>${guest.guest_count || '-'}</td>
+                        <td><small>${fullAddress}</small></td>
+                        <td><small>${guest.dietary_restrictions || '-'}</small></td>
                         <td><small>${guest.message || '-'}</small></td>
                         <td>${new Date(guest.created_at).toLocaleDateString()}</td>
                         <td>
@@ -1201,12 +1562,67 @@
                     </tr>
                 `;
             }).join('');
+
+            // Mobile cards
+            mobileCards.innerHTML = filtered.map(guest => {
+                const status = guest.attending === 1 ? 'attending' : guest.attending === 0 ? 'declined' : 'pending';
+                const statusText = guest.attending === 1 ? 'Attending' : guest.attending === 0 ? 'Declined' : 'Pending';
+
+                const addressParts = [guest.address_line1, guest.address_line2].filter(Boolean);
+                const cityState = [guest.city, guest.state, guest.zip_code].filter(Boolean).join(', ');
+                const fullAddress = addressParts.length || cityState
+                    ? `${addressParts.join(', ')}${addressParts.length && cityState ? '<br>' : ''}${cityState}`
+                    : '';
+
+                return `
+                    <div class="data-card">
+                        <div class="data-card-header">
+                            <div class="data-card-title">${guest.name}</div>
+                            <span class="status-badge status-${status}">${statusText}</span>
+                        </div>
+                        <div class="data-card-body">
+                            <div class="data-card-row">
+                                <span class="data-card-label">Code</span>
+                                <span class="data-card-value"><code>${guest.code}</code></span>
+                            </div>
+                            <div class="data-card-row">
+                                <span class="data-card-label">Guests</span>
+                                <span class="data-card-value">${guest.guest_count || '-'}</span>
+                            </div>
+                            <div class="data-card-row">
+                                <span class="data-card-label">Date</span>
+                                <span class="data-card-value">${new Date(guest.created_at).toLocaleDateString()}</span>
+                            </div>
+                            ${fullAddress ? `
+                            <div class="data-card-row full-width">
+                                <span class="data-card-label">Address</span>
+                                <span class="data-card-value">${fullAddress}</span>
+                            </div>` : ''}
+                            ${guest.dietary_restrictions ? `
+                            <div class="data-card-row full-width">
+                                <span class="data-card-label">Dietary</span>
+                                <span class="data-card-value">${guest.dietary_restrictions}</span>
+                            </div>` : ''}
+                            ${guest.message ? `
+                            <div class="data-card-row full-width">
+                                <span class="data-card-label">Message</span>
+                                <span class="data-card-value">${guest.message}</span>
+                            </div>` : ''}
+                        </div>
+                        <div class="data-card-actions">
+                            <button data-action="edit" data-code="${guest.code}" class="btn btn-secondary">Edit</button>
+                            <button data-action="clear-rsvp" data-code="${guest.code}" class="btn btn-secondary" style="border-color: var(--error); color: var(--error);">Clear</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         async function renderCodes() {
             const searchTerm = document.getElementById('code-search').value.toLowerCase();
             const filterStatus = document.getElementById('code-filter-status').value;
             const tbody = document.getElementById('codes-table-body');
+            const mobileCards = document.getElementById('codes-mobile-cards');
 
             const filtered = allCodes.filter(c => {
                 const matchesSearch = c.code.toLowerCase().includes(searchTerm) || (c.notes || '').toLowerCase().includes(searchTerm);
@@ -1217,9 +1633,11 @@
 
             if (filtered.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No codes found</td></tr>`;
+                mobileCards.innerHTML = `<div class="data-card"><p class="text-center text-muted">No codes found</p></div>`;
                 return;
             }
 
+            // Desktop table
             tbody.innerHTML = filtered.map(code => `
                 <tr>
                     <td><strong><code>${code.code}</code></strong></td>
@@ -1233,6 +1651,36 @@
                         <button data-action="delete-code" data-code="${code.code}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; border-color: var(--error); color: var(--error);" ${code.used ? 'disabled title="Cannot delete used code"' : ''}>Delete</button>
                     </td>
                 </tr>
+            `).join('');
+
+            // Mobile cards
+            mobileCards.innerHTML = filtered.map(code => `
+                <div class="data-card">
+                    <div class="data-card-header">
+                        <div class="data-card-title"><code>${code.code}</code></div>
+                        <span class="status-badge ${code.used ? 'status-attending' : 'status-pending'}">${code.used ? 'Used' : 'Available'}</span>
+                    </div>
+                    <div class="data-card-body">
+                        <div class="data-card-row">
+                            <span class="data-card-label">Max Guests</span>
+                            <span class="data-card-value">${code.max_guests}</span>
+                        </div>
+                        <div class="data-card-row">
+                            <span class="data-card-label">Created</span>
+                            <span class="data-card-value">${new Date(code.created_at).toLocaleDateString()}</span>
+                        </div>
+                        ${code.notes ? `
+                        <div class="data-card-row full-width">
+                            <span class="data-card-label">Notes</span>
+                            <span class="data-card-value">${code.notes}</span>
+                        </div>` : ''}
+                    </div>
+                    <div class="data-card-actions">
+                        <button data-action="edit" data-code="${code.code}" class="btn btn-secondary">Edit</button>
+                        <button data-action="quick-max" data-code="${code.code}" data-current="${code.max_guests}" class="btn btn-secondary">Max</button>
+                        <button data-action="delete-code" data-code="${code.code}" class="btn btn-secondary" style="border-color: var(--error); color: var(--error);" ${code.used ? 'disabled' : ''}>Delete</button>
+                    </div>
+                </div>
             `).join('');
         }
 
@@ -1339,6 +1787,35 @@
             if (action === 'deny-address') denyAddress(id);
         });
 
+        // Event Delegation for Mobile Card Views
+        document.getElementById('guests-mobile-cards').addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            const code = btn.dataset.code;
+            if (action === 'edit') editRSVP(code);
+            if (action === 'clear-rsvp') deleteGuest(code);
+        });
+
+        document.getElementById('codes-mobile-cards').addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            const code = btn.dataset.code;
+            if (action === 'edit') editRSVP(code);
+            if (action === 'quick-max') updateMaxGuests(code, parseInt(btn.dataset.current));
+            if (action === 'delete-code') deleteCode(code);
+        });
+
+        document.getElementById('addresses-mobile-cards').addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            const id = btn.dataset.id;
+            if (action === 'approve-address') approveAddress(id);
+            if (action === 'deny-address') denyAddress(id);
+        });
+
         // Modal Close Listeners
         document.getElementById('close-export-modal').addEventListener('click', () => {
             document.getElementById('export-modal').style.display = 'none';
@@ -1351,12 +1828,18 @@
 
         document.getElementById('export-csv-btn').addEventListener('click', () => {
             if (allGuests.length === 0) return alert('No guests to export');
-            const headers = ['Name', 'Code', 'Attending', 'Guests', 'Message', 'Date'];
+            const headers = ['Name', 'Code', 'Attending', 'Guests', 'Address Line 1', 'Address Line 2', 'City', 'State', 'Zip Code', 'Dietary Restrictions', 'Message', 'Date'];
             const rows = allGuests.map(g => [
                 `"${g.name}"`,
                 g.code,
-                g.attending === 1 ? 'Yes' : 'No',
+                g.attending === 1 ? 'Yes' : g.attending === 0 ? 'No' : 'Pending',
                 g.guest_count,
+                `"${(g.address_line1 || '').replace(/"/g, '""')}"`,
+                `"${(g.address_line2 || '').replace(/"/g, '""')}"`,
+                `"${(g.city || '').replace(/"/g, '""')}"`,
+                `"${(g.state || '').replace(/"/g, '""')}"`,
+                `"${(g.zip_code || '').replace(/"/g, '""')}"`,
+                `"${(g.dietary_restrictions || '').replace(/"/g, '""')}"`,
                 `"${(g.message || '').replace(/"/g, '""')}"`,
                 new Date(g.created_at).toLocaleDateString()
             ]);

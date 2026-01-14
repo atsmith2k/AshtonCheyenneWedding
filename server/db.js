@@ -30,7 +30,7 @@ const createTables = async () => {
       )
     `);
 
-    // Guests table
+    // Guests table (includes address data for guests migrated from address submissions)
     await client.execute(`
       CREATE TABLE IF NOT EXISTS guests (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,11 +39,35 @@ const createTables = async () => {
         attending INTEGER,
         guest_count INTEGER DEFAULT 1,
         message TEXT,
+        address_line1 TEXT,
+        address_line2 TEXT,
+        city TEXT,
+        state TEXT,
+        zip_code TEXT,
+        dietary_restrictions TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (code) REFERENCES admin_codes(code)
       )
     `);
+
+    // Add new columns to existing guests table if they don't exist (for migration)
+    const columnsToAdd = [
+      { name: 'address_line1', type: 'TEXT' },
+      { name: 'address_line2', type: 'TEXT' },
+      { name: 'city', type: 'TEXT' },
+      { name: 'state', type: 'TEXT' },
+      { name: 'zip_code', type: 'TEXT' },
+      { name: 'dietary_restrictions', type: 'TEXT' }
+    ];
+
+    for (const col of columnsToAdd) {
+      try {
+        await client.execute(`ALTER TABLE guests ADD COLUMN ${col.name} ${col.type}`);
+      } catch (e) {
+        // Column already exists, ignore
+      }
+    }
 
     // Settings table
     await client.execute(`
@@ -116,6 +140,28 @@ const statements = {
   createGuest: async (name, code, attending, guestCount, message) => {
     if (!client) throw new Error('Database not connected');
     return client.execute({ sql: 'INSERT INTO guests (name, code, attending, guest_count, message) VALUES (?, ?, ?, ?, ?)', args: [name, code, attending, guestCount, message] });
+  },
+
+  // Create guest with full address data (for approved address submissions)
+  createGuestWithAddress: async (data) => {
+    if (!client) throw new Error('Database not connected');
+    return client.execute({
+      sql: `INSERT INTO guests (name, code, attending, guest_count, message, address_line1, address_line2, city, state, zip_code, dietary_restrictions) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        data.name,
+        data.code,
+        data.attending,
+        data.guestCount,
+        data.message,
+        data.addressLine1 || '',
+        data.addressLine2 || '',
+        data.city || '',
+        data.state || '',
+        data.zipCode || '',
+        data.dietaryRestrictions || ''
+      ]
+    });
   },
 
   getGuest: async (code) => {
