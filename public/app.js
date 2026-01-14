@@ -121,7 +121,7 @@ async function validateAuthCode(code, silent = false) {
                 updateGuestCountOptions(data.maxGuests);
             }
 
-            // Pre-fill if already RSVP'd
+            // Pre-fill if guest data exists
             if (data.alreadyUsed && data.guest) {
                 document.getElementById('guest-name').value = data.guest.name;
                 const attendingValue = data.guest.attending === 1 ? 'yes' : data.guest.attending === 0 ? 'no' : null;
@@ -129,7 +129,12 @@ async function validateAuthCode(code, silent = false) {
                     document.querySelector(`input[name="attending"][value="${attendingValue}"]`).checked = true;
                 }
                 document.getElementById('guest-count').value = data.guest.guest_count || 1;
-                showAlert('You\'ve already submitted an RSVP. You can update it below.', 'info');
+
+                // Only show "already submitted" message if they've actually submitted an RSVP
+                // (i.e., attending is not null - they've selected yes or no)
+                if (data.guest.attending !== null) {
+                    showAlert('You\'ve already submitted an RSVP. You can update it below.', 'info');
+                }
             }
 
             // Initialize scroll animations
