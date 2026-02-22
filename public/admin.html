@@ -684,32 +684,53 @@
 
         .sticker-sheet {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(1.5in, 1fr));
-            gap: 0.25in;
-            padding: 0.25in;
+            grid-template-columns: repeat(auto-fill, 1in);
+            gap: 0;
+            padding: 0;
             justify-items: center;
         }
 
         .qr-sticker {
-            width: 1.5in;
-            height: 1.5in;
+            width: 1in;
+            height: 1in;
             border: 1px dashed #ccc;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             background: white;
-            padding: 0.1in;
+            padding: 0.04in 0.05in 0.03in;
             box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .qr-sticker canvas,
+        .qr-sticker img {
+            display: block;
+        }
+
+        .qr-sticker-party {
+            font-family: 'Inter', sans-serif;
+            font-size: 6.5px;
+            font-weight: 600;
+            margin-top: 2px;
+            line-height: 1.1;
+            color: #444;
+            text-align: center;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .qr-sticker-code {
             font-family: 'Inter', monospace;
-            font-size: 0.8rem;
+            font-size: 5.5px;
             font-weight: 700;
-            margin-top: 0.25rem;
-            letter-spacing: 0.1em;
-            color: #333;
+            margin-top: 1px;
+            letter-spacing: 0.05em;
+            color: #666;
+            text-align: center;
         }
 
         .sticker-checkbox-item {
@@ -739,6 +760,7 @@
                 top: 0;
                 background: white;
                 padding: 0;
+                width: 100%;
             }
 
             .modal-content {
@@ -760,6 +782,24 @@
                 page-break-after: always;
                 box-shadow: none;
                 border: 1px solid #eee;
+            }
+
+            /* Sticker sheet print styles */
+            .sticker-sheet {
+                display: grid !important;
+                grid-template-columns: repeat(auto-fill, 1in) !important;
+                gap: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .sticker-sheet .qr-sticker {
+                border: none !important;
+                page-break-inside: avoid;
+            }
+
+            .no-print {
+                display: none !important;
             }
 
             button,
@@ -1021,31 +1061,29 @@
             <div id="stickers-tab" class="tab-content">
                 <div class="card">
                     <h3 class="mb-md">QR Code Sticker Generator</h3>
-                    <p class="mb-lg">Generate small QR code stickers for physical invitations. These will include the QR code and the raw RSVP code below it.</p>
-                    
+                    <p class="mb-lg">Generate 1"×1" QR code stickers for physical invitations. Each sticker includes a
+                        centered QR code with the party name and RSVP code below it. Print on full-sheet sticker paper
+                        for easy peel-and-stick.</p>
+
                     <div class="filter-bar" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
                         <div style="flex: 2; min-width: 250px;">
                             <label class="form-label">Search Guests/Codes</label>
-                            <input type="text" id="sticker-search" class="form-input" placeholder="Filter by name or code...">
-                        </div>
-                        <div style="flex: 1; min-width: 150px;">
-                            <label class="form-label">Sticker Size</label>
-                            <select id="sticker-size-select" class="form-select">
-                                <option value="1">Small (1")</option>
-                                <option value="1.5" selected>Medium (1.5")</option>
-                                <option value="2">Large (2")</option>
-                            </select>
+                            <input type="text" id="sticker-search" class="form-input"
+                                placeholder="Filter by name or code...">
                         </div>
                     </div>
 
                     <div style="margin-bottom: 1.5rem;">
                         <button id="select-all-stickers" class="btn btn-secondary">Select All</button>
                         <button id="deselect-all-stickers" class="btn btn-secondary">Deselect All</button>
-                        <button id="generate-selected-stickers" class="btn btn-primary" style="float: right;">Generate Stickers</button>
+                        <button id="generate-selected-stickers" class="btn btn-primary" style="float: right;">Generate
+                            Stickers</button>
                     </div>
 
-                    <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--bg-dark); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem;">
-                        <div id="sticker-selection-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem;">
+                    <div
+                        style="max-height: 400px; overflow-y: auto; border: 1px solid var(--bg-dark); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem;">
+                        <div id="sticker-selection-list"
+                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem;">
                             <!-- Checkboxes will be rendered here -->
                         </div>
                     </div>
@@ -1130,7 +1168,8 @@
                 <h2 id="modal-title" style="margin: 0;">Invitation Preview (Front & Back)</h2>
                 <button id="close-export-modal" class="btn btn-secondary">Close Preview</button>
             </div>
-            <p class="mb-lg" style="color: #666;">These high-resolution designs are sized 5" x 7". You can right-click
+            <p id="modal-description" class="mb-lg" style="color: #666;">These high-resolution designs are sized 5" x
+                7". You can right-click
                 and save the cards or use your browser's print to PDF function.</p>
 
             <div class="preview-grid" id="printable-area">
@@ -1163,7 +1202,8 @@
                             <div class="invitation-code" id="invitation-code-text">XXXXXX</div>
                         </div>
 
-                        <div id="invitation-qrcode" style="display: flex; justify-content: center; margin: 1rem 0;"></div>
+                        <div id="invitation-qrcode" style="display: flex; justify-content: center; margin: 1rem 0;">
+                        </div>
 
                         <p style="margin-top: 1rem; font-style: italic; color: #aaa; font-size: 0.85rem;">Official
                             invitation to follow</p>
@@ -1337,7 +1377,7 @@
         function populateStickerList() {
             const list = document.getElementById('sticker-selection-list');
             const search = document.getElementById('sticker-search').value.toLowerCase();
-            
+
             // Get all unique codes that have either a guest or are available
             const items = allCodes.map(c => {
                 const guest = allGuests.find(g => g.code === c.code);
@@ -1346,8 +1386,8 @@
                     name: guest ? guest.name : (c.notes || 'Unnamed Code'),
                     isUsed: c.used
                 };
-            }).filter(item => 
-                item.code.toLowerCase().includes(search) || 
+            }).filter(item =>
+                item.code.toLowerCase().includes(search) ||
                 item.name.toLowerCase().includes(search)
             );
 
@@ -1381,13 +1421,12 @@
                 return;
             }
 
-            const size = document.getElementById('sticker-size-select').value;
             const modalTitle = document.getElementById('modal-title');
             const printableArea = document.getElementById('printable-area');
-            
+
             modalTitle.textContent = `QR Stickers (${selected.length})`;
+            document.getElementById('modal-description').textContent = 'Print these 1"×1" stickers on full-sheet sticker paper. Set margins to "None" and scale to 100%.';
             printableArea.className = 'sticker-sheet';
-            printableArea.style.gridTemplateColumns = `repeat(auto-fill, minmax(${size}in, 1fr))`;
             printableArea.innerHTML = '';
 
             // Instructions for printing
@@ -1398,7 +1437,7 @@
             instructions.innerHTML = `
                 <div class="alert alert-info">
                     <strong>Print Instructions:</strong> Set your print margins to "None" or "Minimum" and ensure scale is "100%". 
-                    Stickers are sized to ${size}x${size} inches.
+                    Each sticker is 1"×1". Use full-sheet sticker paper for best results.
                 </div>
             `;
             printableArea.appendChild(instructions);
@@ -1406,24 +1445,29 @@
             selected.forEach(item => {
                 const sticker = document.createElement('div');
                 sticker.className = 'qr-sticker';
-                sticker.style.width = `${size}in`;
-                sticker.style.height = `${size}in`;
-                
+
                 const qrDiv = document.createElement('div');
                 sticker.appendChild(qrDiv);
-                
+
+                // Party name label
+                const partyDiv = document.createElement('div');
+                partyDiv.className = 'qr-sticker-party';
+                partyDiv.textContent = item.name;
+                sticker.appendChild(partyDiv);
+
+                // RSVP code label
                 const codeDiv = document.createElement('div');
                 codeDiv.className = 'qr-sticker-code';
                 codeDiv.textContent = item.code;
                 sticker.appendChild(codeDiv);
-                
+
                 printableArea.appendChild(sticker);
 
                 const url = window.location.origin;
                 new QRCode(qrDiv, {
                     text: `${url}/?code=${item.code}`,
-                    width: (size * 72), // Approx px for the size
-                    height: (size * 72),
+                    width: 68,
+                    height: 68,
                     colorDark: "#000000",
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.M
@@ -1517,7 +1561,7 @@
             const printableArea = document.getElementById('printable-area');
             printableArea.className = 'preview-grid';
             printableArea.style = '';
-            
+
             printableArea.innerHTML = `
                 <!-- Front Card -->
                 <div class="invitation-card">
@@ -1971,11 +2015,11 @@
             const url = window.location.origin;
             const fullRsvpUrl = `${url}/?code=${code}`;
             document.getElementById('modal-title').textContent = 'Guest Access QR Code';
-            
+
             const printableArea = document.getElementById('printable-area');
             printableArea.className = 'preview-grid';
             printableArea.style = '';
-            
+
             printableArea.innerHTML = `
                 <!-- Back Card (used as a container for simple QR view) -->
                 <div class="invitation-card" style="height: auto; padding: 2rem;">

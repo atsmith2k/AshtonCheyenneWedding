@@ -67,7 +67,7 @@ const createTables = async () => {
     for (const col of columnsToAdd) {
       try {
         await client.execute(`ALTER TABLE guests ADD COLUMN ${col.name} ${col.type}`);
-      } catch (e) {
+      } catch {
         // Column already exists, ignore
       }
     }
