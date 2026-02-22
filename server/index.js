@@ -26,7 +26,7 @@ app.use(helmet({
             defaultSrc: ["'self'", "https://*.vercel.app"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://vercel.live", "https://*.vercel.app"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://vercel.live", "https://*.vercel.app", "https://cdnjs.cloudflare.com"],
             scriptSrcAttr: ["'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https://*.vercel.app"],
             connectSrc: ["'self'", "https://*.vercel.app", "https://*.turso.io"],

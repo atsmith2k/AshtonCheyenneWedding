@@ -17,9 +17,15 @@ const authBtn = document.getElementById('auth-btn');
 const authError = document.getElementById('auth-error');
 
 // Check if already authenticated
+const urlParams = new URLSearchParams(window.location.search);
+const urlCode = urlParams.get('code');
 const storedCode = sessionStorage.getItem('weddingAuthCode');
-if (storedCode) {
-    // Validate stored code
+
+if (urlCode) {
+    // If a code is in the URL, validate it immediately
+    validateAuthCode(urlCode.toUpperCase());
+} else if (storedCode) {
+    // Otherwise check session storage
     validateAuthCode(storedCode, true);
 }
 

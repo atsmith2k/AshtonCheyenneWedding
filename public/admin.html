@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Wedding RSVP</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
@@ -681,6 +682,46 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
         }
 
+        .sticker-sheet {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(1.5in, 1fr));
+            gap: 0.25in;
+            padding: 0.25in;
+            justify-items: center;
+        }
+
+        .qr-sticker {
+            width: 1.5in;
+            height: 1.5in;
+            border: 1px dashed #ccc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            padding: 0.1in;
+            box-sizing: border-box;
+        }
+
+        .qr-sticker-code {
+            font-family: 'Inter', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-top: 0.25rem;
+            letter-spacing: 0.1em;
+            color: #333;
+        }
+
+        .sticker-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: #f9f9f9;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
         @media print {
             body * {
                 visibility: hidden;
@@ -795,6 +836,7 @@
                 <button class="tab-btn" data-tab="addresses">Address Requests</button>
                 <button class="tab-btn" data-tab="codes">RSVP Codes</button>
                 <button class="tab-btn" data-tab="generate">Generate Code</button>
+                <button class="tab-btn" data-tab="stickers">QR Sticker Tool</button>
                 <button class="tab-btn" data-tab="print">Print Invitations</button>
                 <button class="tab-btn" data-tab="settings">Settings</button>
             </div>
@@ -975,6 +1017,41 @@
                 </div>
             </div>
 
+            <!-- QR Sticker Tool Tab -->
+            <div id="stickers-tab" class="tab-content">
+                <div class="card">
+                    <h3 class="mb-md">QR Code Sticker Generator</h3>
+                    <p class="mb-lg">Generate small QR code stickers for physical invitations. These will include the QR code and the raw RSVP code below it.</p>
+                    
+                    <div class="filter-bar" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                        <div style="flex: 2; min-width: 250px;">
+                            <label class="form-label">Search Guests/Codes</label>
+                            <input type="text" id="sticker-search" class="form-input" placeholder="Filter by name or code...">
+                        </div>
+                        <div style="flex: 1; min-width: 150px;">
+                            <label class="form-label">Sticker Size</label>
+                            <select id="sticker-size-select" class="form-select">
+                                <option value="1">Small (1")</option>
+                                <option value="1.5" selected>Medium (1.5")</option>
+                                <option value="2">Large (2")</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <button id="select-all-stickers" class="btn btn-secondary">Select All</button>
+                        <button id="deselect-all-stickers" class="btn btn-secondary">Deselect All</button>
+                        <button id="generate-selected-stickers" class="btn btn-primary" style="float: right;">Generate Stickers</button>
+                    </div>
+
+                    <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--bg-dark); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem;">
+                        <div id="sticker-selection-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.5rem;">
+                            <!-- Checkboxes will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Print Invitations Tab -->
             <div id="print-tab" class="tab-content">
                 <div class="card">
@@ -1050,7 +1127,7 @@
     <div id="export-modal">
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                <h2 style="margin: 0;">Invitation Preview (Front & Back)</h2>
+                <h2 id="modal-title" style="margin: 0;">Invitation Preview (Front & Back)</h2>
                 <button id="close-export-modal" class="btn btn-secondary">Close Preview</button>
             </div>
             <p class="mb-lg" style="color: #666;">These high-resolution designs are sized 5" x 7". You can right-click
@@ -1085,6 +1162,8 @@
                                 Your Unique Access Code</p>
                             <div class="invitation-code" id="invitation-code-text">XXXXXX</div>
                         </div>
+
+                        <div id="invitation-qrcode" style="display: flex; justify-content: center; margin: 1rem 0;"></div>
 
                         <p style="margin-top: 1rem; font-style: italic; color: #aaa; font-size: 0.85rem;">Official
                             invitation to follow</p>
@@ -1244,6 +1323,116 @@
             ]);
         }
 
+        async function loadDashboard() {
+            await Promise.all([
+                loadStats(),
+                loadGuests(),
+                loadCodes(),
+                loadCodesToSelect(),
+                loadSettings()
+            ]);
+            populateStickerList();
+        }
+
+        function populateStickerList() {
+            const list = document.getElementById('sticker-selection-list');
+            const search = document.getElementById('sticker-search').value.toLowerCase();
+            
+            // Get all unique codes that have either a guest or are available
+            const items = allCodes.map(c => {
+                const guest = allGuests.find(g => g.code === c.code);
+                return {
+                    code: c.code,
+                    name: guest ? guest.name : (c.notes || 'Unnamed Code'),
+                    isUsed: c.used
+                };
+            }).filter(item => 
+                item.code.toLowerCase().includes(search) || 
+                item.name.toLowerCase().includes(search)
+            );
+
+            list.innerHTML = items.map(item => `
+                <label class="sticker-checkbox-item">
+                    <input type="checkbox" class="sticker-checkbox" value="${item.code}" data-name="${item.name}">
+                    <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <strong>${item.code}</strong><br>
+                        <small>${item.name}</small>
+                    </div>
+                </label>
+            `).join('');
+        }
+
+        document.getElementById('sticker-search').addEventListener('input', populateStickerList);
+        document.getElementById('select-all-stickers').addEventListener('click', () => {
+            document.querySelectorAll('.sticker-checkbox').forEach(cb => cb.checked = true);
+        });
+        document.getElementById('deselect-all-stickers').addEventListener('click', () => {
+            document.querySelectorAll('.sticker-checkbox').forEach(cb => cb.checked = false);
+        });
+
+        document.getElementById('generate-selected-stickers').addEventListener('click', () => {
+            const selected = Array.from(document.querySelectorAll('.sticker-checkbox:checked')).map(cb => ({
+                code: cb.value,
+                name: cb.dataset.name
+            }));
+
+            if (selected.length === 0) {
+                alert('Please select at least one guest/code');
+                return;
+            }
+
+            const size = document.getElementById('sticker-size-select').value;
+            const modalTitle = document.getElementById('modal-title');
+            const printableArea = document.getElementById('printable-area');
+            
+            modalTitle.textContent = `QR Stickers (${selected.length})`;
+            printableArea.className = 'sticker-sheet';
+            printableArea.style.gridTemplateColumns = `repeat(auto-fill, minmax(${size}in, 1fr))`;
+            printableArea.innerHTML = '';
+
+            // Instructions for printing
+            const instructions = document.createElement('div');
+            instructions.style.gridColumn = '1 / -1';
+            instructions.style.marginBottom = '2rem';
+            instructions.className = 'no-print';
+            instructions.innerHTML = `
+                <div class="alert alert-info">
+                    <strong>Print Instructions:</strong> Set your print margins to "None" or "Minimum" and ensure scale is "100%". 
+                    Stickers are sized to ${size}x${size} inches.
+                </div>
+            `;
+            printableArea.appendChild(instructions);
+
+            selected.forEach(item => {
+                const sticker = document.createElement('div');
+                sticker.className = 'qr-sticker';
+                sticker.style.width = `${size}in`;
+                sticker.style.height = `${size}in`;
+                
+                const qrDiv = document.createElement('div');
+                sticker.appendChild(qrDiv);
+                
+                const codeDiv = document.createElement('div');
+                codeDiv.className = 'qr-sticker-code';
+                codeDiv.textContent = item.code;
+                sticker.appendChild(codeDiv);
+                
+                printableArea.appendChild(sticker);
+
+                const url = window.location.origin;
+                new QRCode(qrDiv, {
+                    text: `${url}/?code=${item.code}`,
+                    width: (size * 72), // Approx px for the size
+                    height: (size * 72),
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            });
+
+            document.getElementById('export-modal').style.display = 'block';
+        });
+
         async function loadSettings() {
             try {
                 const res = await fetch(`${API_URL}/admin/settings`, {
@@ -1312,6 +1501,10 @@
 
         // Preview functionality
         document.getElementById('generate-print-btn').addEventListener('click', () => {
+            if (typeof QRCode === 'undefined') {
+                alert('QR Code library is still loading. Please wait a moment and try again.');
+                return;
+            }
             const code = document.getElementById('print-code-select').value;
             if (!code) {
                 alert('Please select a code first');
@@ -1319,8 +1512,64 @@
             }
 
             const url = window.location.origin;
+            const fullRsvpUrl = `${url}/?code=${code}`;
+            document.getElementById('modal-title').textContent = 'Invitation Preview (Front & Back)';
+            const printableArea = document.getElementById('printable-area');
+            printableArea.className = 'preview-grid';
+            printableArea.style = '';
+            
+            printableArea.innerHTML = `
+                <!-- Front Card -->
+                <div class="invitation-card">
+                    <p
+                        style="text-transform: uppercase; letter-spacing: 0.4em; font-size: 0.8rem; color: #999; margin-bottom: 3rem;">
+                        Save the Date</p>
+                    <h1 class="invitation-names">Ashton & Cheyenne</h1>
+                    <div class="invitation-divider"></div>
+                    <p class="invitation-date">September 12, 2026</p>
+                    <p class="invitation-location">Otisco, Indiana</p>
+                </div>
+
+                <!-- Back Card -->
+                <div class="invitation-card">
+                    <div class="invitation-back-content">
+                        <p
+                            style="text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.75rem; color: #999; margin-bottom: 2rem;">
+                            RSVP Online</p>
+                        <p style="font-size: 0.95rem; line-height: 1.6; color: #555;">To view wedding details,
+                            accommodations,<br>and to RSVP, please visit our website:</p>
+                        <p style="font-weight: 600; color: #bfa37e; margin: 1rem 0; font-size: 1.1rem;"
+                            id="invitation-url-text"></p>
+
+                        <div class="invitation-code-box">
+                            <p
+                                style="font-size: 0.7rem; color: #999; letter-spacing: 0.1em; margin-bottom: 0.5rem; text-transform: uppercase;">
+                                Your Unique Access Code</p>
+                            <div class="invitation-code" id="invitation-code-text">XXXXXX</div>
+                        </div>
+
+                        <div id="invitation-qrcode" style="display: flex; justify-content: center; margin: 1rem 0;"></div>
+
+                        <p style="margin-top: 1rem; font-style: italic; color: #aaa; font-size: 0.85rem;">Official
+                            invitation to follow</p>
+                    </div>
+                </div>
+            `;
+
             document.getElementById('invitation-url-text').textContent = url.replace('http://', '').replace('https://', '');
             document.getElementById('invitation-code-text').textContent = code;
+
+            // Generate QR Code
+            const qrContainer = document.getElementById('invitation-qrcode');
+            qrContainer.innerHTML = ''; // Clear previous QR code
+            new QRCode(qrContainer, {
+                text: fullRsvpUrl,
+                width: 128,
+                height: 128,
+                colorDark: "#333333",
+                colorLight: "#fdfaf6",
+                correctLevel: QRCode.CorrectLevel.H
+            });
 
             document.getElementById('export-modal').style.display = 'block';
         });
@@ -1557,6 +1806,7 @@
                         <td>${new Date(guest.created_at).toLocaleDateString()}</td>
                         <td>
                             <button data-action="edit" data-code="${guest.code}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">Edit</button>
+                            <button data-action="view-qr" data-code="${guest.code}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">QR</button>
                             <button data-action="clear-rsvp" data-code="${guest.code}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; border-color: var(--error); color: var(--error);">Clear RSVP</button>
                         </td>
                     </tr>
@@ -1611,6 +1861,7 @@
                         </div>
                         <div class="data-card-actions">
                             <button data-action="edit" data-code="${guest.code}" class="btn btn-secondary">Edit</button>
+                            <button data-action="view-qr" data-code="${guest.code}" class="btn btn-secondary">QR</button>
                             <button data-action="clear-rsvp" data-code="${guest.code}" class="btn btn-secondary" style="border-color: var(--error); color: var(--error);">Clear</button>
                         </div>
                     </div>
@@ -1647,6 +1898,7 @@
                     <td>${new Date(code.created_at).toLocaleDateString()}</td>
                     <td>
                         <button data-action="edit" data-code="${code.code}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">Edit</button>
+                        <button data-action="view-qr" data-code="${code.code}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">QR</button>
                         <button data-action="quick-max" data-code="${code.code}" data-current="${code.max_guests}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">Quick Max</button>
                         <button data-action="delete-code" data-code="${code.code}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; border-color: var(--error); color: var(--error);" ${code.used ? 'disabled title="Cannot delete used code"' : ''}>Delete</button>
                     </td>
@@ -1677,6 +1929,7 @@
                     </div>
                     <div class="data-card-actions">
                         <button data-action="edit" data-code="${code.code}" class="btn btn-secondary">Edit</button>
+                        <button data-action="view-qr" data-code="${code.code}" class="btn btn-secondary">QR</button>
                         <button data-action="quick-max" data-code="${code.code}" data-current="${code.max_guests}" class="btn btn-secondary">Max</button>
                         <button data-action="delete-code" data-code="${code.code}" class="btn btn-secondary" style="border-color: var(--error); color: var(--error);" ${code.used ? 'disabled' : ''}>Delete</button>
                     </div>
@@ -1708,6 +1961,48 @@
                 allCodes = data.codes || [];
                 renderCodes();
             } catch (error) { console.error(error); }
+        }
+
+        async function viewQR(code) {
+            if (typeof QRCode === 'undefined') {
+                alert('QR Code library is still loading. Please wait a moment and try again.');
+                return;
+            }
+            const url = window.location.origin;
+            const fullRsvpUrl = `${url}/?code=${code}`;
+            document.getElementById('modal-title').textContent = 'Guest Access QR Code';
+            
+            const printableArea = document.getElementById('printable-area');
+            printableArea.className = 'preview-grid';
+            printableArea.style = '';
+            
+            printableArea.innerHTML = `
+                <!-- Back Card (used as a container for simple QR view) -->
+                <div class="invitation-card" style="height: auto; padding: 2rem;">
+                    <div class="invitation-back-content">
+                        <p style="font-weight: 600; color: #bfa37e; margin: 1rem 0; font-size: 1.1rem;">${url.replace('http://', '').replace('https://', '')}</p>
+                        <div class="invitation-code-box">
+                            <p style="font-size: 0.7rem; color: #999; letter-spacing: 0.1em; margin-bottom: 0.5rem; text-transform: uppercase;">Your Unique Access Code</p>
+                            <div class="invitation-code">${code}</div>
+                        </div>
+                        <div id="invitation-qrcode" style="display: flex; justify-content: center; margin: 1rem 0;"></div>
+                    </div>
+                </div>
+            `;
+
+            // Generate QR Code
+            const qrContainer = document.getElementById('invitation-qrcode');
+            qrContainer.innerHTML = '';
+            new QRCode(qrContainer, {
+                text: fullRsvpUrl,
+                width: 150,
+                height: 150,
+                colorDark: "#333333",
+                colorLight: "#fdfaf6",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('export-modal').style.display = 'block';
         }
 
         async function deleteGuest(code) {
@@ -1765,6 +2060,7 @@
             const action = btn.dataset.action;
             const code = btn.dataset.code;
             if (action === 'edit') editRSVP(code);
+            if (action === 'view-qr') viewQR(code);
             if (action === 'clear-rsvp') deleteGuest(code);
         });
 
@@ -1774,6 +2070,7 @@
             const action = btn.dataset.action;
             const code = btn.dataset.code;
             if (action === 'edit') editRSVP(code);
+            if (action === 'view-qr') viewQR(code);
             if (action === 'quick-max') updateMaxGuests(code, parseInt(btn.dataset.current));
             if (action === 'delete-code') deleteCode(code);
         });
@@ -1794,6 +2091,7 @@
             const action = btn.dataset.action;
             const code = btn.dataset.code;
             if (action === 'edit') editRSVP(code);
+            if (action === 'view-qr') viewQR(code);
             if (action === 'clear-rsvp') deleteGuest(code);
         });
 
@@ -1803,6 +2101,7 @@
             const action = btn.dataset.action;
             const code = btn.dataset.code;
             if (action === 'edit') editRSVP(code);
+            if (action === 'view-qr') viewQR(code);
             if (action === 'quick-max') updateMaxGuests(code, parseInt(btn.dataset.current));
             if (action === 'delete-code') deleteCode(code);
         });
