@@ -65,11 +65,81 @@ async function loadSiteSettings() {
             // Update footer
             const footerDate = document.querySelector('footer p:nth-child(2)');
             if (footerDate) footerDate.textContent = `${settings.wedding_date} • ${settings.wedding_location}`;
+
+            // Update countdown target if valid date
+            if (settings.wedding_date && typeof window.updateCountdownTarget === 'function') {
+                // Settings date format is usually "September 12, 2026"
+                // Assuming ceremony time remains 16:00:00 internally
+                window.updateCountdownTarget(`${settings.wedding_date} 16:00:00`);
+            }
         }
     } catch (e) { console.error('Settings load failed', e); }
 }
 
 loadSiteSettings();
+
+// ============================================
+// COUNTDOWN TIMER
+// ============================================
+
+let timerInterval;
+
+function initCountdown(targetDateString) {
+    const countdownContainer = document.getElementById('countdown-timer');
+    if (!countdownContainer) return;
+
+    let targetDate = new Date(targetDateString).getTime();
+
+    // Allow updating the target from settings
+    window.updateCountdownTarget = (newDateStr) => {
+        const newTarget = new Date(newDateStr).getTime();
+        // Fallback to old target if the new date string is invalid
+        if (!isNaN(newTarget)) {
+            targetDate = newTarget;
+            updateTimer();
+        }
+    };
+    const daysEl = document.getElementById('cd-days');
+    const hoursEl = document.getElementById('cd-hours');
+    const minutesEl = document.getElementById('cd-minutes');
+    const secondsEl = document.getElementById('cd-seconds');
+
+    if (!countdownContainer) return;
+
+    countdownContainer.classList.remove('hidden');
+
+    const updateTimer = () => {
+        const now = new Date().getTime();
+        const distance = targetDate - now;
+
+        if (distance < 0) {
+            // Wedding has passed or is happening today
+            clearInterval(timerInterval);
+            countdownContainer.innerHTML = '<div class="countdown-item" style="width: auto; padding: 1rem 2rem;"><span class="countdown-value">Just Married!</span></div>';
+            return;
+        }
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        // Update DOM
+        if (daysEl) daysEl.textContent = days.toString().padStart(2, '0');
+        if (hoursEl) hoursEl.textContent = hours.toString().padStart(2, '0');
+        if (minutesEl) minutesEl.textContent = minutes.toString().padStart(2, '0');
+        if (secondsEl) secondsEl.textContent = seconds.toString().padStart(2, '0');
+    };
+
+    // Run immediately to avoid flash of blank numbers
+    updateTimer();
+    timerInterval = setInterval(updateTimer, 1000);
+}
+
+// Initialize with the hardcoded default date, settings will override this later if needed
+// Setting time to 4:00 PM EST (20:00 UTC) as a typical ceremony time
+let weddingDate = "September 12, 2026 16:00:00";
+initCountdown(weddingDate);
 
 function showError(element, message) {
     element.textContent = message;
@@ -194,6 +264,7 @@ const guestCountSection = document.getElementById('guest-count-section');
 const maxGuestsNote = document.getElementById('max-guests-note');
 const rsvpFormSection = document.getElementById('rsvp-form-section');
 const successSection = document.getElementById('rsvp-success-section');
+const updateRsvpBtn = document.getElementById('update-rsvp-btn');
 
 function showAlert(message, type = 'info') {
     rsvpAlert.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
@@ -269,6 +340,14 @@ rsvpForm.addEventListener('submit', async (e) => {
         setLoading(submitRsvpBtn, false);
     }
 });
+
+if (updateRsvpBtn) {
+    updateRsvpBtn.addEventListener('click', () => {
+        successSection.classList.add('hidden');
+        successSection.classList.remove('slide-up');
+        rsvpFormSection.classList.remove('hidden');
+    });
+}
 
 // ============================================
 // SMOOTH SCROLL

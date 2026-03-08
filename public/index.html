@@ -92,73 +92,29 @@
                 <p class="hero-details">
                     September 12, 2026 • Otisco, Indiana
                 </p>
+
+                <div id="countdown-timer" class="countdown-container hidden">
+                    <div class="countdown-item">
+                        <span class="countdown-value" id="cd-days">--</span>
+                        <span class="countdown-label">Days</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-value" id="cd-hours">--</span>
+                        <span class="countdown-label">Hours</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-value" id="cd-minutes">--</span>
+                        <span class="countdown-label">Mins</span>
+                    </div>
+                    <div class="countdown-item">
+                        <span class="countdown-value" id="cd-seconds">--</span>
+                        <span class="countdown-label">Secs</span>
+                    </div>
+                </div>
             </div>
             <div class="scroll-indicator"
                 onclick="document.getElementById('details').scrollIntoView({behavior: 'smooth'})">
                 ↓
-            </div>
-        </section>
-
-        <!-- DETAILS SECTION -->
-        <section class="section" id="details" style="background: var(--bg-dark);">
-            <div class="container">
-                <h2 class="section-title">Wedding Details</h2>
-                <div class="grid grid-3">
-                    <div class="card text-center">
-                        <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;">💒</div>
-                        <h3 class="mb-sm">Ceremony & Reception</h3>
-                        <p><strong>Private Residence</strong></p>
-                        <p class="text-muted">123 Cattail Road<br>Otisco, IN 47163</p>
-                    </div>
-                    <div class="card text-center">
-                        <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;">📍</div>
-                        <h3 class="mb-sm">Location</h3>
-                        <p><strong>Southern Indiana</strong></p>
-                        <p class="text-muted">Scenic countryside setting<br>15 minutes from Scottsburg</p>
-                    </div>
-                    <div class="card text-center">
-                        <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;">👔</div>
-                        <h3 class="mb-sm">Dress Code</h3>
-                        <p><strong>Cocktail Attire</strong></p>
-                        <p class="text-muted">Suits and cocktail dresses</p>
-                    </div>
-                </div>
-
-                <div class="card mt-lg">
-                    <h3 class="text-primary mb-md text-center">Travel from Louisville</h3>
-                    <p class="text-center text-muted mb-md">Otisco is a convenient 35-minute drive from downtown
-                        Louisville</p>
-                    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
-                        <p class="mb-md">Take <strong>I-65 North</strong> across the Ohio River into Indiana, then
-                            follow <strong>IN-60 East</strong> through the scenic countryside directly to Otisco.</p>
-                        <p class="text-muted">The venue is located in the rolling hills of Southern Indiana, offering a
-                            beautiful drive for our guests traveling from the city.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- THE COUPLE SECTION -->
-        <section class="section" id="couple">
-            <div class="container">
-                <h2 class="section-title">The Couple</h2>
-                <div class="couple-grid">
-                    <div class="couple-image-container">
-                        <img src="assets/IMG_5228.jpg" alt="Ashton and Cheyenne" class="couple-image">
-                    </div>
-                    <div class="couple-text">
-                        <h3 class="script" style="font-size: 3rem; color: var(--primary);">Ashton & Cheyenne</h3>
-                        <p>We are so incredibly excited to share our special day with you. Our journey together has been
-                            filled with love, laughter, and countless memories, and we can't wait to start this next
-                            chapter of our lives surrounded by our dearest friends and family.</p>
-                        <p class="mt-md">From our early days to this beautiful moment, every step has led us here. We
-                            look forward to celebrating with each and every one of you in the scenic beauty of Southern
-                            Indiana.</p>
-                    </div>
-                    <div class="couple-image-container">
-                        <img src="assets/IMG_5233.jpg" alt="Ashton and Cheyenne" class="couple-image">
-                    </div>
-                </div>
             </div>
         </section>
 
@@ -231,6 +187,120 @@
                             <h3 class="text-primary mb-md">Thank You!</h3>
                             <p class="mb-md">Your RSVP has been received. We can't wait to celebrate with you!</p>
                             <p class="text-muted">You'll receive more details closer to the wedding date.</p>
+                            <button id="update-rsvp-btn" class="btn btn-primary mt-md">Update RSVP</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- THE COUPLE SECTION -->
+        <section class="section" id="couple">
+            <div class="container">
+                <h2 class="section-title">The Couple</h2>
+                <div class="couple-grid">
+                    <div class="couple-image-container">
+                        <img src="assets/IMG_5228.jpg" alt="Ashton and Cheyenne" class="couple-image">
+                    </div>
+                    <div class="couple-text">
+                        <h3 class="script" style="font-size: 3rem; color: var(--primary);">Ashton & Cheyenne</h3>
+                        <p>We are so incredibly excited to share our special day with you. Our journey together has been
+                            filled with love, laughter, and countless memories, and we can't wait to start this next
+                            chapter of our lives surrounded by our dearest friends and family.</p>
+                        <p class="mt-md">From our early days to this beautiful moment, every step has led us here. We
+                            look forward to celebrating with each and every one of you in the scenic beauty of Southern
+                            Indiana.</p>
+                    </div>
+                    <div class="couple-image-container">
+                        <img src="assets/IMG_5233.jpg" alt="Ashton and Cheyenne" class="couple-image">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- DETAILS SECTION -->
+        <section class="section" id="details" style="background: var(--bg-dark);">
+            <div class="container">
+                <h2 class="section-title">Wedding Details</h2>
+                <div class="grid grid-3">
+                    <div class="card text-center">
+                        <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;">💒</div>
+                        <h3 class="mb-sm">Ceremony & Reception</h3>
+                        <p><strong>Private Residence</strong></p>
+                        <p class="text-muted" style="margin-top: 0.5rem;">
+                            <a href="https://www.google.com/maps/search/?api=1&query=123+Cattail+Road,+Otisco,+IN+47163"
+                                target="_blank" rel="noopener noreferrer"
+                                style="color: var(--primary); text-decoration: none; border-bottom: 1px dotted var(--primary); transition: color 0.3s ease;">
+                                123 Cattail Road<br>Otisco, IN 47163
+                            </a>
+                        </p>
+                    </div>
+                    <div class="card text-center">
+                        <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;">👔</div>
+                        <h3 class="mb-sm">Dress Code</h3>
+                        <p><strong>Cocktail Attire</strong></p>
+                        <p class="text-muted" style="margin-top: 1rem; line-height: 1.6;">
+                            We ask that you join us in celebrating by dressing in your finest cocktail attire. For
+                            gentlemen, a suit and tie or a sports coat and slacks are perfect. For ladies, elegant
+                            cocktail dresses, stylish jumpsuits, or dressy separates are encouraged. Most importantly,
+                            we want you to feel comfortable, confident, and ready to dance the night away!
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card mt-lg">
+                    <h3 class="text-primary mb-md text-center">Travel from Louisville</h3>
+                    <p class="text-center text-muted mb-md">Otisco is a convenient 35-minute drive from downtown
+                        Louisville</p>
+                    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+                        <p class="mb-md">Take <strong>I-65 North</strong> across the Ohio River into Indiana, then
+                            follow <strong>IN-60 East</strong> through the scenic countryside directly to Otisco.</p>
+                        <p class="text-muted">The venue is located in the rolling hills of Southern Indiana, offering a
+                            beautiful drive for our guests traveling from the city.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ITINERARY SECTION -->
+        <section class="section" id="itinerary">
+            <div class="container">
+                <h2 class="section-title">Schedule of Events</h2>
+                <div class="timeline">
+                    <!-- Event 1 -->
+                    <div class="timeline-item card fade-in">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 class="text-primary mb-xs">The Vows</h3>
+                            <p class="text-muted">Join us as we say "I do" and officially begin our new chapter
+                                together.</p>
+                        </div>
+                    </div>
+                    <!-- Event 2 -->
+                    <div class="timeline-item card fade-in">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 class="text-primary mb-xs">Cocktail Hour</h3>
+                            <p class="text-muted">Enjoy drinks, mingling, and light hors d'oeuvres while we take a few
+                                photos.</p>
+                        </div>
+                    </div>
+                    <!-- Event 3 -->
+                    <div class="timeline-item card fade-in">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 class="text-primary mb-xs">Dinner is Served</h3>
+                            <p class="text-muted">Take your seats for a wonderful feast as we celebrate our union with
+                                family and friends.</p>
+                        </div>
+                    </div>
+                    <!-- Event 4 -->
+                    <div class="timeline-item card fade-in">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h3 class="text-primary mb-xs">Dance the Night Away</h3>
+                            <p class="text-muted">The dance floor opens! Grab a drink and join us for celebration,
+                                dancing, and making memories.</p>
                         </div>
                     </div>
                 </div>
@@ -241,12 +311,42 @@
         <section class="section" id="registry" style="background: var(--bg-dark);">
             <div class="container">
                 <h2 class="section-title">Registry</h2>
-                <div style="max-width: 700px; margin: 0 auto; text-align: center;">
-                    <p class="mb-lg">Your presence at our wedding is the greatest gift of all.</p>
-                    <div class="card" style="padding: 3rem;">
-                        <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;">🎁</div>
-                        <h3 class="text-primary mb-md">Coming Soon</h3>
-                        <p class="text-muted">Registry details will be added closer to the wedding date.</p>
+                <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+                    <p class="mb-sm" style="font-size: 1.2rem; color: var(--text-dark);">Your presence at our wedding is
+                        the greatest gift of all.</p>
+                    <p class="mb-lg text-muted">However, if you would like to honor us with a gift, we are asking for
+                        contributions to our honeymoon fund.</p>
+
+                    <div class="registry-options">
+                        <a href="https://venmo.com/u/atsmith2k" target="_blank" rel="noopener noreferrer"
+                            class="registry-btn card">
+                            <div class="registry-icon">
+                                <img src="assets/venmo.png" alt="Venmo" width="40" height="40">
+                            </div>
+                            <span class="registry-label">Venmo</span>
+                            <span
+                                style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-top: 8px;">@atsmith2k</span>
+                        </a>
+
+                        <a href="https://enroll.zellepay.com/qr-codes?data=502-996-0343" target="_blank"
+                            rel="noopener noreferrer" class="registry-btn card">
+                            <div class="registry-icon">
+                                <img src="assets/zelle.png" alt="Zelle" width="40" height="40">
+                            </div>
+                            <span class="registry-label">Zelle</span>
+                            <span
+                                style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-top: 8px;">502-996-0343</span>
+                        </a>
+
+                        <a target="_blank" rel="noopener noreferrer" class="registry-btn card">
+                            <div class="registry-icon">
+                                <img src="assets/applepay.png" alt="Apple Pay" width="40" height="40"
+                                    style="object-fit: contain;">
+                            </div>
+                            <span class="registry-label">Apple Pay</span>
+                            <span
+                                style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-top: 8px;">502-996-0343</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -262,7 +362,8 @@
                     September 12, 2026 • Otisco, IN
                 </p>
                 <p style="color: rgba(255, 255, 255, 0.5); margin-top: 2rem; font-size: 0.875rem;">
-                    Questions? Email at atsmith2k@gmail.com
+                    Questions? Email at <a href="mailto:atsmith2k@gmail.com"
+                        style="color: rgba(255, 255, 255, 0.5); text-decoration: underline;">atsmith2k@gmail.com</a>
                 </p>
                 <div style="margin-top: 2rem;">
                     <a href="admin"

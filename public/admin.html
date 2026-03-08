@@ -1364,6 +1364,18 @@
 
         let adminPassword = '';
 
+        // XSS Mitigation: Escape HTML characters in user input before rendering
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            const stringified = String(str);
+            return stringified
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
         // Custom Modal Functions
         function customAlert(message, title = 'Attention') {
             return new Promise((resolve) => {
@@ -1814,25 +1826,35 @@
                 const statusClass = sub.status === 'approved' ? 'status-attending' :
                     sub.status === 'denied' ? 'status-declined' : 'status-pending';
 
+                const hName = escapeHTML(sub.household_name);
+                const gCode = escapeHTML(sub.generated_code);
+                const aLine1 = escapeHTML(sub.address_line1);
+                const aLine2 = sub.address_line2 ? escapeHTML(sub.address_line2) : '';
+                const aCity = escapeHTML(sub.city);
+                const aState = escapeHTML(sub.state);
+                const aZip = escapeHTML(sub.zip_code);
+                const dietary = sub.dietary_restrictions ? escapeHTML(sub.dietary_restrictions) : '';
+                const note = sub.note_to_couple ? escapeHTML(sub.note_to_couple) : '';
+
                 return `
                     <tr>
                         <td>
-                            <strong>${sub.household_name}</strong>
-                            ${sub.generated_code ? `<br><small>Code: <code>${sub.generated_code}</code></small>` : ''}
+                            <strong>${hName}</strong>
+                            ${gCode ? `<br><small>Code: <code>${gCode}</code></small>` : ''}
                         </td>
                         <td>${sub.guest_count}</td>
                         <td>
                             <small>
-                                ${sub.address_line1}${sub.address_line2 ? `, ${sub.address_line2}` : ''}<br>
-                                ${sub.city}, ${sub.state} ${sub.zip_code}
+                                ${aLine1}${aLine2 ? `, ${aLine2}` : ''}<br>
+                                ${aCity}, ${aState} ${aZip}
                             </small>
                         </td>
                         <td><span class="status-badge ${statusClass}">${sub.status}</span></td>
                         <td>
                             <small>
-                                ${sub.dietary_restrictions ? `<strong>Dietary:</strong> ${sub.dietary_restrictions}<br>` : ''}
-                                ${sub.note_to_couple ? `<strong>Note:</strong> ${sub.note_to_couple}` : ''}
-                                ${(!sub.dietary_restrictions && !sub.note_to_couple) ? '-' : ''}
+                                ${dietary ? `<strong>Dietary:</strong> ${dietary}<br>` : ''}
+                                ${note ? `<strong>Note:</strong> ${note}` : ''}
+                                ${(!dietary && !note) ? '-' : ''}
                             </small>
                         </td>
                         <td>${new Date(sub.created_at).toLocaleDateString()}</td>
@@ -1851,10 +1873,20 @@
                 const statusClass = sub.status === 'approved' ? 'status-attending' :
                     sub.status === 'denied' ? 'status-declined' : 'status-pending';
 
+                const hName = escapeHTML(sub.household_name);
+                const gCode = escapeHTML(sub.generated_code);
+                const aLine1 = escapeHTML(sub.address_line1);
+                const aLine2 = sub.address_line2 ? escapeHTML(sub.address_line2) : '';
+                const aCity = escapeHTML(sub.city);
+                const aState = escapeHTML(sub.state);
+                const aZip = escapeHTML(sub.zip_code);
+                const dietary = sub.dietary_restrictions ? escapeHTML(sub.dietary_restrictions) : '';
+                const note = sub.note_to_couple ? escapeHTML(sub.note_to_couple) : '';
+
                 return `
                     <div class="data-card">
                         <div class="data-card-header">
-                            <div class="data-card-title">${sub.household_name}</div>
+                            <div class="data-card-title">${hName}</div>
                             <span class="status-badge ${statusClass}">${sub.status}</span>
                         </div>
                         <div class="data-card-body">
@@ -1869,24 +1901,24 @@
                             <div class="data-card-row full-width">
                                 <span class="data-card-label">Address</span>
                                 <span class="data-card-value">
-                                    ${sub.address_line1}${sub.address_line2 ? `, ${sub.address_line2}` : ''}<br>
-                                    ${sub.city}, ${sub.state} ${sub.zip_code}
+                                    ${aLine1}${aLine2 ? `, ${aLine2}` : ''}<br>
+                                    ${aCity}, ${aState} ${aZip}
                                 </span>
                             </div>
-                            ${sub.generated_code ? `
+                            ${gCode ? `
                             <div class="data-card-row full-width">
                                 <span class="data-card-label">Code</span>
-                                <span class="data-card-value"><code>${sub.generated_code}</code></span>
+                                <span class="data-card-value"><code>${gCode}</code></span>
                             </div>` : ''}
-                            ${sub.dietary_restrictions ? `
+                            ${dietary ? `
                             <div class="data-card-row full-width">
                                 <span class="data-card-label">Dietary</span>
-                                <span class="data-card-value">${sub.dietary_restrictions}</span>
+                                <span class="data-card-value">${dietary}</span>
                             </div>` : ''}
-                            ${sub.note_to_couple ? `
+                            ${note ? `
                             <div class="data-card-row full-width">
                                 <span class="data-card-label">Note</span>
-                                <span class="data-card-value">${sub.note_to_couple}</span>
+                                <span class="data-card-value">${note}</span>
                             </div>` : ''}
                         </div>
                         ${sub.status === 'pending' ? `
@@ -1964,27 +1996,36 @@
                 const status = guest.attending === 1 ? 'attending' : guest.attending === 0 ? 'declined' : 'pending';
                 const statusText = guest.attending === 1 ? 'Attending' : guest.attending === 0 ? 'Declined' : 'Pending';
 
+                const gName = escapeHTML(guest.name);
+                const aLine1 = guest.address_line1 ? escapeHTML(guest.address_line1) : '';
+                const aLine2 = guest.address_line2 ? escapeHTML(guest.address_line2) : '';
+                const aCity = guest.city ? escapeHTML(guest.city) : '';
+                const aState = guest.state ? escapeHTML(guest.state) : '';
+                const aZip = guest.zip_code ? escapeHTML(guest.zip_code) : '';
+                const dietary = guest.dietary_restrictions ? escapeHTML(guest.dietary_restrictions) : '';
+                const message = guest.message ? escapeHTML(guest.message) : '';
+
                 // Build address string
-                const addressParts = [guest.address_line1, guest.address_line2].filter(Boolean);
-                const cityState = [guest.city, guest.state, guest.zip_code].filter(Boolean).join(', ');
+                const addressParts = [aLine1, aLine2].filter(Boolean);
+                const cityState = [aCity, aState, aZip].filter(Boolean).join(', ');
                 const fullAddress = addressParts.length || cityState
                     ? `${addressParts.join(', ')}${addressParts.length && cityState ? '<br>' : ''}${cityState}`
                     : '-';
 
                 return `
                     <tr>
-                        <td><strong>${guest.name}</strong></td>
-                        <td><code>${guest.code}</code></td>
+                        <td><strong>${gName}</strong></td>
+                        <td><code>${escapeHTML(guest.code)}</code></td>
                         <td><span class="status-badge status-${status}">${statusText}</span></td>
                         <td>${guest.guest_count || '-'}</td>
                         <td><small>${fullAddress}</small></td>
-                        <td><small>${guest.dietary_restrictions || '-'}</small></td>
-                        <td><small>${guest.message || '-'}</small></td>
+                        <td><small>${dietary || '-'}</small></td>
+                        <td><small>${message || '-'}</small></td>
                         <td>${new Date(guest.created_at).toLocaleDateString()}</td>
                         <td>
-                            <button data-action="edit" data-code="${guest.code}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">Edit</button>
-                            <button data-action="view-qr" data-code="${guest.code}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">QR</button>
-                            <button data-action="clear-rsvp" data-code="${guest.code}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; border-color: var(--error); color: var(--error);">Clear RSVP</button>
+                            <button data-action="edit" data-code="${escapeHTML(guest.code)}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">Edit</button>
+                            <button data-action="view-qr" data-code="${escapeHTML(guest.code)}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">QR</button>
+                            <button data-action="clear-rsvp" data-code="${escapeHTML(guest.code)}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; border-color: var(--error); color: var(--error);">Clear RSVP</button>
                         </td>
                     </tr>
                 `;
@@ -1995,8 +2036,17 @@
                 const status = guest.attending === 1 ? 'attending' : guest.attending === 0 ? 'declined' : 'pending';
                 const statusText = guest.attending === 1 ? 'Attending' : guest.attending === 0 ? 'Declined' : 'Pending';
 
-                const addressParts = [guest.address_line1, guest.address_line2].filter(Boolean);
-                const cityState = [guest.city, guest.state, guest.zip_code].filter(Boolean).join(', ');
+                const gName = escapeHTML(guest.name);
+                const aLine1 = guest.address_line1 ? escapeHTML(guest.address_line1) : '';
+                const aLine2 = guest.address_line2 ? escapeHTML(guest.address_line2) : '';
+                const aCity = guest.city ? escapeHTML(guest.city) : '';
+                const aState = guest.state ? escapeHTML(guest.state) : '';
+                const aZip = guest.zip_code ? escapeHTML(guest.zip_code) : '';
+                const dietary = guest.dietary_restrictions ? escapeHTML(guest.dietary_restrictions) : '';
+                const message = guest.message ? escapeHTML(guest.message) : '';
+
+                const addressParts = [aLine1, aLine2].filter(Boolean);
+                const cityState = [aCity, aState, aZip].filter(Boolean).join(', ');
                 const fullAddress = addressParts.length || cityState
                     ? `${addressParts.join(', ')}${addressParts.length && cityState ? '<br>' : ''}${cityState}`
                     : '';
@@ -2004,13 +2054,13 @@
                 return `
                     <div class="data-card">
                         <div class="data-card-header">
-                            <div class="data-card-title">${guest.name}</div>
+                            <div class="data-card-title">${gName}</div>
                             <span class="status-badge status-${status}">${statusText}</span>
                         </div>
                         <div class="data-card-body">
                             <div class="data-card-row">
                                 <span class="data-card-label">Code</span>
-                                <span class="data-card-value"><code>${guest.code}</code></span>
+                                <span class="data-card-value"><code>${escapeHTML(guest.code)}</code></span>
                             </div>
                             <div class="data-card-row">
                                 <span class="data-card-label">Guests</span>
@@ -2025,21 +2075,21 @@
                                 <span class="data-card-label">Address</span>
                                 <span class="data-card-value">${fullAddress}</span>
                             </div>` : ''}
-                            ${guest.dietary_restrictions ? `
+                            ${dietary ? `
                             <div class="data-card-row full-width">
                                 <span class="data-card-label">Dietary</span>
-                                <span class="data-card-value">${guest.dietary_restrictions}</span>
+                                <span class="data-card-value">${dietary}</span>
                             </div>` : ''}
-                            ${guest.message ? `
+                            ${message ? `
                             <div class="data-card-row full-width">
                                 <span class="data-card-label">Message</span>
-                                <span class="data-card-value">${guest.message}</span>
+                                <span class="data-card-value">${message}</span>
                             </div>` : ''}
                         </div>
                         <div class="data-card-actions">
-                            <button data-action="edit" data-code="${guest.code}" class="btn btn-secondary">Edit</button>
-                            <button data-action="view-qr" data-code="${guest.code}" class="btn btn-secondary">QR</button>
-                            <button data-action="clear-rsvp" data-code="${guest.code}" class="btn btn-secondary" style="border-color: var(--error); color: var(--error);">Clear</button>
+                            <button data-action="edit" data-code="${escapeHTML(guest.code)}" class="btn btn-secondary">Edit</button>
+                            <button data-action="view-qr" data-code="${escapeHTML(guest.code)}" class="btn btn-secondary">QR</button>
+                            <button data-action="clear-rsvp" data-code="${escapeHTML(guest.code)}" class="btn btn-secondary" style="border-color: var(--error); color: var(--error);">Clear</button>
                         </div>
                     </div>
                 `;
@@ -2068,16 +2118,16 @@
             // Desktop table
             tbody.innerHTML = filtered.map(code => `
                 <tr>
-                    <td><strong><code>${code.code}</code></strong></td>
+                    <td><strong><code>${escapeHTML(code.code)}</code></strong></td>
                     <td>${code.max_guests}</td>
                     <td><span class="status-badge ${code.used ? 'status-attending' : 'status-pending'}">${code.used ? 'Used' : 'Available'}</span></td>
-                    <td>${code.notes || '-'}</td>
+                    <td>${code.notes ? escapeHTML(code.notes) : '-'}</td>
                     <td>${new Date(code.created_at).toLocaleDateString()}</td>
                     <td>
-                        <button data-action="edit" data-code="${code.code}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">Edit</button>
-                        <button data-action="view-qr" data-code="${code.code}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">QR</button>
-                        <button data-action="quick-max" data-code="${code.code}" data-current="${code.max_guests}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">Quick Max</button>
-                        <button data-action="delete-code" data-code="${code.code}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; border-color: var(--error); color: var(--error);" ${code.used ? 'disabled title="Cannot delete used code"' : ''}>Delete</button>
+                        <button data-action="edit" data-code="${escapeHTML(code.code)}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">Edit</button>
+                        <button data-action="view-qr" data-code="${escapeHTML(code.code)}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">QR</button>
+                        <button data-action="quick-max" data-code="${escapeHTML(code.code)}" data-current="${code.max_guests}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-right: 0.5rem;">Quick Max</button>
+                        <button data-action="delete-code" data-code="${escapeHTML(code.code)}" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; border-color: var(--error); color: var(--error);" ${code.used ? 'disabled title="Cannot delete used code"' : ''}>Delete</button>
                     </td>
                 </tr>
             `).join('');
@@ -2086,7 +2136,7 @@
             mobileCards.innerHTML = filtered.map(code => `
                 <div class="data-card">
                     <div class="data-card-header">
-                        <div class="data-card-title"><code>${code.code}</code></div>
+                        <div class="data-card-title"><code>${escapeHTML(code.code)}</code></div>
                         <span class="status-badge ${code.used ? 'status-attending' : 'status-pending'}">${code.used ? 'Used' : 'Available'}</span>
                     </div>
                     <div class="data-card-body">
@@ -2101,14 +2151,14 @@
                         ${code.notes ? `
                         <div class="data-card-row full-width">
                             <span class="data-card-label">Notes</span>
-                            <span class="data-card-value">${code.notes}</span>
+                            <span class="data-card-value">${escapeHTML(code.notes)}</span>
                         </div>` : ''}
                     </div>
                     <div class="data-card-actions">
-                        <button data-action="edit" data-code="${code.code}" class="btn btn-secondary">Edit</button>
-                        <button data-action="view-qr" data-code="${code.code}" class="btn btn-secondary">QR</button>
-                        <button data-action="quick-max" data-code="${code.code}" data-current="${code.max_guests}" class="btn btn-secondary">Max</button>
-                        <button data-action="delete-code" data-code="${code.code}" class="btn btn-secondary" style="border-color: var(--error); color: var(--error);" ${code.used ? 'disabled' : ''}>Delete</button>
+                        <button data-action="edit" data-code="${escapeHTML(code.code)}" class="btn btn-secondary">Edit</button>
+                        <button data-action="view-qr" data-code="${escapeHTML(code.code)}" class="btn btn-secondary">QR</button>
+                        <button data-action="quick-max" data-code="${escapeHTML(code.code)}" data-current="${code.max_guests}" class="btn btn-secondary">Max</button>
+                        <button data-action="delete-code" data-code="${escapeHTML(code.code)}" class="btn btn-secondary" style="border-color: var(--error); color: var(--error);" ${code.used ? 'disabled' : ''}>Delete</button>
                     </div>
                 </div>
             `).join('');
