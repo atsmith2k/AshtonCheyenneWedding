@@ -16,9 +16,7 @@
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
-        :root {
-            /* Inherit or override variables if needed */
-        }
+        /* Remove empty root */
 
         .admin-container {
             max-width: 1400px;
@@ -165,6 +163,68 @@
             justify-content: center;
             z-index: 1000;
             padding: 1.5rem;
+        }
+
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 1.5rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .custom-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .custom-modal-card {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            max-width: 440px;
+            width: 100%;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            text-align: center;
+        }
+
+        .custom-modal-overlay.active .custom-modal-card {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .custom-modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+            font-family: 'Playfair Display', serif;
+        }
+
+        .custom-modal-message {
+            font-size: 1rem;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .custom-modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
         }
 
         .login-card {
@@ -1284,12 +1344,85 @@
         </div>
     </div>
 
+    <!-- Custom Modal -->
+    <div id="custom-modal" class="custom-modal-overlay">
+        <div class="custom-modal-card">
+            <h3 id="custom-modal-title" class="custom-modal-title">Alert</h3>
+            <p id="custom-modal-message" class="custom-modal-message">Message goes here</p>
+            <div id="custom-modal-actions" class="custom-modal-actions">
+                <button id="custom-modal-cancel" class="btn btn-secondary"
+                    style="display: none; flex: 1;">Cancel</button>
+                <button id="custom-modal-ok" class="btn btn-primary" style="flex: 1;">OK</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:3000/api'
             : '/api';
 
         let adminPassword = '';
+
+        // Custom Modal Functions
+        function customAlert(message, title = 'Attention') {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('custom-modal');
+                const titleEl = document.getElementById('custom-modal-title');
+                const messageEl = document.getElementById('custom-modal-message');
+                const okBtn = document.getElementById('custom-modal-ok');
+                const cancelBtn = document.getElementById('custom-modal-cancel');
+
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                cancelBtn.style.display = 'none';
+
+                modal.classList.add('active');
+
+                const handleOk = () => {
+                    modal.classList.remove('active');
+                    okBtn.removeEventListener('click', handleOk);
+                    resolve(true);
+                };
+
+                okBtn.addEventListener('click', handleOk);
+            });
+        }
+
+        function customConfirm(message, title = 'Please Confirm') {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('custom-modal');
+                const titleEl = document.getElementById('custom-modal-title');
+                const messageEl = document.getElementById('custom-modal-message');
+                const okBtn = document.getElementById('custom-modal-ok');
+                const cancelBtn = document.getElementById('custom-modal-cancel');
+
+                titleEl.textContent = title;
+                messageEl.textContent = message;
+                cancelBtn.style.display = 'flex';
+
+                modal.classList.add('active');
+
+                const cleanup = () => {
+                    modal.classList.remove('active');
+                    okBtn.removeEventListener('click', handleOk);
+                    cancelBtn.removeEventListener('click', handleCancel);
+                };
+
+                const handleOk = () => {
+                    cleanup();
+                    resolve(true);
+                };
+
+                const handleCancel = () => {
+                    cleanup();
+                    resolve(false);
+                };
+
+                okBtn.addEventListener('click', handleOk);
+                cancelBtn.addEventListener('click', handleCancel);
+            });
+        }
 
         // Login
         document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -1410,14 +1543,14 @@
             document.querySelectorAll('.sticker-checkbox').forEach(cb => cb.checked = false);
         });
 
-        document.getElementById('generate-selected-stickers').addEventListener('click', () => {
+        document.getElementById('generate-selected-stickers').addEventListener('click', async () => {
             const selected = Array.from(document.querySelectorAll('.sticker-checkbox:checked')).map(cb => ({
                 code: cb.value,
                 name: cb.dataset.name
             }));
 
             if (selected.length === 0) {
-                alert('Please select at least one guest/code');
+                await customAlert('Please select at least one guest/code');
                 return;
             }
 
@@ -1506,8 +1639,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password: adminPassword, settings })
                 });
-                alert('Settings saved successfully!');
-            } catch (error) { alert('Failed to save settings'); }
+                await customAlert('Settings saved successfully!');
+            } catch (error) { await customAlert('Failed to save settings'); }
             finally { btn.disabled = false; }
         });
 
@@ -1544,14 +1677,14 @@
         }
 
         // Preview functionality
-        document.getElementById('generate-print-btn').addEventListener('click', () => {
+        document.getElementById('generate-print-btn').addEventListener('click', async () => {
             if (typeof QRCode === 'undefined') {
-                alert('QR Code library is still loading. Please wait a moment and try again.');
+                await customAlert('QR Code library is still loading. Please wait a moment and try again.');
                 return;
             }
             const code = document.getElementById('print-code-select').value;
             if (!code) {
-                alert('Please select a code first');
+                await customAlert('Please select a code first');
                 return;
             }
 
@@ -1770,7 +1903,7 @@
 
         async function approveAddress(id) {
             const sub = allAddressSubmissions.find(s => s.id == id);
-            if (!confirm(`Approve address for "${sub.household_name}"? This will generate a new RSVP code.`)) return;
+            if (!(await customConfirm(`Approve address for "${sub.household_name}"? This will generate a new RSVP code.`))) return;
 
             try {
                 const res = await fetch(`${API_URL}/admin/approve-address`, {
@@ -1780,17 +1913,17 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    alert(`Approved! Generated Code: ${data.code}`);
+                    await customAlert(`Approved! Generated Code: ${data.code}`);
                     loadDashboard();
                 } else {
-                    alert('Error: ' + data.error);
+                    await customAlert('Error: ' + data.error);
                 }
-            } catch (error) { alert('Approval failed'); }
+            } catch (error) { await customAlert('Approval failed'); }
         }
 
         async function denyAddress(id) {
             const sub = allAddressSubmissions.find(s => s.id == id);
-            if (!confirm(`Are you sure you want to deny the request from "${sub.household_name}"?`)) return;
+            if (!(await customConfirm(`Are you sure you want to deny the request from "${sub.household_name}"?`))) return;
 
             try {
                 const res = await fetch(`${API_URL}/admin/deny-address`, {
@@ -1802,9 +1935,9 @@
                 if (data.success) {
                     loadDashboard();
                 } else {
-                    alert('Error: ' + data.error);
+                    await customAlert('Error: ' + data.error);
                 }
-            } catch (error) { alert('Deny failed'); }
+            } catch (error) { await customAlert('Deny failed'); }
         }
 
         async function renderGuests() {
@@ -2009,7 +2142,7 @@
 
         async function viewQR(code) {
             if (typeof QRCode === 'undefined') {
-                alert('QR Code library is still loading. Please wait a moment and try again.');
+                await customAlert('QR Code library is still loading. Please wait a moment and try again.');
                 return;
             }
             const url = window.location.origin;
@@ -2050,7 +2183,7 @@
         }
 
         async function deleteGuest(code) {
-            if (!confirm(`Are you sure you want to clear the RSVP for code ${code}? This will remove the guest record.`)) return;
+            if (!(await customConfirm(`Are you sure you want to clear the RSVP for code ${code}? This will remove the guest record.`))) return;
             try {
                 await fetch(`${API_URL}/admin/delete-guest`, {
                     method: 'POST',
@@ -2058,11 +2191,11 @@
                     body: JSON.stringify({ password: adminPassword, code })
                 });
                 loadDashboard();
-            } catch (error) { alert('Failed to delete guest'); }
+            } catch (error) { await customAlert('Failed to delete guest'); }
         }
 
         async function deleteCode(code) {
-            if (!confirm(`Are you sure you want to delete code ${code}?`)) return;
+            if (!(await customConfirm(`Are you sure you want to delete code ${code}?`))) return;
             try {
                 const res = await fetch(`${API_URL}/admin/delete-code`, {
                     method: 'POST',
@@ -2074,7 +2207,7 @@
                     throw new Error(err.error);
                 }
                 loadDashboard();
-            } catch (error) { alert(error.message); }
+            } catch (error) { await customAlert(error.message); }
         }
 
         async function updateMaxGuests(code, currentMax) {
@@ -2087,7 +2220,7 @@
                     body: JSON.stringify({ password: adminPassword, code, maxGuests: parseInt(newMax) })
                 });
                 loadDashboard();
-            } catch (error) { alert('Update failed'); }
+            } catch (error) { await customAlert('Update failed'); }
         }
 
         document.getElementById('guest-search').addEventListener('input', renderGuests);
@@ -2169,8 +2302,11 @@
         document.getElementById('close-edit-modal-x').addEventListener('click', closeEditModal);
         document.getElementById('close-edit-modal-btn').addEventListener('click', closeEditModal);
 
-        document.getElementById('export-csv-btn').addEventListener('click', () => {
-            if (allGuests.length === 0) return alert('No guests to export');
+        document.getElementById('export-csv-btn').addEventListener('click', async () => {
+            if (allGuests.length === 0) {
+                await customAlert('No guests to export');
+                return;
+            }
             const headers = ['Name', 'Code', 'Attending', 'Guests', 'Address Line 1', 'Address Line 2', 'City', 'State', 'Zip Code', 'Dietary Restrictions', 'Message', 'Date'];
             const rows = allGuests.map(g => [
                 `"${g.name}"`,
@@ -2214,7 +2350,7 @@
                     document.getElementById('code-notes').value = '';
                     loadDashboard();
                 }
-            } catch (error) { alert('Error'); }
+            } catch (error) { await customAlert('Error'); }
             finally { btn.disabled = false; }
         });
 
@@ -2236,14 +2372,17 @@
                     document.getElementById('bulk-generate-alert').innerHTML = `<div class="alert alert-success">${data.count} codes generated successfully!</div>`;
                     loadDashboard();
                 }
-            } catch (error) { alert('Bulk generation failed'); }
+            } catch (error) { await customAlert('Bulk generation failed'); }
             finally { btn.disabled = false; }
         });
         async function editRSVP(code) {
             const adminCode = allCodes.find(c => c.code === code);
             const guest = allGuests.find(g => g.code === code);
 
-            if (!adminCode) return alert('Entry not found');
+            if (!adminCode) {
+                await customAlert('Entry not found');
+                return;
+            }
 
             document.getElementById('edit-old-code').value = adminCode.code;
             document.getElementById('edit-code').value = adminCode.code;
@@ -2311,19 +2450,22 @@
                 if (data.success) {
                     closeEditModal();
                     loadDashboard();
-                    alert('Entry updated successfully');
+                    await customAlert('Entry updated successfully');
                 } else {
-                    alert('Error: ' + data.error);
+                    await customAlert('Error: ' + data.error);
                 }
             } catch (error) {
-                alert('Connection error');
+                await customAlert('Connection error');
             } finally {
                 btn.disabled = false;
             }
         });
 
-        document.getElementById('export-codes-csv-btn').addEventListener('click', () => {
-            if (allCodes.length === 0) return alert('No codes to export');
+        document.getElementById('export-codes-csv-btn').addEventListener('click', async () => {
+            if (allCodes.length === 0) {
+                await customAlert('No codes to export');
+                return;
+            }
             const headers = ['Code', 'Max Guests', 'Used', 'Notes', 'Created'];
             const rows = allCodes.map(c => [
                 c.code,
