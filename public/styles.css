@@ -185,14 +185,14 @@ p {
 .hero-names {
   font-size: clamp(3rem, 8vw, 6rem);
   font-family: var(--font-script);
-  color: var(--primary-light);
+  color: #8CBAD5;
   margin-bottom: var(--spacing-sm);
   line-height: 1.1;
 }
 
 .hero-ampersand {
   font-size: clamp(2rem, 5vw, 4rem);
-  color: var(--primary-light);
+  color: #8CBAD5;
   margin: 0 var(--spacing-sm);
 }
 
