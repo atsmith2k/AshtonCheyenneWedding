@@ -185,7 +185,7 @@ p {
 .hero-names {
   font-size: clamp(3rem, 8vw, 6rem);
   font-family: var(--font-script);
-  color: var(--primary);
+  color: var(--accent);
   margin-bottom: var(--spacing-sm);
   line-height: 1.1;
 }
