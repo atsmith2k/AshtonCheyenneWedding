@@ -5,16 +5,16 @@
    ============================================ */
 :root {
   /* Colors */
-  --primary: #d4a574;
-  --primary-light: #e8c5a0;
-  --primary-dark: #c09258;
-  --secondary: #8b7355;
-  --accent: #c9a587;
-  --bg: #faf8f6;
-  --bg-dark: #f5f2ee;
-  --text-dark: #2c2c2c;
-  --text-light: #6b6b6b;
-  --text-muted: #a0a0a0;
+  --primary: #2C659C;
+  --primary-light: #D7E9F5;
+  --primary-dark: #1a4a7a;
+  --secondary: #4a7a6d;
+  --accent: #CBD8D1;
+  --bg: #E6EDF1;
+  --bg-dark: #D7E9F5;
+  --text-dark: #103445;
+  --text-light: #4a5c6a;
+  --text-muted: #8a9ba8;
   --white: #ffffff;
   --error: #d67070;
   --success: #7ab87a;
@@ -171,8 +171,8 @@ p {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 20% 50%, rgba(212, 165, 116, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 50%, rgba(201, 165, 135, 0.1) 0%, transparent 50%);
+  background: radial-gradient(circle at 20% 50%, rgba(44, 101, 156, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 50%, rgba(203, 216, 209, 0.1) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -351,7 +351,7 @@ p {
   top: 32px;
   border-radius: 50%;
   z-index: 1;
-  box-shadow: 0 0 0 4px rgba(212, 165, 116, 0.2);
+  box-shadow: 0 0 0 4px rgba(44, 101, 156, 0.2);
 }
 
 .timeline-item:nth-child(even) .timeline-marker {
@@ -507,7 +507,7 @@ p {
 .form-select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(212, 165, 116, 0.1);
+  box-shadow: 0 0 0 4px rgba(44, 101, 156, 0.1);
 }
 
 .form-textarea {
@@ -816,7 +816,7 @@ input[type="radio"]+span {
 }
 
 .alert-info {
-  background: rgba(212, 165, 116, 0.1);
+  background: rgba(44, 101, 156, 0.1);
   color: var(--primary);
   border: 1px solid var(--primary);
 }
