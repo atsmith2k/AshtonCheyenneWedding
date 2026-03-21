@@ -10,7 +10,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
-const { statements } = require('./db');
+const { client, statements } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -623,6 +623,47 @@ app.post('/api/admin/deny-address',
         } catch (error) {
             console.error('Deny address error:', error);
             res.status(500).json({ error: 'Failed to deny submission' });
+        }
+    }
+);
+
+// ============================================
+// Data Export & Backup Routes
+// ============================================
+
+app.post('/api/admin/backup-db',
+    authLimiter,
+    [body('password').isString().trim()],
+    async (req, res) => {
+        const { password } = req.body;
+        if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+
+        try {
+            const [codes, guests, settings, addressSubmissions] = await Promise.all([
+                client.execute('SELECT * FROM admin_codes ORDER BY created_at DESC'),
+                client.execute('SELECT * FROM guests ORDER BY created_at DESC'),
+                client.execute('SELECT * FROM settings'),
+                client.execute('SELECT * FROM address_submissions ORDER BY created_at DESC')
+            ]);
+
+            const backup = {
+                exportedAt: new Date().toISOString(),
+                version: '1.0',
+                tables: {
+                    admin_codes: codes.rows,
+                    guests: guests.rows,
+                    settings: settings.rows,
+                    address_submissions: addressSubmissions.rows
+                }
+            };
+
+            const filename = `wedding_db_backup_${new Date().toISOString().split('T')[0]}.json`;
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+            res.json(backup);
+        } catch (error) {
+            console.error('Database backup error:', error);
+            res.status(500).json({ error: 'Failed to create database backup' });
         }
     }
 );

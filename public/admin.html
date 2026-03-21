@@ -937,6 +937,7 @@
                 <button class="tab-btn" data-tab="codes">RSVP Codes</button>
                 <button class="tab-btn" data-tab="generate">Generate Code</button>
                 <button class="tab-btn" data-tab="stickers">QR Sticker Tool</button>
+                <button class="tab-btn" data-tab="export">Data Export</button>
                 <button class="tab-btn" data-tab="print">Print Invitations</button>
                 <button class="tab-btn" data-tab="settings">Settings</button>
             </div>
@@ -994,6 +995,7 @@
                         <option value="approved">Approved</option>
                         <option value="denied">Denied</option>
                     </select>
+                    <button id="export-addresses-csv-btn" class="btn btn-secondary">Export CSV</button>
                 </div>
                 <div class="table-container">
                     <table>
@@ -1150,6 +1152,51 @@
                 </div>
             </div>
 
+            <!-- Data Export Tab -->
+            <div id="export-tab" class="tab-content">
+                <div class="card" style="margin-bottom: 2rem;">
+                    <h3 class="mb-md">📋 Mailing List Export</h3>
+                    <p style="color: #666; margin-bottom: 1.5rem;">Export a clean CSV with household names and mailing addresses — perfect for printing envelope labels or importing into a mailing service.</p>
+                    <button id="export-mailing-list-btn" class="btn btn-primary" style="width: 100%;">
+                        Download Mailing List CSV
+                    </button>
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="card">
+                        <h3 class="mb-md">👥 Full Guest List</h3>
+                        <p style="color: #666; margin-bottom: 1.5rem;">Export all guest data including RSVP status, party size, addresses, dietary restrictions, and messages.</p>
+                        <button id="export-guests-full-btn" class="btn btn-secondary" style="width: 100%;">
+                            Download Guest CSV
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="mb-md">📬 Address Submissions</h3>
+                        <p style="color: #666; margin-bottom: 1.5rem;">Export all address submission requests including review status, dates, and notes.</p>
+                        <button id="export-address-submissions-btn" class="btn btn-secondary" style="width: 100%;">
+                            Download Submissions CSV
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="mb-md">🔑 RSVP Codes</h3>
+                        <p style="color: #666; margin-bottom: 1.5rem;">Export all generated RSVP codes with their usage status, max guests, and notes.</p>
+                        <button id="export-codes-full-btn" class="btn btn-secondary" style="width: 100%;">
+                            Download Codes CSV
+                        </button>
+                    </div>
+
+                    <div class="card">
+                        <h3 class="mb-md">💾 Database Backup</h3>
+                        <p style="color: #666; margin-bottom: 1.5rem;">Download a full JSON backup of the entire database for disaster recovery. Includes all tables and records.</p>
+                        <button id="export-db-backup-btn" class="btn btn-secondary" style="width: 100%; background: var(--primary); color: white; border-color: var(--primary);">
+                            Download Full DB Backup
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Print Invitations Tab -->
             <div id="print-tab" class="tab-content">
                 <div class="card">
@@ -1203,6 +1250,14 @@
                             style="width: 100%; margin-bottom: 1rem;">
                             Force Sync All Data
                         </button>
+                        <div style="border-top: 1px solid var(--bg-dark); padding-top: 1.5rem; margin-top: 1rem;">
+                            <h4 style="margin-bottom: 0.5rem;">💾 Database Backup</h4>
+                            <p style="font-size: 0.85rem; color: #888; margin-bottom: 1rem;">Download a full backup of all data for disaster recovery.</p>
+                            <button id="settings-db-backup-btn" class="btn btn-primary"
+                                style="width: 100%; margin-bottom: 1.5rem;">
+                                Download Database Backup (JSON)
+                            </button>
+                        </div>
                         <div style="border-top: 1px solid var(--bg-dark); padding-top: 1.5rem; margin-top: 1rem;">
                             <p style="color: var(--error); font-weight: 600; margin-bottom: 0.5rem;">Dangerous Actions
                             </p>
@@ -2531,6 +2586,143 @@
             link.setAttribute('href', url);
             link.setAttribute('download', `wedding_codes_${new Date().toISOString().split('T')[0]}.csv`);
             link.click();
+        });
+
+        // ============================================
+        // DATA EXPORT TAB & BACKUP HANDLERS
+        // ============================================
+
+        // Helper: download CSV from content
+        function downloadCSV(csvContent, filename) {
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }
+
+        // Address Requests tab: Export CSV
+        document.getElementById('export-addresses-csv-btn').addEventListener('click', async () => {
+            if (allAddressSubmissions.length === 0) {
+                await customAlert('No address submissions to export');
+                return;
+            }
+            const headers = ['Household', 'Guests', 'Address Line 1', 'Address Line 2', 'City', 'State', 'Zip Code', 'Status', 'Generated Code', 'Dietary Restrictions', 'Note', 'Submitted', 'Reviewed'];
+            const rows = allAddressSubmissions.map(s => [
+                `"${(s.household_name || '').replace(/"/g, '""')}"`,
+                s.guest_count,
+                `"${(s.address_line1 || '').replace(/"/g, '""')}"`,
+                `"${(s.address_line2 || '').replace(/"/g, '""')}"`,
+                `"${(s.city || '').replace(/"/g, '""')}"`,
+                `"${(s.state || '').replace(/"/g, '""')}"`,
+                `"${(s.zip_code || '').replace(/"/g, '""')}"`,
+                s.status,
+                s.generated_code || '',
+                `"${(s.dietary_restrictions || '').replace(/"/g, '""')}"`,
+                `"${(s.note_to_couple || '').replace(/"/g, '""')}"`,
+                new Date(s.created_at).toLocaleDateString(),
+                s.reviewed_at ? new Date(s.reviewed_at).toLocaleDateString() : ''
+            ]);
+            const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            downloadCSV(csvContent, `wedding_address_submissions_${new Date().toISOString().split('T')[0]}.csv`);
+        });
+
+        // Data Export Tab: Mailing List CSV
+        document.getElementById('export-mailing-list-btn').addEventListener('click', async () => {
+            // Combine guests with addresses + approved address submissions
+            const mailingEntries = [];
+
+            // From guests table (those with addresses)
+            allGuests.forEach(g => {
+                if (g.address_line1 && g.city && g.state && g.zip_code) {
+                    mailingEntries.push({
+                        name: g.name,
+                        address_line1: g.address_line1,
+                        address_line2: g.address_line2 || '',
+                        city: g.city,
+                        state: g.state,
+                        zip_code: g.zip_code
+                    });
+                }
+            });
+
+            if (mailingEntries.length === 0) {
+                await customAlert('No addresses available for mailing list. Addresses come from approved address submissions that have been linked to guests.');
+                return;
+            }
+
+            const headers = ['Household Name', 'Address Line 1', 'Address Line 2', 'City', 'State', 'Zip Code'];
+            const rows = mailingEntries.map(e => [
+                `"${(e.name || '').replace(/"/g, '""')}"`,
+                `"${(e.address_line1 || '').replace(/"/g, '""')}"`,
+                `"${(e.address_line2 || '').replace(/"/g, '""')}"`,
+                `"${(e.city || '').replace(/"/g, '""')}"`,
+                `"${(e.state || '').replace(/"/g, '""')}"`,
+                `"${(e.zip_code || '').replace(/"/g, '""')}"`,
+            ]);
+            const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            downloadCSV(csvContent, `wedding_mailing_list_${new Date().toISOString().split('T')[0]}.csv`);
+        });
+
+        // Data Export Tab: Full Guest CSV (same as inline export)
+        document.getElementById('export-guests-full-btn').addEventListener('click', () => {
+            document.getElementById('export-csv-btn').click();
+        });
+
+        // Data Export Tab: Address Submissions CSV (same as inline export)
+        document.getElementById('export-address-submissions-btn').addEventListener('click', () => {
+            document.getElementById('export-addresses-csv-btn').click();
+        });
+
+        // Data Export Tab: Codes CSV (same as inline export)
+        document.getElementById('export-codes-full-btn').addEventListener('click', () => {
+            document.getElementById('export-codes-csv-btn').click();
+        });
+
+        // Database Backup Download
+        async function downloadDatabaseBackup(btn) {
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Preparing backup...';
+            try {
+                const response = await fetch(`${API_URL}/admin/backup-db`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: adminPassword })
+                });
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.error || 'Backup failed');
+                }
+                const data = await response.json();
+                const jsonStr = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', `wedding_db_backup_${new Date().toISOString().split('T')[0]}.json`);
+                link.click();
+                URL.revokeObjectURL(url);
+                await customAlert('Database backup downloaded successfully!', 'Backup Complete');
+            } catch (error) {
+                console.error('Backup error:', error);
+                await customAlert('Failed to download backup: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+
+        document.getElementById('export-db-backup-btn').addEventListener('click', function() {
+            downloadDatabaseBackup(this);
+        });
+
+        document.getElementById('settings-db-backup-btn').addEventListener('click', function() {
+            downloadDatabaseBackup(this);
         });
     </script>
 </body>
