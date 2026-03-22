@@ -18,6 +18,9 @@ const { client, statements } = require('./db');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust the Vercel edge proxy to get accurate client IP for rate limiting
+app.set('trust proxy', 1);
+
 app.use(pinoHttp({
     autoLogging: {
         ignore: req => req.url === '/api/health' || req.method === 'OPTIONS'
