@@ -7,20 +7,27 @@
     "start": "node server/index.js",
     "dev": "node server/index.js",
     "build": "echo 'No build step needed for serverless functions'",
-    "vercel-build": "echo 'Build completed successfully'",
+    "vercel-build": "node server/migrate.js",
+    "test": "vitest run",
     "lint": "eslint ."
   },
   "dependencies": {
     "@libsql/client": "^0.15.15",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "express-async-handler": "^1.2.0",
     "express-rate-limit": "^7.1.5",
     "express-validator": "^7.0.1",
-    "helmet": "^7.1.0"
+    "helmet": "^7.1.0",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "eslint": "^9.39.2",
-    "globals": "^16.5.0"
+    "globals": "^16.5.0",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.0"
   }
 }
