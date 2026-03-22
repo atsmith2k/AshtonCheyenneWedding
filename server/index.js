@@ -10,10 +10,19 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
+const pinoHttp = require('pino-http');
+const asyncHandler = require('express-async-handler');
+const { z } = require('zod');
 const { client, statements } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.use(pinoHttp({
+    autoLogging: {
+        ignore: req => req.url === '/api/health' || req.method === 'OPTIONS'
+    }
+}));
 
 // ============================================
 // SECURITY MIDDLEWARE
@@ -38,25 +47,36 @@ app.use(helmet({
 const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 100,
-    message: 'Too many requests, please try again later.'
+    message: 'Too many requests, please try again later.',
+    skip: () => process.env.NODE_ENV === 'test'
 });
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 5,
-    message: 'Too many login attempts, please try again later.'
+    message: 'Too many login attempts, please try again later.',
+    skip: () => process.env.NODE_ENV === 'test'
+});
+
+const validateCodeLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 10,
+    message: 'Too many code validations, please try again later.',
+    skip: () => process.env.NODE_ENV === 'test'
 });
 
 const rsvpLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
     max: 10,
-    message: 'Too many RSVP submissions, please try again later.'
+    message: 'Too many RSVP submissions, please try again later.',
+    skip: () => process.env.NODE_ENV === 'test'
 });
 
 const addressLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 5,
-    message: 'Too many address submissions, please try again later.'
+    message: 'Too many address submissions, please try again later.',
+    skip: () => process.env.NODE_ENV === 'test'
 });
 
 app.use(generalLimiter);
@@ -72,7 +92,23 @@ app.use(express.static(path.join(__dirname, '../public'), {
     index: 'index.html'
 }));
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'wedding2025';
+const isTest = process.env.NODE_ENV === 'test';
+const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL;
+let ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (isVercel && !isTest) {
+    const envSchema = z.object({
+        ADMIN_PASSWORD: z.string().min(8),
+    });
+    const parsed = envSchema.safeParse(process.env);
+    if (!parsed.success) {
+        console.error('❌ Invalid App Environment Variables:', parsed.error.format());
+        process.exit(1);
+    }
+    ADMIN_PASSWORD = parsed.data.ADMIN_PASSWORD;
+} else {
+    ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'wedding2025';
+}
 
 const sanitizeInput = (input) => {
     if (typeof input !== 'string') return input;
@@ -93,9 +129,9 @@ app.get('/api/health', (req, res) => {
 // ============================================
 
 app.post('/api/validate-code',
-    rsvpLimiter,
+    validateCodeLimiter,
     [body('code').isString().trim().isLength({ min: 1, max: 20 }).matches(/^[A-Z0-9]+$/)],
-    async (req, res) => {
+    asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ error: 'Invalid code format' });
@@ -103,32 +139,28 @@ app.post('/api/validate-code',
 
         const { code } = req.body;
 
-        try {
-            const adminCode = await statements.getCode(code);
+        const adminCode = await statements.getCode(code);
 
-            if (!adminCode) {
-                return res.json({ valid: false, message: 'Invalid code' });
-            }
-
-            if (adminCode.used) {
-                const guest = await statements.getGuest(code);
-                return res.json({
-                    valid: true,
-                    alreadyUsed: true,
-                    guest: guest ? {
-                        name: guest.name,
-                        attending: guest.attending,
-                        guest_count: guest.guest_count
-                    } : null
-                });
-            }
-
-            res.json({ valid: true, maxGuests: adminCode.max_guests });
-        } catch (error) {
-            console.error('Validate code error:', error);
-            res.status(500).json({ error: 'Server error' });
+        if (!adminCode) {
+            return res.json({ valid: false, message: 'Invalid code' });
         }
-    }
+
+        if (adminCode.used) {
+            const guest = await statements.getGuest(code);
+            return res.json({
+                valid: true,
+                alreadyUsed: true,
+                guest: guest ? {
+                    name: guest.name,
+                    attending: guest.attending,
+                    guest_count: guest.guest_count
+                } : null,
+                maxGuests: adminCode.max_guests
+            });
+        }
+
+        res.json({ valid: true, maxGuests: adminCode.max_guests });
+    })
 );
 
 app.post('/api/rsvp',
@@ -137,10 +169,10 @@ app.post('/api/rsvp',
         body('code').isString().trim().isLength({ min: 1, max: 20 }).matches(/^[A-Z0-9]+$/),
         body('name').isString().trim().isLength({ min: 1, max: 200 }),
         body('attending').isBoolean(),
-        body('guestCount').optional().isInt({ min: 0, max: 10 }),
+        body('guestCount').optional().isInt({ min: 0, max: 20 }),
         body('message').optional().isString().trim().isLength({ max: 1000 })
     ],
-    async (req, res) => {
+    asyncHandler(async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ error: 'Invalid input data' });
@@ -150,27 +182,26 @@ app.post('/api/rsvp',
         const sanitizedName = sanitizeInput(name);
         const sanitizedMessage = sanitizeInput(message || '');
 
-        try {
-            const adminCode = await statements.getCode(code);
-            if (!adminCode) {
-                return res.status(400).json({ error: 'Invalid code' });
-            }
-
-            const existingGuest = await statements.getGuest(code);
-
-            if (existingGuest) {
-                await statements.updateGuest(attending ? 1 : 0, guestCount || 1, sanitizedMessage, code);
-            } else {
-                await statements.createGuest(sanitizedName, code, attending ? 1 : 0, guestCount || 1, sanitizedMessage);
-                await statements.markCodeUsed(code);
-            }
-
-            res.json({ success: true, message: 'RSVP submitted successfully' });
-        } catch (error) {
-            console.error('RSVP error:', error);
-            res.status(500).json({ error: 'Server error' });
+        const adminCode = await statements.getCode(code);
+        if (!adminCode) {
+            return res.status(400).json({ error: 'Invalid code' });
         }
-    }
+
+        // Fix Zero Guest Count Falsy Fallback
+        // If declining, guestCount is 0. If attending but undefined, default to 1.
+        let finalGuestCount = attending ? (guestCount !== undefined ? guestCount : 1) : 0;
+
+        // Enforce Strict maxGuests Backend Validation
+        if (finalGuestCount > adminCode.max_guests) {
+            return res.status(400).json({ error: `Guest count exceeds maximum allowed (${adminCode.max_guests})` });
+        }
+
+        // Eliminate Race Conditions via Upsert and fix dropped name updates
+        await statements.upsertGuest(sanitizedName, code, attending ? 1 : 0, finalGuestCount, sanitizedMessage);
+        await statements.markCodeUsed(code);
+
+        res.json({ success: true, message: 'RSVP submitted successfully' });
+    })
 );
 
 // ============================================
@@ -670,7 +701,8 @@ app.post('/api/admin/backup-db',
 
 // Error handling
 app.use((err, req, res, _next) => {
-    console.error('Unhandled error:', err);
+    if (req.log) req.log.error({ err }, 'Unhandled error');
+    else console.error('Unhandled error:', err);
     res.status(500).json({ error: 'Internal server error' });
 });
 

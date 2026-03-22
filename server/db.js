@@ -1,17 +1,34 @@
 const { createClient } = require('@libsql/client');
 const path = require('path');
+const { z } = require('zod');
 
 // Initialize database client
+const isTest = process.env.NODE_ENV === 'test';
 const isVercel = process.env.VERCEL === '1' || !!process.env.VERCEL;
-// Use libsql:// protocol for HTTP transport in production (more reliable in serverless)
-const rawUrl = process.env.TURSO_DATABASE_URL || (isVercel ? "" : `file:${path.join(__dirname, '..', 'wedding.db')}`);
+
+if (isVercel && !isTest) {
+  const envSchema = z.object({
+    TURSO_DATABASE_URL: z.string().url(),
+    TURSO_AUTH_TOKEN: z.string().min(1),
+  });
+  
+  const parsed = envSchema.safeParse(process.env);
+  if (!parsed.success) {
+    console.error('❌ Invalid Database Environment Variables:', parsed.error.format());
+    process.exit(1);
+  }
+}
+
+let rawUrl;
+if (isTest) {
+  rawUrl = 'file::memory:?cache=shared';
+} else {
+  rawUrl = process.env.TURSO_DATABASE_URL || (isVercel ? "" : `file:${path.join(__dirname, '..', 'wedding.db')}`);
+}
+
 // Convert wss:// to libsql:// for HTTP transport - avoids WebSocket connection issues in serverless
 const url = rawUrl && rawUrl.startsWith('wss://') ? rawUrl.replace('wss://', 'libsql://') : rawUrl;
 const authToken = process.env.TURSO_AUTH_TOKEN;
-
-if (isVercel && !process.env.TURSO_DATABASE_URL) {
-  console.warn('⚠️ TURSO_DATABASE_URL is not set. Database operations will fail.');
-}
 
 const client = url ? createClient({
   url: url,
@@ -111,8 +128,7 @@ const createTables = async () => {
   }
 };
 
-// Initialize database
-createTables();
+// Database initialization moved to a separate script (server/migrate.js) to avoid Vercel cold starts
 
 // Helper functions for better performance/abstraction
 const statements = {
@@ -143,6 +159,21 @@ const statements = {
   createGuest: async (name, code, attending, guestCount, message) => {
     if (!client) throw new Error('Database not connected');
     return client.execute({ sql: 'INSERT INTO guests (name, code, attending, guest_count, message) VALUES (?, ?, ?, ?, ?)', args: [name, code, attending, guestCount, message] });
+  },
+
+  upsertGuest: async (name, code, attending, guestCount, message) => {
+    if (!client) throw new Error('Database not connected');
+    return client.execute({
+      sql: `INSERT INTO guests (name, code, attending, guest_count, message)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(code) DO UPDATE SET
+            name = excluded.name,
+            attending = excluded.attending,
+            guest_count = excluded.guest_count,
+            message = excluded.message,
+            updated_at = CURRENT_TIMESTAMP`,
+      args: [name, code, attending, guestCount, message]
+    });
   },
 
   // Create guest with full address data (for approved address submissions)
@@ -305,4 +336,4 @@ const statements = {
   }
 };
 
-module.exports = { client, statements };
+module.exports = { client, statements, createTables };
