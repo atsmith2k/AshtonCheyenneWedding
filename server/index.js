@@ -49,36 +49,51 @@ app.use(helmet({
 // Rate limiting
 const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100,
+    max: 200,
     message: 'Too many requests, please try again later.',
+    handler: (req, res, next, options) => {
+        res.status(options.statusCode).json({ error: options.message });
+    },
     skip: () => process.env.NODE_ENV === 'test'
 });
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 5,
+    max: 20,
     message: 'Too many login attempts, please try again later.',
+    handler: (req, res, next, options) => {
+        res.status(options.statusCode).json({ error: options.message });
+    },
     skip: () => process.env.NODE_ENV === 'test'
 });
 
 const validateCodeLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
-    max: 10,
+    max: 50,
     message: 'Too many code validations, please try again later.',
+    handler: (req, res, next, options) => {
+        res.status(options.statusCode).json({ error: options.message });
+    },
     skip: () => process.env.NODE_ENV === 'test'
 });
 
 const rsvpLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
-    max: 10,
+    max: 50,
     message: 'Too many RSVP submissions, please try again later.',
+    handler: (req, res, next, options) => {
+        res.status(options.statusCode).json({ error: options.message });
+    },
     skip: () => process.env.NODE_ENV === 'test'
 });
 
 const addressLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 5,
+    max: 50,
     message: 'Too many address submissions, please try again later.',
+    handler: (req, res, next, options) => {
+        res.status(options.statusCode).json({ error: options.message });
+    },
     skip: () => process.env.NODE_ENV === 'test'
 });
 

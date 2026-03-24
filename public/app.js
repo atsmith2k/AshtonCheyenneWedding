@@ -324,6 +324,11 @@ rsvpForm.addEventListener('submit', async (e) => {
             })
         });
 
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `Server error: ${response.status}`);
+        }
+
         const data = await response.json();
 
         if (data.success) {
@@ -335,7 +340,7 @@ rsvpForm.addEventListener('submit', async (e) => {
         }
     } catch (error) {
         console.error('RSVP submission error:', error);
-        showAlert('Unable to submit RSVP. Please try again later.', 'error');
+        showAlert(error.message.includes('fetch') ? 'Unable to submit RSVP. Please try again later.' : error.message, 'error');
     } finally {
         setLoading(submitRsvpBtn, false);
     }

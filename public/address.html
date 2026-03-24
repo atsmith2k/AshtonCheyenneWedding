@@ -260,6 +260,11 @@
                     body: JSON.stringify(formData)
                 });
 
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `Server error: ${response.status}`);
+                }
+
                 const data = await response.json();
 
                 if (data.success) {
@@ -270,7 +275,7 @@
                 }
             } catch (error) {
                 console.error('Submission error:', error);
-                showAlert('Unable to connect to the server. Please try again later.');
+                showAlert(error.message.includes('fetch') ? 'Unable to connect to the server. Please try again later.' : error.message);
             } finally {
                 setLoading(false);
             }
