@@ -725,7 +725,7 @@ app.use((err, req, res, _next) => {
 });
 
 // Start server
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
     app.listen(PORT, () => {
         console.log(`\n🎉 Wedding Website Server (SECURE)`);
         console.log(`📍 Running on http://localhost:${PORT}`);
