@@ -16,22 +16,43 @@
         href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
-        /* Remove empty root */
+        /* ============================================
+           PREMIUM DESIGN TOKENS & VISUAL EXTENSIONS
+           ============================================ */
+        :root {
+            --shadow-premium: 0 12px 30px rgba(16, 52, 69, 0.08), 0 1px 3px rgba(16, 52, 69, 0.02);
+            --shadow-glass: 0 8px 32px 0 rgba(44, 101, 156, 0.08);
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.45);
+        }
 
         .admin-container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 2.5rem;
             transition: padding 0.3s ease;
         }
 
         .admin-header {
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-            padding: 2.5rem;
+            padding: 3rem 2.5rem;
             border-radius: var(--radius-lg);
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow-md);
+            margin-bottom: 2.5rem;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .admin-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+            pointer-events: none;
         }
 
         .admin-header-content {
@@ -39,39 +60,48 @@
             justify-content: space-between;
             align-items: center;
             gap: 1.5rem;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
+            position: relative;
+            z-index: 2;
         }
 
         .admin-header h1 {
-            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-size: clamp(1.75rem, 4vw, 2.75rem);
             margin-bottom: 0.5rem;
             line-height: 1.2;
+            font-family: var(--font-heading);
+            font-weight: 700;
         }
 
         .admin-header p {
-            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            font-size: clamp(0.95rem, 2vw, 1.1rem);
             opacity: 0.9;
+            font-family: var(--font-body);
+        }
+
+        /* Stats Grid & Glassmorphic Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2.5rem;
         }
 
         .stat-card {
-            background: white;
-            padding: 2rem;
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-sm);
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            padding: 2rem 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-premium);
             text-align: center;
-            border: 1px solid var(--bg-dark);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, border-color 0.3s ease;
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-glass), var(--shadow-md);
+            border-color: rgba(44, 101, 156, 0.3);
         }
 
         .stat-number {
@@ -80,89 +110,166 @@
             color: var(--primary);
             margin-bottom: 0.5rem;
             line-height: 1;
+            font-family: var(--font-body);
         }
 
         .stat-label {
             color: var(--text-light);
-            font-size: 1rem;
+            font-size: 0.8rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.08em;
         }
 
+        /* Desktop Table styling */
         .table-container {
             background: white;
             border-radius: var(--radius-lg);
-            overflow-x: auto;
+            overflow: hidden;
             box-shadow: var(--shadow-md);
-            border: 1px solid var(--bg-dark);
+            border: 1px solid rgba(44, 101, 156, 0.08);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             min-width: 800px;
-            /* Force scroll on small screens */
         }
 
         th {
-            background: var(--bg-dark);
-            padding: 1.25rem 1rem;
+            background: rgba(215, 233, 245, 0.4);
+            padding: 1.25rem 1.5rem;
             text-align: left;
             font-weight: 600;
             color: var(--text-dark);
-            border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+            border-bottom: 2px solid rgba(44, 101, 156, 0.08);
         }
 
         td {
-            padding: 1.25rem 1rem;
-            border-bottom: 1px solid var(--bg-dark);
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid rgba(44, 101, 156, 0.05);
             color: var(--text-light);
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
 
         tr:hover td {
-            background: var(--bg);
+            background: rgba(215, 233, 245, 0.15);
             color: var(--text-dark);
         }
 
+        /* Status Badges with circular status dots */
         .status-badge {
-            display: inline-block;
-            padding: 0.35rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.85rem;
             border-radius: var(--radius-full);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.02em;
+            letter-spacing: 0.05em;
+            border: 1px solid transparent;
+        }
+
+        .status-badge::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
         }
 
         .status-attending {
-            background: #e6f4ea;
-            color: #1e7e34;
+            background: rgba(122, 184, 122, 0.12);
+            color: #2b7a2b;
+            border-color: rgba(122, 184, 122, 0.2);
+        }
+
+        .status-attending::before {
+            background-color: var(--success);
+            box-shadow: 0 0 6px var(--success);
         }
 
         .status-declined {
-            background: #fce8e8;
-            color: #d93025;
+            background: rgba(214, 112, 112, 0.12);
+            color: #b33939;
+            border-color: rgba(214, 112, 112, 0.2);
+        }
+
+        .status-declined::before {
+            background-color: var(--error);
+            box-shadow: 0 0 6px var(--error);
         }
 
         .status-pending {
-            background: #f1f3f4;
-            color: #5f6368;
+            background: rgba(138, 155, 168, 0.12);
+            color: var(--text-light);
+            border-color: rgba(138, 155, 168, 0.2);
         }
 
+        .status-pending::before {
+            background-color: var(--text-muted);
+        }
+
+        /* Premium Overlay & Modal Cards */
         .login-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(44, 44, 44, 0.8);
+            background: rgba(16, 52, 69, 0.4);
             backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 1000;
             padding: 1.5rem;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            padding: 3rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            max-width: 440px;
+            width: 100%;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+        }
+
+        /* Desktop specific styling for Edit Modal to prevent overflow */
+        @media (min-width: 769px) {
+            #edit-modal .login-card {
+                max-height: 90vh;
+                display: flex;
+                flex-direction: column;
+                padding: 2.25rem 2.5rem;
+            }
+            #edit-modal #edit-rsvp-form {
+                overflow-y: auto;
+                flex: 1;
+                padding-right: 0.5rem;
+                display: flex;
+                flex-direction: column;
+                gap: 1.25rem;
+            }
+            /* Custom thin scrollbar for the edit form on desktop */
+            #edit-modal #edit-rsvp-form::-webkit-scrollbar {
+                width: 6px;
+            }
+            #edit-modal #edit-rsvp-form::-webkit-scrollbar-thumb {
+                background: rgba(44, 101, 156, 0.2);
+                border-radius: var(--radius-full);
+            }
+            /* Form groups layout inside modal */
+            #edit-modal .form-group {
+                margin-bottom: 0;
+            }
         }
 
         .custom-modal-overlay {
@@ -171,8 +278,9 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
+            background: rgba(16, 52, 69, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -190,15 +298,16 @@
 
         .custom-modal-card {
             background: white;
-            padding: 2rem;
+            padding: 2.5rem 2rem;
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-lg);
             max-width: 440px;
             width: 100%;
             transform: translateY(20px);
             opacity: 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
             text-align: center;
+            border: 1px solid rgba(44, 101, 156, 0.08);
         }
 
         .custom-modal-overlay.active .custom-modal-card {
@@ -209,15 +318,15 @@
         .custom-modal-title {
             font-size: 1.5rem;
             font-weight: 700;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
             color: var(--text-dark);
-            font-family: 'Playfair Display', serif;
+            font-family: var(--font-heading);
         }
 
         .custom-modal-message {
             font-size: 1rem;
             color: var(--text-light);
-            margin-bottom: 2rem;
+            margin-bottom: 1.75rem;
             line-height: 1.5;
         }
 
@@ -227,54 +336,52 @@
             justify-content: center;
         }
 
-        .login-card {
-            background: white;
-            padding: 3rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
-            max-width: 440px;
-            width: 100%;
-        }
-
+        /* Pill-style Tab Layout */
         .tab-buttons {
             display: flex;
-            gap: 0.75rem;
+            gap: 0.5rem;
             margin-bottom: 2rem;
             overflow-x: auto;
-            padding-bottom: 0.5rem;
-            -webkit-overflow-scrolling: touch;
+            padding: 0.35rem;
+            background: rgba(215, 233, 245, 0.4);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             scrollbar-width: none;
-            /* Firefox */
             -ms-overflow-style: none;
-            /* IE and Edge */
+            -webkit-overflow-scrolling: touch;
         }
 
         .tab-buttons::-webkit-scrollbar {
             display: none;
-            /* Chrome, Safari and Opera */
         }
 
         .tab-btn {
             white-space: nowrap;
-            padding: 0.85rem 1.5rem;
-            border: 1px solid var(--bg-dark);
-            background: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
             border-radius: var(--radius-md);
             cursor: pointer;
+            font-family: var(--font-body);
             font-weight: 600;
+            font-size: 0.9rem;
             color: var(--text-light);
-            transition: all 0.2s ease;
+            transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
         }
 
         .tab-btn:hover {
-            background: var(--bg-dark);
+            color: var(--primary-dark);
+            background: rgba(255, 255, 255, 0.4);
         }
 
         .tab-btn.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(44, 101, 156, 0.2);
+            background: var(--white);
+            color: var(--primary-dark);
+            box-shadow: 0 4px 12px rgba(44, 101, 156, 0.1);
+            transform: translateY(-0.5px);
         }
 
         .tab-content {
@@ -283,15 +390,14 @@
 
         .tab-content.active {
             display: block;
-            animation: fadeIn 0.4s ease;
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(10px);
+                transform: translateY(8px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -299,10 +405,194 @@
         }
 
         /* ============================================
-           MOBILE-FIRST RESPONSIVE STYLES
+           MOBILE COMPONENTS (Drawer Modal, Action Sheets, Cards)
            ============================================ */
 
-        /* Mobile Card View for Tables */
+        /* 1. Bottom Sheet / Action Sheet */
+        .action-sheet {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(16, 52, 69, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2500;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .action-sheet.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .action-sheet-menu {
+            background: var(--white);
+            width: 100%;
+            max-width: 500px;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            padding: 0.5rem 1rem 1.5rem 1rem;
+        }
+
+        .action-sheet.active .action-sheet-menu {
+            transform: translateY(0);
+        }
+
+        .action-sheet-handle {
+            width: 36px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: var(--radius-full);
+            margin: 0.5rem auto 1rem;
+        }
+
+        .action-sheet-title {
+            font-family: var(--font-body);
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .action-sheet-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: none;
+            border: none;
+            border-radius: var(--radius-md);
+            color: var(--text-dark);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .action-sheet-item:active {
+            background-color: rgba(215, 233, 245, 0.4);
+        }
+
+        .action-sheet-item svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--primary);
+            stroke-width: 2;
+            fill: none;
+            flex-shrink: 0;
+        }
+
+        .action-sheet-item-danger {
+            color: var(--error);
+        }
+
+        .action-sheet-item-danger svg {
+            stroke: var(--error);
+        }
+
+        .action-sheet-cancel {
+            margin-top: 0.5rem;
+            background-color: var(--bg);
+            font-weight: 600;
+            justify-content: center;
+            border: 1px solid rgba(44, 101, 156, 0.08);
+        }
+
+        /* 2. Drawer Modal */
+        .drawer-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(16, 52, 69, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .drawer-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .drawer-content {
+            background: var(--white);
+            width: 100%;
+            max-width: 600px;
+            height: 90vh;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        .drawer-modal.active .drawer-content {
+            transform: translateY(0);
+        }
+
+        .drawer-handle {
+            width: 40px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: var(--radius-full);
+            margin: 0.75rem auto 0.25rem;
+            flex-shrink: 0;
+        }
+
+        .drawer-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(44, 101, 156, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--white);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .drawer-header h3 {
+            margin: 0;
+            font-family: var(--font-heading);
+            color: var(--text-dark);
+            font-size: 1.25rem;
+        }
+
+        .drawer-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* 3. Mobile Card View Styles */
         .mobile-card-view {
             display: none;
         }
@@ -310,31 +600,42 @@
         .data-card {
             background: white;
             border-radius: var(--radius-md);
-            padding: 1rem;
-            margin-bottom: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
             box-shadow: var(--shadow-sm);
-            border: 1px solid var(--bg-dark);
+            border: 1px solid rgba(44, 101, 156, 0.08);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .data-card:active {
+            transform: scale(0.99);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
 
         .data-card-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 0.75rem;
-            gap: 0.5rem;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 0.75rem;
+            border-bottom: 1px solid rgba(44, 101, 156, 0.05);
+            padding-bottom: 0.75rem;
         }
 
         .data-card-title {
-            font-weight: 600;
+            font-weight: 700;
             color: var(--text-dark);
-            font-size: 1rem;
+            font-size: 1.05rem;
+            font-family: var(--font-body);
             word-break: break-word;
         }
 
         .data-card-body {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.5rem 1rem;
+            gap: 0.75rem 1rem;
             font-size: 0.85rem;
             color: var(--text-light);
         }
@@ -355,28 +656,48 @@
         .data-card-label {
             font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #888;
-            margin-bottom: 0.15rem;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
         }
 
         .data-card-value {
             color: var(--text-dark);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .data-card-value code {
+            font-family: monospace;
+            background: rgba(215, 233, 245, 0.4);
+            padding: 0.15rem 0.35rem;
+            border-radius: var(--radius-sm);
+            color: var(--primary-dark);
+            font-size: 0.85rem;
         }
 
         .data-card-actions {
             display: flex;
-            gap: 0.5rem;
-            margin-top: 1rem;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+            padding-top: 1rem;
+            border-top: 1px dashed rgba(44, 101, 156, 0.1);
             flex-wrap: wrap;
         }
 
         .data-card-actions .btn {
             flex: 1;
             min-width: 80px;
-            padding: 0.6rem 0.75rem;
-            font-size: 0.8rem;
+            padding: 0.65rem 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
         }
+
+        /* ============================================
+           RESPONSIVE STYLE IMPLEMENTATION
+           ============================================ */
 
         /* Tablet Adjustments */
         @media (max-width: 1024px) {
@@ -385,79 +706,77 @@
             }
         }
 
-        /* Mobile Responsive Adjustments */
+        /* Mobile View (Max-width: 768px) */
         @media (max-width: 768px) {
-
-            /* Container */
             .admin-container {
-                padding: 0.75rem;
+                padding: 1rem 0.75rem;
             }
 
-            /* Header */
             .admin-header {
-                padding: 1.25rem;
-                margin-bottom: 1rem;
+                padding: 2rem 1.5rem;
+                margin-bottom: 1.5rem;
+                text-align: center;
+                border-radius: var(--radius-md);
             }
 
             .admin-header-content {
                 flex-direction: column;
-                text-align: center;
-                gap: 1rem;
+                gap: 1.25rem;
+            }
+
+            .admin-header h1 {
+                font-size: 1.75rem;
+            }
+
+            .admin-header p {
+                font-size: 0.95rem;
             }
 
             .admin-header-content .btn {
                 width: 100%;
-                padding: 0.75rem 1rem;
+                padding: 0.85rem 1.25rem;
             }
 
-            /* Stats Grid */
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 0.5rem;
-                margin-bottom: 1rem;
+                gap: 0.75rem;
+                margin-bottom: 1.5rem;
             }
 
             .stat-card {
-                padding: 1rem;
+                padding: 1.25rem 1rem;
+                border-radius: var(--radius-md);
             }
 
             .stat-number {
-                font-size: 1.75rem;
+                font-size: 2rem;
             }
 
             .stat-label {
                 font-size: 0.7rem;
+                letter-spacing: 0.05em;
             }
 
-            /* Tab Buttons */
+            /* Smooth scrolling tabs with snapping & horizontal gradient mask fades */
             .tab-buttons {
-                margin-bottom: 1rem;
-                padding: 0 0 0.5rem 0;
-                gap: 0.5rem;
-                position: relative;
-            }
-
-            .tab-buttons::after {
-                content: '';
-                position: absolute;
-                right: 0;
-                top: 0;
-                bottom: 0.5rem;
-                width: 30px;
-                background: linear-gradient(to right, transparent, var(--bg));
-                pointer-events: none;
+                margin-bottom: 1.25rem;
+                padding: 0.25rem;
+                gap: 0.35rem;
+                scroll-snap-type: x mandatory;
+                scroll-padding: 0.5rem;
+                -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+                mask-image: linear-gradient(to right, black 85%, transparent 100%);
             }
 
             .tab-btn {
-                padding: 0.6rem 0.9rem;
-                font-size: 0.8rem;
-                flex-shrink: 0;
+                padding: 0.65rem 1.1rem;
+                font-size: 0.85rem;
+                scroll-snap-align: start;
             }
 
-            /* Search and Filter Bars */
             .filter-bar {
                 flex-direction: column;
-                gap: 0.5rem;
+                gap: 0.75rem;
             }
 
             .filter-bar .form-input,
@@ -470,13 +789,11 @@
                 width: 100%;
             }
 
-            /* Login Card */
             .login-card {
-                padding: 1.5rem;
+                padding: 2rem 1.5rem;
                 margin: 1rem;
             }
 
-            /* Table to Card View */
             .table-container {
                 display: none;
             }
@@ -485,24 +802,103 @@
                 display: block;
             }
 
-            /* Modals */
-            .login-overlay {
-                padding: 1rem;
-                align-items: flex-start;
-                padding-top: 2rem;
+            /* Responsive Overlay Form Factor (Becomes Bottom Drawer) */
+            #edit-modal.login-overlay {
+                background: rgba(16, 52, 69, 0.4) !important;
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                align-items: flex-end;
+                justify-content: center;
+                padding: 0;
             }
 
-            #edit-modal .login-card {
-                max-width: 100%;
-                max-height: calc(100vh - 3rem);
+            #edit-modal.login-overlay .login-card {
+                max-width: 100% !important;
+                width: 100% !important;
+                height: 90vh;
+                max-height: 90vh !important;
+                border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                transform: translateY(100%);
+                transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                overflow: hidden;
+                background: var(--white);
+                border: none;
+                box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+            }
+
+            #edit-modal.login-overlay:not(.hidden) .login-card {
+                transform: translateY(0);
+            }
+
+            /* Swipe handle bar */
+            #edit-modal.login-overlay .login-card::before {
+                content: '';
+                display: block;
+                width: 40px;
+                height: 4px;
+                background: var(--accent);
+                border-radius: var(--radius-full);
+                margin: 0.75rem auto 0.25rem;
+                flex-shrink: 0;
+            }
+
+            /* Sticky Modal Header */
+            #edit-modal.login-overlay .login-card > div:first-of-type {
+                padding: 1rem 1.5rem !important;
+                border-bottom: 1px solid rgba(44, 101, 156, 0.08);
+                margin-bottom: 0 !important;
+                position: sticky;
+                top: 0;
+                background: var(--white);
+                z-index: 10;
+                flex-shrink: 0;
+            }
+
+            /* Scrollable Form Body */
+            #edit-modal.login-overlay #edit-rsvp-form {
+                flex: 1;
                 overflow-y: auto;
+                padding: 1.5rem;
+                -webkit-overflow-scrolling: touch;
+                display: flex;
+                flex-direction: column;
+                gap: 1.25rem;
             }
 
-            #edit-modal .grid-2 {
-                grid-template-columns: 1fr !important;
+            #edit-modal.login-overlay .form-group {
+                margin-bottom: 0;
             }
 
-            /* Cards */
+            /* Sticky Modal Action Footer */
+            #edit-modal.login-overlay #edit-rsvp-form > div:last-of-type {
+                margin-top: auto !important;
+                padding: 1rem 1.5rem 1.5rem;
+                background: var(--white);
+                position: sticky;
+                bottom: 0;
+                border-top: 1px solid rgba(44, 101, 156, 0.08);
+                margin-left: -1.5rem;
+                margin-right: -1.5rem;
+                margin-bottom: -1.5rem;
+                z-index: 10;
+            }
+
+            .form-input,
+            .form-select,
+            .form-textarea {
+                font-size: 16px; /* Prevents iOS zooming on focus */
+                padding: 0.85rem 1rem;
+            }
+
+            .btn {
+                padding: 0.85rem 1.25rem;
+                font-size: 0.95rem;
+            }
+
             .card {
                 padding: 1.25rem;
                 margin-bottom: 1rem;
@@ -512,7 +908,6 @@
                 font-size: 1.1rem;
             }
 
-            /* Invitation Preview */
             .invitation-card {
                 width: 100% !important;
                 height: auto !important;
@@ -544,30 +939,14 @@
             }
 
             .modal-content {
-                padding: 1.25rem;
+                padding: 1.5rem 1.25rem;
                 margin: 1rem auto;
             }
 
             .modal-content h2 {
-                font-size: 1.25rem;
+                font-size: 1.35rem;
             }
 
-            /* Form Elements */
-            .form-input,
-            .form-select,
-            .form-textarea {
-                font-size: 16px;
-                /* Prevents iOS zoom */
-                padding: 0.85rem 1rem;
-            }
-
-            /* Buttons */
-            .btn {
-                padding: 0.85rem 1.25rem;
-                font-size: 0.9rem;
-            }
-
-            /* Alerts */
             .alert {
                 padding: 0.75rem 1rem;
                 font-size: 0.85rem;
@@ -581,12 +960,12 @@
             }
 
             .admin-header {
-                padding: 1rem;
+                padding: 1.25rem 1rem;
                 border-radius: var(--radius-md);
             }
 
             .admin-header h1 {
-                font-size: 1.25rem;
+                font-size: 1.35rem;
             }
 
             .stats-grid {
@@ -623,7 +1002,9 @@
             }
         }
 
-        /* Invitation Styles */
+        /* ============================================
+           INVITATION STYLES & PRINT STYLES
+           ============================================ */
         .invitation-card {
             width: 5in;
             height: 7in;
@@ -866,6 +1247,47 @@
             .modal-header-nav,
             p.mb-lg {
                 display: none !important;
+            }
+
+            #preview-wrapper {
+                overflow: visible !important;
+                height: auto !important;
+            }
+
+            #printable-area {
+                transform: none !important;
+            }
+        }
+
+        /* Custom CSS overrides for overlays and modal actions */
+        @media (max-width: 768px) {
+            /* Custom Modal overrides on mobile (slide up dialog) */
+            .custom-modal-overlay {
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+            }
+            #custom-modal.custom-modal-overlay {
+                align-items: flex-end;
+                padding: 0;
+            }
+            #custom-modal.custom-modal-overlay .custom-modal-card {
+                max-width: 100%;
+                border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+                transform: translateY(100%);
+                padding: 2rem 1.5rem 2.5rem;
+                opacity: 1; /* keep opaque */
+                transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+                margin: 0;
+            }
+            #custom-modal.custom-modal-overlay.active .custom-modal-card {
+                transform: translateY(0);
+            }
+            /* Zoom controls on mobile */
+            #zoom-controls {
+                position: static !important;
+                margin: 1rem auto !important;
+                justify-content: center;
+                width: fit-content;
             }
         }
     </style>
@@ -1278,50 +1700,59 @@
 
     <!-- Export Modal -->
     <div id="export-modal">
-        <div class="modal-content">
+        <div class="modal-content" style="position: relative;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <h2 id="modal-title" style="margin: 0;">Invitation Preview (Front & Back)</h2>
                 <button id="close-export-modal" class="btn btn-secondary">Close Preview</button>
+            </div>
+            <!-- Zoom Controls Widget -->
+            <div id="zoom-controls" class="no-print" style="position: absolute; right: 2rem; top: 7rem; display: flex; gap: 0.5rem; z-index: 100; background: rgba(255,255,255,0.95); padding: 0.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-md); border: 1px solid rgba(44,101,156,0.15); align-items: center;">
+                <button id="zoom-out-btn" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.9rem; font-weight: bold; min-width: auto; height: auto; line-height: 1;">−</button>
+                <span id="zoom-level" style="font-size: 0.85rem; font-weight: 600; color: var(--text-dark); min-width: 45px; text-align: center;">100%</span>
+                <button id="zoom-in-btn" class="btn btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.9rem; font-weight: bold; min-width: auto; height: auto; line-height: 1;">+</button>
+                <button id="zoom-fit-btn" class="btn btn-primary" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; min-width: auto; height: auto; line-height: 1;">Fit</button>
             </div>
             <p id="modal-description" class="mb-lg" style="color: #666;">These high-resolution designs are sized 5" x
                 7". You can right-click
                 and save the cards or use your browser's print to PDF function.</p>
 
-            <div class="preview-grid" id="printable-area">
-                <!-- Front Card -->
-                <div class="invitation-card">
-                    <p
-                        style="text-transform: uppercase; letter-spacing: 0.4em; font-size: 0.8rem; color: #999; margin-bottom: 3rem;">
-                        Save the Date</p>
-                    <h1 class="invitation-names">Ashton & Cheyenne</h1>
-                    <div class="invitation-divider"></div>
-                    <p class="invitation-date">September 12, 2026</p>
-                    <p class="invitation-location">Otisco, Indiana</p>
-                </div>
-
-                <!-- Back Card -->
-                <div class="invitation-card">
-                    <div class="invitation-back-content">
+            <div id="preview-wrapper" style="overflow: auto; width: 100%; display: flex; justify-content: center; padding: 1rem 0; min-height: 350px;">
+                <div class="preview-grid" id="printable-area" style="transform-origin: top center; transition: transform 0.2s ease;">
+                    <!-- Front Card -->
+                    <div class="invitation-card">
                         <p
-                            style="text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.75rem; color: #999; margin-bottom: 2rem;">
-                            RSVP Online</p>
-                        <p style="font-size: 0.95rem; line-height: 1.6; color: #555;">To view wedding details,
-                            accommodations,<br>and to RSVP, please visit our website:</p>
-                        <p style="font-weight: 600; color: #2C659C; margin: 1rem 0; font-size: 1.1rem;"
-                            id="invitation-url-text"></p>
+                            style="text-transform: uppercase; letter-spacing: 0.4em; font-size: 0.8rem; color: #999; margin-bottom: 3rem;">
+                            Save the Date</p>
+                        <h1 class="invitation-names">Ashton & Cheyenne</h1>
+                        <div class="invitation-divider"></div>
+                        <p class="invitation-date">September 12, 2026</p>
+                        <p class="invitation-location">Otisco, Indiana</p>
+                    </div>
 
-                        <div class="invitation-code-box">
+                    <!-- Back Card -->
+                    <div class="invitation-card">
+                        <div class="invitation-back-content">
                             <p
-                                style="font-size: 0.7rem; color: #999; letter-spacing: 0.1em; margin-bottom: 0.5rem; text-transform: uppercase;">
-                                Your Unique Access Code</p>
-                            <div class="invitation-code" id="invitation-code-text">XXXXXX</div>
-                        </div>
+                                style="text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.75rem; color: #999; margin-bottom: 2rem;">
+                                RSVP Online</p>
+                            <p style="font-size: 0.95rem; line-height: 1.6; color: #555;">To view wedding details,
+                                accommodations,<br>and to RSVP, please visit our website:</p>
+                            <p style="font-weight: 600; color: #2C659C; margin: 1rem 0; font-size: 1.1rem;"
+                                id="invitation-url-text"></p>
 
-                        <div id="invitation-qrcode" style="display: flex; justify-content: center; margin: 1rem 0;">
-                        </div>
+                            <div class="invitation-code-box">
+                                <p
+                                    style="font-size: 0.7rem; color: #999; letter-spacing: 0.1em; margin-bottom: 0.5rem; text-transform: uppercase;">
+                                    Your Unique Access Code</p>
+                                <div class="invitation-code" id="invitation-code-text">XXXXXX</div>
+                            </div>
 
-                        <p style="margin-top: 1rem; font-style: italic; color: #aaa; font-size: 0.85rem;">Official
-                            invitation to follow</p>
+                            <div id="invitation-qrcode" style="display: flex; justify-content: center; margin: 1rem 0;">
+                            </div>
+
+                            <p style="margin-top: 1rem; font-style: italic; color: #aaa; font-size: 0.85rem;">Official
+                                invitation to follow</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1412,6 +1843,16 @@
         </div>
     </div>
 
+    <!-- Bottom Action Sheet -->
+    <div id="action-sheet" class="action-sheet">
+        <div class="action-sheet-menu">
+            <div class="action-sheet-handle"></div>
+            <div class="action-sheet-title" id="action-sheet-title">Actions</div>
+            <div id="action-sheet-items"></div>
+            <button id="action-sheet-cancel" class="action-sheet-item action-sheet-cancel">Cancel</button>
+        </div>
+    </div>
+
     <script>
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:3000/api'
@@ -1489,6 +1930,213 @@
                 okBtn.addEventListener('click', handleOk);
                 cancelBtn.addEventListener('click', handleCancel);
             });
+        }
+
+        // Bottom Action Sheet Helper Functions
+        function openActionSheet(title, actions) {
+            const sheet = document.getElementById('action-sheet');
+            const titleEl = document.getElementById('action-sheet-title');
+            const itemsEl = document.getElementById('action-sheet-items');
+
+            titleEl.textContent = title;
+            itemsEl.innerHTML = '';
+
+            actions.forEach(action => {
+                const btn = document.createElement('button');
+                btn.className = `action-sheet-item ${action.danger ? 'action-sheet-item-danger' : ''}`;
+
+                let iconSvg = '';
+                if (action.icon === 'edit') {
+                    iconSvg = `<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+                } else if (action.icon === 'qr') {
+                    iconSvg = `<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>`;
+                } else if (action.icon === 'delete' || action.icon === 'clear') {
+                    iconSvg = `<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+                } else if (action.icon === 'max') {
+                    iconSvg = `<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`;
+                }
+
+                btn.innerHTML = `${iconSvg}<span>${escapeHTML(action.label)}</span>`;
+                btn.addEventListener('click', () => {
+                    closeActionSheet();
+                    action.callback();
+                });
+                itemsEl.appendChild(btn);
+            });
+
+            sheet.classList.add('active');
+        }
+
+        function closeActionSheet() {
+            document.getElementById('action-sheet').classList.remove('active');
+        }
+
+        // Draggable drawer swipe-to-dismiss gesture helper
+        function makeDraggableDrawer(drawerElement, overlayElement, dismissCallback) {
+            let startY = 0;
+            let currentY = 0;
+            let isDragging = false;
+
+            drawerElement.addEventListener('touchstart', (e) => {
+                if (window.innerWidth > 768) return; // Only active on mobile viewports
+                const touch = e.touches[0];
+                const rect = drawerElement.getBoundingClientRect();
+                const touchYInCard = touch.clientY - rect.top;
+
+                // Restrict drag initialization to handle/upper header area (top 60px)
+                if (touchYInCard < 60) {
+                    startY = touch.clientY;
+                    isDragging = true;
+                    drawerElement.style.transition = 'none';
+                }
+            }, { passive: true });
+
+            drawerElement.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                const touch = e.touches[0];
+                const diffY = touch.clientY - startY;
+
+                if (diffY > 0) {
+                    currentY = diffY;
+                    drawerElement.style.transform = `translateY(${currentY}px)`;
+                } else {
+                    currentY = 0;
+                    drawerElement.style.transform = '';
+                }
+            }, { passive: true });
+
+            drawerElement.addEventListener('touchend', (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                drawerElement.style.transition = '';
+
+                if (currentY > 120) {
+                    dismissCallback();
+                } else {
+                    drawerElement.style.transform = '';
+                }
+                currentY = 0;
+            });
+        }
+
+        // Responsive Zoom and Scale Preview Functions
+        let currentZoom = 1.0;
+
+        function showExportModal() {
+            document.getElementById('export-modal').style.display = 'block';
+            setTimeout(() => {
+                autoFitPreview();
+                updateZoomLabel();
+            }, 50);
+        }
+
+        function autoFitPreview() {
+            const printableArea = document.getElementById('printable-area');
+            const wrapper = document.getElementById('preview-wrapper');
+            if (!printableArea || !wrapper) return;
+
+            // Reset scale/width to capture natural dimensions
+            printableArea.style.transform = 'scale(1)';
+            printableArea.style.width = 'max-content';
+
+            const naturalWidth = printableArea.offsetWidth;
+            const containerWidth = wrapper.offsetWidth - 32; // safety padding
+
+            let scale = 1;
+            if (naturalWidth > containerWidth && containerWidth > 0) {
+                scale = containerWidth / naturalWidth;
+            }
+
+            currentZoom = scale;
+            applyZoom();
+        }
+
+        // Setup additional listeners immediately
+        setTimeout(() => {
+            const actionSheet = document.getElementById('action-sheet');
+            if (actionSheet) {
+                actionSheet.addEventListener('click', (e) => {
+                    if (e.target === actionSheet) {
+                        closeActionSheet();
+                    }
+                });
+            }
+            const actionSheetCancel = document.getElementById('action-sheet-cancel');
+            if (actionSheetCancel) {
+                actionSheetCancel.addEventListener('click', closeActionSheet);
+            }
+
+            const editModal = document.getElementById('edit-modal');
+            if (editModal) {
+                editModal.addEventListener('click', (e) => {
+                    if (e.target === editModal) {
+                        closeEditModal();
+                    }
+                });
+            }
+
+            // Zoom widget listeners
+            const zoomInBtn = document.getElementById('zoom-in-btn');
+            if (zoomInBtn) zoomInBtn.addEventListener('click', zoomIn);
+            const zoomOutBtn = document.getElementById('zoom-out-btn');
+            if (zoomOutBtn) zoomOutBtn.addEventListener('click', zoomOut);
+            const zoomFitBtn = document.getElementById('zoom-fit-btn');
+            if (zoomFitBtn) zoomFitBtn.addEventListener('click', zoomFit);
+
+            // Drag gestures setup
+            const editModalCard = document.querySelector('#edit-modal .login-card');
+            if (editModalCard && editModal) {
+                makeDraggableDrawer(editModalCard, editModal, closeEditModal);
+            }
+
+            const actionSheetMenu = document.querySelector('.action-sheet-menu');
+            if (actionSheetMenu && actionSheet) {
+                makeDraggableDrawer(actionSheetMenu, actionSheet, closeActionSheet);
+            }
+
+            // Window resize handler for scaling preview
+            window.addEventListener('resize', () => {
+                if (document.getElementById('export-modal').style.display === 'block') {
+                    autoFitPreview();
+                    updateZoomLabel();
+                }
+            });
+        }, 100);
+
+        function applyZoom() {
+            const printableArea = document.getElementById('printable-area');
+            const wrapper = document.getElementById('preview-wrapper');
+            if (!printableArea || !wrapper) return;
+
+            printableArea.style.transform = `scale(${currentZoom})`;
+
+            const naturalHeight = printableArea.offsetHeight;
+            const scaledHeight = naturalHeight * currentZoom;
+            wrapper.style.height = `${scaledHeight + 40}px`;
+        }
+
+        function zoomIn() {
+            currentZoom = Math.min(2.0, currentZoom + 0.1);
+            applyZoom();
+            updateZoomLabel();
+        }
+
+        function zoomOut() {
+            currentZoom = Math.max(0.2, currentZoom - 0.1);
+            applyZoom();
+            updateZoomLabel();
+        }
+
+        function zoomFit() {
+            autoFitPreview();
+            updateZoomLabel();
+        }
+
+        function updateZoomLabel() {
+            const label = document.getElementById('zoom-level');
+            if (label) {
+                label.textContent = `${Math.round(currentZoom * 100)}%`;
+            }
         }
 
         // Login
@@ -1674,7 +2322,7 @@
                 });
             });
 
-            document.getElementById('export-modal').style.display = 'block';
+            showExportModal();
         });
 
         async function loadSettings() {
@@ -1815,7 +2463,7 @@
                 correctLevel: QRCode.CorrectLevel.H
             });
 
-            document.getElementById('export-modal').style.display = 'block';
+            showExportModal();
         });
 
         async function loadStats() {
@@ -2142,9 +2790,7 @@
                             </div>` : ''}
                         </div>
                         <div class="data-card-actions">
-                            <button data-action="edit" data-code="${escapeHTML(guest.code)}" class="btn btn-secondary">Edit</button>
-                            <button data-action="view-qr" data-code="${escapeHTML(guest.code)}" class="btn btn-secondary">QR</button>
-                            <button data-action="clear-rsvp" data-code="${escapeHTML(guest.code)}" class="btn btn-secondary" style="border-color: var(--error); color: var(--error);">Clear</button>
+                            <button data-action="show-guest-actions" data-code="${escapeHTML(guest.code)}" class="btn btn-secondary" style="width: 100%;">Actions</button>
                         </div>
                     </div>
                 `;
@@ -2210,10 +2856,7 @@
                         </div>` : ''}
                     </div>
                     <div class="data-card-actions">
-                        <button data-action="edit" data-code="${escapeHTML(code.code)}" class="btn btn-secondary">Edit</button>
-                        <button data-action="view-qr" data-code="${escapeHTML(code.code)}" class="btn btn-secondary">QR</button>
-                        <button data-action="quick-max" data-code="${escapeHTML(code.code)}" data-current="${code.max_guests}" class="btn btn-secondary">Max</button>
-                        <button data-action="delete-code" data-code="${escapeHTML(code.code)}" class="btn btn-secondary" style="border-color: var(--error); color: var(--error);" ${code.used ? 'disabled' : ''}>Delete</button>
+                        <button data-action="show-code-actions" data-code="${escapeHTML(code.code)}" data-current="${code.max_guests}" class="btn btn-secondary" style="width: 100%;">Actions</button>
                     </div>
                 </div>
             `).join('');
@@ -2284,7 +2927,7 @@
                 correctLevel: QRCode.CorrectLevel.H
             });
 
-            document.getElementById('export-modal').style.display = 'block';
+            showExportModal();
         }
 
         async function deleteGuest(code) {
@@ -2372,6 +3015,13 @@
             if (!btn) return;
             const action = btn.dataset.action;
             const code = btn.dataset.code;
+            if (action === 'show-guest-actions') {
+                openActionSheet(`Guest: ${code}`, [
+                    { label: 'Edit RSVP', icon: 'edit', callback: () => editRSVP(code) },
+                    { label: 'View QR Code', icon: 'qr', callback: () => viewQR(code) },
+                    { label: 'Clear RSVP', icon: 'clear', danger: true, callback: () => deleteGuest(code) }
+                ]);
+            }
             if (action === 'edit') editRSVP(code);
             if (action === 'view-qr') viewQR(code);
             if (action === 'clear-rsvp') deleteGuest(code);
@@ -2382,6 +3032,16 @@
             if (!btn) return;
             const action = btn.dataset.action;
             const code = btn.dataset.code;
+            if (action === 'show-code-actions') {
+                const currentMax = parseInt(btn.dataset.current);
+                const isUsed = allCodes.find(c => c.code === code)?.used;
+                openActionSheet(`Code: ${code}`, [
+                    { label: 'Edit Code', icon: 'edit', callback: () => editRSVP(code) },
+                    { label: 'View QR Code', icon: 'qr', callback: () => viewQR(code) },
+                    { label: 'Quick Max', icon: 'max', callback: () => updateMaxGuests(code, currentMax) },
+                    { label: 'Delete Code', icon: 'clear', danger: true, disabled: isUsed, callback: () => deleteCode(code) }
+                ].filter(item => !item.disabled));
+            }
             if (action === 'edit') editRSVP(code);
             if (action === 'view-qr') viewQR(code);
             if (action === 'quick-max') updateMaxGuests(code, parseInt(btn.dataset.current));
@@ -2510,7 +3170,11 @@
                 toggleGuestSection(adminCode.used);
             }
 
-            document.getElementById('edit-modal').classList.remove('hidden');
+            const modal = document.getElementById('edit-modal');
+            const card = modal.querySelector('.login-card');
+            card.style.transform = '';
+            modal.classList.remove('hidden');
+            void modal.offsetHeight;
         }
 
         function toggleGuestSection(isUsed) {
@@ -2523,7 +3187,17 @@
         });
 
         function closeEditModal() {
-            document.getElementById('edit-modal').classList.add('hidden');
+            const modal = document.getElementById('edit-modal');
+            const card = modal.querySelector('.login-card');
+            if (window.innerWidth <= 768) {
+                card.style.transform = 'translateY(100%)';
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    card.style.transform = '';
+                }, 400);
+            } else {
+                modal.classList.add('hidden');
+            }
         }
 
         document.getElementById('edit-rsvp-form').addEventListener('submit', async (e) => {

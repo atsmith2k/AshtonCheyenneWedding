@@ -2,6 +2,14 @@
 // - Local development: Set in your shell or use a .env file with another method
 // - Vercel production: Set via Vercel dashboard (Settings > Environment Variables)
 
+// Programmatically load .env file if it exists and we are not in testing mode (Node 20.12.0+)
+if (global.process && typeof global.process.loadEnvFile === 'function' && global.process.env.NODE_ENV !== 'test') {
+    try {
+        global.process.loadEnvFile(require('path').join(__dirname, '../.env'));
+    } catch {
+        // .env file might not exist or be readable, ignore
+    }
+}
 
 const express = require('express');
 const cors = require('cors');
