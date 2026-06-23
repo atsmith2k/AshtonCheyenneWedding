@@ -179,6 +179,79 @@ describe('RSVP Flow Integration Tests', () => {
         expect(validateResponse.body.guest.guest_count).toBe(3);
     });
 
+    it('Verify stats and analytics metrics (POST /api/admin/stats)', async () => {
+        // Fetch stats first
+        const initialResponse = await request(app)
+            .post('/api/admin/stats')
+            .send({ password: 'wedding2025' });
+
+        expect(initialResponse.status).toBe(200);
+        expect(initialResponse.body.stats).toBeDefined();
+        
+        // Create an address submission with dietary restrictions, approve it, and check stats
+        const addressSubmission = {
+            householdName: 'Stat Test Party',
+            guestCount: 2,
+            addressLine1: '123 Stat St',
+            city: 'Stat City',
+            state: 'ST',
+            zipCode: '12345',
+            dietaryRestrictions: 'Gluten-Free, Vegan',
+            noteToCouple: 'Congrats!'
+        };
+        
+        const submitResponse = await request(app)
+            .post('/api/address-submit')
+            .send(addressSubmission);
+            
+        expect(submitResponse.status).toBe(200);
+        
+        // Get submissions to find the ID
+        const subsResponse = await request(app)
+            .post('/api/admin/address-submissions')
+            .send({ password: 'wedding2025' });
+            
+        const submission = subsResponse.body.submissions.find(s => s.household_name === 'Stat Test Party');
+        expect(submission).toBeDefined();
+        
+        // Approve it (creates guest and code)
+        const approveResponse = await request(app)
+            .post('/api/admin/approve-address')
+            .send({
+                password: 'wedding2025',
+                id: submission.id,
+                maxGuests: 3
+            });
+            
+        expect(approveResponse.status).toBe(200);
+        const generatedCodeForTest = approveResponse.body.code;
+        
+        // Submit RSVP to accept (attending = true)
+        const rsvpResponse = await request(app)
+            .post('/api/rsvp')
+            .send({
+                code: generatedCodeForTest,
+                name: 'Stat Test Party',
+                attending: true,
+                guestCount: 2,
+                message: 'Looking forward!'
+            });
+            
+        expect(rsvpResponse.status).toBe(200);
+        
+        // Fetch stats again
+        const finalResponse = await request(app)
+            .post('/api/admin/stats')
+            .send({ password: 'wedding2025' });
+            
+        const stats = finalResponse.body.stats;
+        expect(stats.total_invited).toBeGreaterThanOrEqual(3);
+        expect(stats.attending_guests).toBeGreaterThanOrEqual(2);
+        expect(stats.dietarySummary).toContainEqual({ restriction: 'Gluten-Free', count: 1 });
+        expect(stats.dietarySummary).toContainEqual({ restriction: 'Vegan', count: 1 });
+        expect(stats.dietaryDetails.some(d => d.name === 'Stat Test Party' && d.restrictions.includes('Gluten-Free'))).toBe(true);
+    });
+
     it('Negative: Invalid Code format', async () => {
         const response = await request(app)
             .post('/api/validate-code')

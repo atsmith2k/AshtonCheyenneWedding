@@ -1290,6 +1290,178 @@
                 width: fit-content;
             }
         }
+
+        /* ============================================
+           ANALYTICS TAB & COMPONENT STYLING
+           ============================================ */
+        .analytics-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .analytics-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(44, 101, 156, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .analytics-card-title {
+            font-family: var(--font-heading);
+            font-size: 1.35rem;
+            color: var(--text-dark);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid rgba(44, 101, 156, 0.05);
+            padding-bottom: 0.75rem;
+        }
+
+        /* Combined Progress Bar */
+        .progress-bar-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .multi-segment-progress {
+            display: flex;
+            height: 24px;
+            background: #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .progress-segment {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .progress-segment[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(16, 52, 69, 0.95);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .progress-attending { background: var(--success); }
+        .progress-declined { background: var(--error); }
+        .progress-pending { background: #90a4ae; }
+        .progress-unused { background: #E9B824; }
+
+        /* Legend styles */
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        /* Dietary Table */
+        .dietary-badge-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .dietary-badge {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .dietary-badge .badge-count {
+            background: var(--primary-dark);
+            color: white;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+        }
+
+        /* Table inside cards */
+        .card-table-container {
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid rgba(44, 101, 156, 0.08);
+            border-radius: var(--radius-sm);
+        }
+
+        .card-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .card-table th {
+            padding: 0.75rem;
+            background: rgba(215, 233, 245, 0.3);
+            font-weight: 600;
+            border-bottom: 1px solid rgba(44, 101, 156, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .card-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid rgba(44, 101, 156, 0.05);
+        }
+
+        .card-table tr:last-child td {
+            border-bottom: none;
+        }
     </style>
 </head>
 
@@ -1355,6 +1527,7 @@
             <!-- Tabs -->
             <div class="tab-buttons">
                 <button class="tab-btn active" data-tab="guests">Guest List</button>
+                <button class="tab-btn" data-tab="analytics">Analytics</button>
                 <button class="tab-btn" data-tab="addresses">Address Requests</button>
                 <button class="tab-btn" data-tab="codes">RSVP Codes</button>
                 <button class="tab-btn" data-tab="generate">Generate Code</button>
@@ -1362,6 +1535,117 @@
                 <button class="tab-btn" data-tab="export">Data Export</button>
                 <button class="tab-btn" data-tab="print">Print Invitations</button>
                 <button class="tab-btn" data-tab="settings">Settings</button>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="analytics-tab" class="tab-content">
+                <div class="analytics-container">
+                    
+                    <!-- Guest Breakdown Card -->
+                    <div class="analytics-card" style="grid-column: span 2;">
+                        <h3 class="analytics-card-title">
+                            Guest RSVP Status Breakdown
+                        </h3>
+                        
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-labels">
+                                <span>Guest Spots Allocated</span>
+                                <span id="analytics-guest-total-label">0 / 0 Spots</span>
+                            </div>
+                            <div class="multi-segment-progress" id="guest-progress-bar">
+                                <div class="progress-segment progress-attending" style="width: 0%" title="Attending" id="bar-guest-attending"></div>
+                                <div class="progress-segment progress-declined" style="width: 0%" title="Declined" id="bar-guest-declined"></div>
+                                <div class="progress-segment progress-pending" style="width: 0%" title="Pending" id="bar-guest-pending"></div>
+                                <div class="progress-segment progress-unused" style="width: 0%" title="Unused Spots" id="bar-guest-unused"></div>
+                            </div>
+                            <div class="legend-grid">
+                                <div class="legend-item">
+                                    <div class="legend-color progress-attending"></div>
+                                    <span>Attending: <strong id="legend-guest-attending">0</strong></span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color progress-declined"></div>
+                                    <span>Declined: <strong id="legend-guest-declined">0</strong></span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color progress-pending"></div>
+                                    <span>Pending: <strong id="legend-guest-pending">0</strong></span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color progress-unused"></div>
+                                    <span>Unused Spots: <strong id="legend-guest-unused">0</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Party RSVP Card -->
+                    <div class="analytics-card">
+                        <h3 class="analytics-card-title">
+                            Party/Code Status
+                        </h3>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-labels">
+                                <span>Parties RSVP'd</span>
+                                <span id="analytics-party-total-label">0 / 0 Codes</span>
+                            </div>
+                            <div class="multi-segment-progress" id="party-progress-bar">
+                                <div class="progress-segment progress-attending" style="width: 0%" title="Attending" id="bar-party-attending"></div>
+                                <div class="progress-segment progress-declined" style="width: 0%" title="Declined" id="bar-party-declined"></div>
+                                <div class="progress-segment progress-pending" style="width: 0%" title="Pending" id="bar-party-pending"></div>
+                            </div>
+                            <div class="legend-grid" style="grid-template-columns: 1fr;">
+                                <div class="legend-item">
+                                    <div class="legend-color progress-attending"></div>
+                                    <span>Attending (At least 1 yes): <strong id="legend-party-attending">0</strong></span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color progress-declined"></div>
+                                    <span>Declined (Full party declined): <strong id="legend-party-declined">0</strong></span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color progress-pending"></div>
+                                    <span>Pending: <strong id="legend-party-pending">0</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dietary Restrictions Summary -->
+                    <div class="analytics-card">
+                        <h3 class="analytics-card-title">Dietary Restriction Categories</h3>
+                        <div class="dietary-badge-list" id="dietary-summary-list">
+                            <p class="text-muted" style="font-size: 0.9rem;">No dietary restrictions reported.</p>
+                        </div>
+                    </div>
+
+                    <!-- Dietary Details Table -->
+                    <div class="analytics-card" style="grid-column: span 2;">
+                        <h3 class="analytics-card-title">
+                            Guest Specific Dietary Notes
+                            <button id="copy-dietary-btn" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">
+                                Copy List
+                            </button>
+                        </h3>
+                        <div class="card-table-container">
+                            <table class="card-table">
+                                <thead>
+                                    <tr>
+                                        <th>Guest Name</th>
+                                        <th>Code</th>
+                                        <th>Dietary Restriction Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dietary-details-body">
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">No dietary restrictions reported.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
             </div>
 
             <!-- Guest List Tab -->
@@ -2481,6 +2765,123 @@
                 document.getElementById('stat-used-codes').textContent = stats.used_codes || 0;
                 document.getElementById('stat-attending').textContent = stats.attending_count || 0;
                 document.getElementById('stat-total-guests').textContent = stats.total_guests_attending || 0;
+
+                // Calculate percentages and update Analytics UI
+                const totalInvited = stats.total_invited || 0;
+                const attendingGuests = stats.attending_guests || 0;
+                const declinedGuests = stats.declined_guests || 0;
+                const pendingGuests = stats.pending_guests || 0;
+                const unusedGuests = stats.unused_guests || 0;
+
+                const totalCodes = stats.total_codes || 0;
+                const attendingCodes = stats.attending_codes || 0;
+                const declinedCodes = stats.declined_codes || 0;
+                const pendingCodes = stats.pending_codes || 0;
+
+                // 1. Guest Breakdown Updates
+                document.getElementById('analytics-guest-total-label').textContent = `${attendingGuests} / ${totalInvited} Spots`;
+                document.getElementById('legend-guest-attending').textContent = attendingGuests;
+                document.getElementById('legend-guest-declined').textContent = declinedGuests;
+                document.getElementById('legend-guest-pending').textContent = pendingGuests;
+                document.getElementById('legend-guest-unused').textContent = unusedGuests;
+
+                // Update Guest progress segments width
+                const gAttPct = totalInvited > 0 ? (attendingGuests / totalInvited) * 100 : 0;
+                const gDecPct = totalInvited > 0 ? (declinedGuests / totalInvited) * 100 : 0;
+                const gPenPct = totalInvited > 0 ? (pendingGuests / totalInvited) * 100 : 0;
+                const gUnuPct = totalInvited > 0 ? (unusedGuests / totalInvited) * 100 : 0;
+
+                const barGAtt = document.getElementById('bar-guest-attending');
+                const barGDec = document.getElementById('bar-guest-declined');
+                const barGPen = document.getElementById('bar-guest-pending');
+                const barGUnu = document.getElementById('bar-guest-unused');
+
+                barGAtt.style.width = `${gAttPct}%`;
+                barGAtt.title = `Attending: ${attendingGuests} (${gAttPct.toFixed(1)}%)`;
+                barGAtt.textContent = gAttPct > 10 ? `${gAttPct.toFixed(0)}%` : '';
+
+                barGDec.style.width = `${gDecPct}%`;
+                barGDec.title = `Declined: ${declinedGuests} (${gDecPct.toFixed(1)}%)`;
+                barGDec.textContent = gDecPct > 10 ? `${gDecPct.toFixed(0)}%` : '';
+
+                barGPen.style.width = `${gPenPct}%`;
+                barGPen.title = `Pending: ${pendingGuests} (${gPenPct.toFixed(1)}%)`;
+                barGPen.textContent = gPenPct > 10 ? `${gPenPct.toFixed(0)}%` : '';
+
+                barGUnu.style.width = `${gUnuPct}%`;
+                barGUnu.title = `Unused Spots: ${unusedGuests} (${gUnuPct.toFixed(1)}%)`;
+                barGUnu.textContent = gUnuPct > 10 ? `${gUnuPct.toFixed(0)}%` : '';
+
+                // 2. Party Breakdown Updates
+                document.getElementById('analytics-party-total-label').textContent = `${attendingCodes + declinedCodes} / ${totalCodes} Codes`;
+                document.getElementById('legend-party-attending').textContent = attendingCodes;
+                document.getElementById('legend-party-declined').textContent = declinedCodes;
+                document.getElementById('legend-party-pending').textContent = pendingCodes;
+
+                // Update Party progress segments width
+                const pAttPct = totalCodes > 0 ? (attendingCodes / totalCodes) * 100 : 0;
+                const pDecPct = totalCodes > 0 ? (declinedCodes / totalCodes) * 100 : 0;
+                const pPenPct = totalCodes > 0 ? (pendingCodes / totalCodes) * 100 : 0;
+
+                const barPAtt = document.getElementById('bar-party-attending');
+                const barPDec = document.getElementById('bar-party-declined');
+                const barPPen = document.getElementById('bar-party-pending');
+
+                barPAtt.style.width = `${pAttPct}%`;
+                barPAtt.title = `Attending: ${attendingCodes} (${pAttPct.toFixed(1)}%)`;
+                barPAtt.textContent = pAttPct > 10 ? `${pAttPct.toFixed(0)}%` : '';
+
+                barPDec.style.width = `${pDecPct}%`;
+                barPDec.title = `Declined: ${declinedCodes} (${pDecPct.toFixed(1)}%)`;
+                barPDec.textContent = pDecPct > 10 ? `${pDecPct.toFixed(0)}%` : '';
+
+                barPPen.style.width = `${pPenPct}%`;
+                barPPen.title = `Pending: ${pendingCodes} (${pPenPct.toFixed(1)}%)`;
+                barPPen.textContent = pPenPct > 10 ? `${pPenPct.toFixed(0)}%` : '';
+
+                // 3. Dietary Restrictions Summaries
+                const dietarySummaryList = document.getElementById('dietary-summary-list');
+                const summaryData = stats.dietarySummary || [];
+                if (summaryData.length === 0) {
+                    dietarySummaryList.innerHTML = `<p class="text-muted" style="font-size: 0.9rem;">No dietary restrictions reported.</p>`;
+                } else {
+                    dietarySummaryList.innerHTML = summaryData.map(item => `
+                        <div class="dietary-badge">
+                            <span>${escapeHTML(item.restriction)}</span>
+                            <span class="badge-count">${item.count}</span>
+                        </div>
+                    `).join('');
+                }
+
+                // 4. Dietary Details Table
+                const dietaryDetailsBody = document.getElementById('dietary-details-body');
+                const detailsData = stats.dietaryDetails || [];
+                if (detailsData.length === 0) {
+                    dietaryDetailsBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">No dietary restrictions reported.</td></tr>`;
+                } else {
+                    dietaryDetailsBody.innerHTML = detailsData.map(item => `
+                        <tr>
+                            <td><strong>${escapeHTML(item.name)}</strong></td>
+                            <td><code>${escapeHTML(item.code)}</code></td>
+                            <td>${escapeHTML(item.restrictions)}</td>
+                        </tr>
+                    `).join('');
+                }
+
+                // Setup dietary copy listener
+                const copyBtn = document.getElementById('copy-dietary-btn');
+                if (copyBtn) {
+                    copyBtn.onclick = () => {
+                        if (detailsData.length === 0) {
+                            customAlert('No dietary restrictions to copy.');
+                            return;
+                        }
+                        const textToCopy = detailsData.map(item => `${item.name} (${item.code}): ${item.restrictions}`).join('\n');
+                        navigator.clipboard.writeText(textToCopy)
+                            .then(() => customAlert('Dietary restrictions list copied to clipboard!'))
+                            .catch(err => console.error('Failed to copy text: ', err));
+                    };
+                }
 
                 // Get address stats as well
                 loadAddressSubmissions();

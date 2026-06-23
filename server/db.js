@@ -220,13 +220,88 @@ const statements = {
     if (!client) throw new Error('Database not connected');
     const rs = await client.execute(`
       SELECT 
-        COUNT(*) as total_codes,
-        SUM(used) as used_codes,
-        (SELECT COUNT(*) FROM guests WHERE attending = 1) as attending_count,
-        (SELECT SUM(guest_count) FROM guests WHERE attending = 1) as total_guests_attending
-      FROM admin_codes
+        COUNT(ac.code) as total_codes,
+        COALESCE(SUM(ac.used), 0) as used_codes,
+        COALESCE(SUM(CASE WHEN g.attending = 1 THEN 1 ELSE 0 END), 0) as attending_codes,
+        COALESCE(SUM(CASE WHEN g.attending = 0 THEN 1 ELSE 0 END), 0) as declined_codes,
+        COALESCE(SUM(CASE WHEN (g.code IS NULL OR g.attending IS NULL) THEN 1 ELSE 0 END), 0) as pending_codes,
+        COALESCE(SUM(ac.max_guests), 0) as total_invited,
+        COALESCE(SUM(CASE WHEN g.attending = 1 THEN g.guest_count ELSE 0 END), 0) as attending_guests,
+        COALESCE(SUM(CASE WHEN g.attending = 0 THEN ac.max_guests ELSE 0 END), 0) as declined_guests,
+        COALESCE(SUM(CASE WHEN (g.code IS NULL OR g.attending IS NULL) THEN ac.max_guests ELSE 0 END), 0) as pending_guests,
+        COALESCE(SUM(CASE WHEN g.attending = 1 THEN (ac.max_guests - g.guest_count) ELSE 0 END), 0) as unused_guests
+      FROM admin_codes ac
+      LEFT JOIN guests g ON ac.code = g.code
     `);
-    return rs.rows[0];
+    
+    const statsRow = rs.rows[0];
+
+    // Fetch dietary restrictions for attending guests
+    const dietaryRs = await client.execute(`
+      SELECT name, code, dietary_restrictions 
+      FROM guests 
+      WHERE attending = 1 AND dietary_restrictions IS NOT NULL AND TRIM(dietary_restrictions) != ''
+    `);
+
+    // Process dietary restrictions on the backend
+    const dietaryRows = dietaryRs.rows;
+    const dietarySummary = {};
+    const dietaryDetails = [];
+
+    dietaryRows.forEach(row => {
+      const rawText = row.dietary_restrictions || '';
+      if (!rawText.trim()) return;
+
+      dietaryDetails.push({
+        name: row.name,
+        code: row.code,
+        restrictions: rawText.trim()
+      });
+
+      // Split and group
+      const individualItems = rawText
+        .split(/[,;&]|\band\b/i)
+        .map(item => item.trim())
+        .filter(Boolean);
+
+      individualItems.forEach(item => {
+        const lowerItem = item.toLowerCase();
+        let category = 'Other';
+        
+        if (lowerItem.includes('gluten') || lowerItem === 'gf') {
+          category = 'Gluten-Free';
+        } else if (lowerItem.includes('vegan')) {
+          category = 'Vegan';
+        } else if (lowerItem.includes('vegetarian') || lowerItem === 'veg') {
+          category = 'Vegetarian';
+        } else if (lowerItem.includes('dairy') || lowerItem.includes('lactose') || lowerItem === 'df') {
+          category = 'Dairy-Free';
+        } else if (lowerItem.includes('nut') || lowerItem.includes('peanut') || lowerItem.includes('tree nut') || lowerItem.includes('almond')) {
+          category = 'Nut Allergy';
+        } else if (lowerItem.includes('shellfish') || lowerItem.includes('fish') || lowerItem.includes('seafood')) {
+          category = 'Seafood/Shellfish Allergy';
+        } else {
+          // Capitalize first letter of item
+          category = item.charAt(0).toUpperCase() + item.slice(1);
+        }
+
+        dietarySummary[category] = (dietarySummary[category] || 0) + 1;
+      });
+    });
+
+    // Sort summary by count descending
+    const sortedDietarySummary = Object.entries(dietarySummary)
+      .map(([restriction, count]) => ({ restriction, count }))
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      ...statsRow,
+      // Maintain backward compatibility with existing front-end variables
+      attending_count: statsRow.attending_codes,
+      total_guests_attending: statsRow.attending_guests,
+      dietarySummary: sortedDietarySummary,
+      dietaryDetails: dietaryDetails
+    };
   },
 
   // Delete/Cleanup
