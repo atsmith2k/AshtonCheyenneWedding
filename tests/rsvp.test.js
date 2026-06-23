@@ -179,6 +179,59 @@ describe('RSVP Flow Integration Tests', () => {
         expect(validateResponse.body.guest.guest_count).toBe(3);
     });
 
+    it('Admin Session Persistence - login, auto-authenticate with cookie, and logout', async () => {
+        // 1. Login with password -> should receive admin_session cookie
+        const loginResponse = await request(app)
+            .post('/api/admin/verify')
+            .send({ password: 'wedding2025' });
+
+        expect(loginResponse.status).toBe(200);
+        expect(loginResponse.body.authorized).toBe(true);
+        
+        // Assert Set-Cookie header contains admin_session cookie
+        const cookies = loginResponse.headers['set-cookie'];
+        expect(cookies).toBeDefined();
+        const sessionCookie = cookies.find(c => c.includes('admin_session='));
+        expect(sessionCookie).toBeDefined();
+        expect(sessionCookie).toContain('HttpOnly');
+        expect(sessionCookie).toContain('SameSite=Strict');
+        
+        // Extract session cookie token value
+        const cookieValue = sessionCookie.split(';')[0];
+
+        // 2. Call verify with EMPTY body but with the cookie -> should authenticate successfully
+        const verifyWithCookieResponse = await request(app)
+            .post('/api/admin/verify')
+            .set('Cookie', [cookieValue])
+            .send({});
+
+        expect(verifyWithCookieResponse.status).toBe(200);
+        expect(verifyWithCookieResponse.body.authorized).toBe(true);
+
+        // 3. Call secure endpoint (e.g. get guests) with cookie and no body password -> should work
+        const guestsResponse = await request(app)
+            .post('/api/admin/guests')
+            .set('Cookie', [cookieValue])
+            .send({});
+
+        expect(guestsResponse.status).toBe(200);
+        expect(guestsResponse.body.guests).toBeDefined();
+
+        // 4. Logout -> should clear cookie
+        const logoutResponse = await request(app)
+            .post('/api/admin/logout')
+            .send({});
+
+        expect(logoutResponse.status).toBe(200);
+        expect(logoutResponse.body.success).toBe(true);
+        
+        const clearedCookies = logoutResponse.headers['set-cookie'];
+        expect(clearedCookies).toBeDefined();
+        const clearedSessionCookie = clearedCookies.find(c => c.includes('admin_session='));
+        expect(clearedSessionCookie).toBeDefined();
+        expect(clearedSessionCookie).toContain('Max-Age=0');
+    });
+
     it('Verify stats and analytics metrics (POST /api/admin/stats)', async () => {
         // Fetch stats first
         const initialResponse = await request(app)

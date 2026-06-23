@@ -1509,9 +1509,14 @@
                         <h1>Wedding RSVP Dashboard</h1>
                         <p>Manage your guest list and RSVP codes</p>
                     </div>
-                    <a href="/" class="btn btn-secondary" style="background: white; color: var(--primary);">
-                        ← Back to Website
-                    </a>
+                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <button id="logout-btn" class="btn btn-secondary" style="background: transparent; color: white; border-color: rgba(255,255,255,0.4);">
+                            Log Out
+                        </button>
+                        <a href="/" class="btn btn-secondary" style="background: white; color: var(--primary);">
+                            ← Back to Website
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -2479,6 +2484,51 @@
             } finally {
                 loginBtn.disabled = false;
                 loginBtn.textContent = 'Login';
+            }
+        });
+
+        // Auto-login check if session cookie is present
+        async function checkSession() {
+            try {
+                const response = await fetch(`${API_URL}/admin/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({}) // sends empty password body, backend will check the cookie
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.authorized) {
+                        // Authorized by session cookie!
+                        adminPassword = ''; // Not needed as cookie will auth all subsequent requests
+                        document.getElementById('login-overlay').style.display = 'none';
+                        document.getElementById('admin-dashboard').classList.remove('hidden');
+                        loadDashboard();
+                    }
+                }
+            } catch (error) {
+                console.error('Session check failed:', error);
+            }
+        }
+        checkSession();
+
+        // Logout handler
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            try {
+                const response = await fetch(`${API_URL}/admin/logout`, { method: 'POST' });
+                if (response.ok) {
+                    adminPassword = '';
+                    document.getElementById('login-overlay').style.display = 'flex';
+                    document.getElementById('admin-dashboard').classList.add('hidden');
+                    document.getElementById('admin-password').value = '';
+                    customAlert('Logged out successfully!', 'Goodbye');
+                } else {
+                    throw new Error('Server returned error on logout');
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
+                // Fallback reload
+                window.location.reload();
             }
         });
 

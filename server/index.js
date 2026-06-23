@@ -136,6 +136,48 @@ if (isVercel && !isTest) {
     ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'wedding2025';
 }
 
+// Session token generation and verification using Node's crypto
+
+function createSessionToken(secret) {
+    const expires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+    const payload = JSON.stringify({ expires });
+    const signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+    return Buffer.from(JSON.stringify({ payload: JSON.parse(payload), signature })).toString('base64');
+}
+
+function verifySessionToken(token, secret) {
+    try {
+        const raw = JSON.parse(Buffer.from(token, 'base64').toString());
+        const expectedSignature = crypto.createHmac('sha256', secret).update(JSON.stringify(raw.payload)).digest('hex');
+        if (raw.signature !== expectedSignature) return false;
+        if (Date.now() > raw.payload.expires) return false;
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// Session authentication middleware
+const sessionAuthMiddleware = (req, res, next) => {
+    // If a valid session cookie is present, inject the admin password to authenticate the request
+    if (req.headers.cookie) {
+        const cookies = Object.fromEntries(
+            req.headers.cookie.split(';').map(c => {
+                const parts = c.split('=');
+                return [parts[0].trim(), parts.slice(1).join('=')];
+            })
+        );
+        const sessionToken = cookies.admin_session;
+        if (sessionToken && verifySessionToken(sessionToken, ADMIN_PASSWORD)) {
+            if (!req.body) req.body = {};
+            req.body.password = ADMIN_PASSWORD;
+        }
+    }
+    next();
+};
+
+app.use('/api/admin/', sessionAuthMiddleware);
+
 const sanitizeInput = (input) => {
     if (typeof input !== 'string') return input;
     return input.trim().substring(0, 500);
@@ -236,7 +278,7 @@ app.post('/api/rsvp',
 
 app.post('/api/admin/verify',
     authLimiter,
-    [body('password').isString().trim().isLength({ min: 1, max: 100 })],
+    [body('password').optional().isString().trim().isLength({ min: 1, max: 100 })],
     (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -244,9 +286,25 @@ app.post('/api/admin/verify',
         }
 
         const { password } = req.body;
-        res.json({ authorized: password === ADMIN_PASSWORD });
+        const authorized = password === ADMIN_PASSWORD;
+
+        if (authorized) {
+            // Generate a secure signed session token
+            const token = createSessionToken(ADMIN_PASSWORD);
+            const isProd = process.env.NODE_ENV === 'production';
+            // Set session cookie valid for 24h, HTTP-only, SameSite=Strict, Secure in production
+            res.setHeader('Set-Cookie', `admin_session=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=86400${isProd ? '; Secure' : ''}`);
+        }
+
+        res.json({ authorized });
     }
 );
+
+app.post('/api/admin/logout', (req, res) => {
+    // Clear session cookie
+    res.setHeader('Set-Cookie', 'admin_session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT');
+    res.json({ success: true });
+});
 
 app.post('/api/admin/generate-code',
     authLimiter,
