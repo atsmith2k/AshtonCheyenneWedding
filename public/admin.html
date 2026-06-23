@@ -1343,6 +1343,8 @@
         .progress-bar-labels {
             display: flex;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.25rem;
             margin-bottom: 0.5rem;
             font-size: 0.85rem;
             font-weight: 600;
@@ -1475,10 +1477,19 @@
             border-bottom: none;
         }
 
+        /* Default view (desktop first) */
+        .dietary-mobile-view {
+            display: none !important;
+        }
+        .dietary-desktop-view {
+            display: block !important;
+        }
+
         /* Mobile responsive adjustments for analytics */
         @media (max-width: 768px) {
             .analytics-container {
                 grid-template-columns: 1fr;
+                gap: 1.25rem;
             }
             .analytics-card {
                 grid-column: span 1 !important;
@@ -1486,6 +1497,32 @@
             }
             .legend-grid {
                 grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+            .dietary-mobile-view {
+                display: flex !important;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .dietary-desktop-view {
+                display: none !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .analytics-card {
+                padding: 1.25rem 1rem !important;
+                gap: 1rem !important;
+            }
+            .analytics-container {
+                gap: 1rem !important;
+                margin-top: 1rem !important;
+            }
+            .progress-segment {
+                font-size: 0.65rem !important;
+            }
+            .legend-grid {
+                gap: 0.4rem !important;
             }
         }
     </style>
@@ -1658,7 +1695,8 @@
                                 Copy List
                             </button>
                         </h3>
-                        <div class="card-table-container">
+                        <!-- Desktop View Table -->
+                        <div class="card-table-container dietary-desktop-view">
                             <table class="card-table">
                                 <thead>
                                     <tr>
@@ -1673,6 +1711,13 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- Mobile Card View -->
+                        <div class="dietary-mobile-view" id="dietary-mobile-cards">
+                            <div class="data-card">
+                                <p class="text-center text-muted" style="margin: 0; font-size: 0.9rem;">No dietary restrictions reported.</p>
+                            </div>
                         </div>
                     </div>
 
@@ -2929,19 +2974,51 @@
                     `).join('');
                 }
 
-                // 4. Dietary Details Table
+                // 4. Dietary Details Table & Mobile Cards
                 const dietaryDetailsBody = document.getElementById('dietary-details-body');
+                const dietaryMobileCards = document.getElementById('dietary-mobile-cards');
                 const detailsData = stats.dietaryDetails || [];
+
                 if (detailsData.length === 0) {
-                    dietaryDetailsBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">No dietary restrictions reported.</td></tr>`;
+                    if (dietaryDetailsBody) {
+                        dietaryDetailsBody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">No dietary restrictions reported.</td></tr>`;
+                    }
+                    if (dietaryMobileCards) {
+                        dietaryMobileCards.innerHTML = `
+                            <div class="data-card">
+                                <p class="text-center text-muted" style="margin: 0; font-size: 0.9rem;">No dietary restrictions reported.</p>
+                            </div>
+                        `;
+                    }
                 } else {
-                    dietaryDetailsBody.innerHTML = detailsData.map(item => `
-                        <tr>
-                            <td><strong>${escapeHTML(item.name)}</strong></td>
-                            <td><code>${escapeHTML(item.code)}</code></td>
-                            <td>${escapeHTML(item.restrictions)}</td>
-                        </tr>
-                    `).join('');
+                    // Desktop table
+                    if (dietaryDetailsBody) {
+                        dietaryDetailsBody.innerHTML = detailsData.map(item => `
+                            <tr>
+                                <td><strong>${escapeHTML(item.name)}</strong></td>
+                                <td><code>${escapeHTML(item.code)}</code></td>
+                                <td>${escapeHTML(item.restrictions)}</td>
+                            </tr>
+                        `).join('');
+                    }
+
+                    // Mobile cards
+                    if (dietaryMobileCards) {
+                        dietaryMobileCards.innerHTML = detailsData.map(item => `
+                            <div class="data-card" style="margin-bottom: 0; padding: 1.25rem;">
+                                <div class="data-card-header" style="border-bottom: 1px solid rgba(44,101,156,0.05); padding-bottom: 0.5rem; margin-bottom: 0.75rem;">
+                                    <span class="data-card-title"><strong>${escapeHTML(item.name)}</strong></span>
+                                    <code style="font-size: 0.8rem; background: var(--primary-light); color: var(--primary-dark); padding: 0.15rem 0.4rem; border-radius: 4px;">${escapeHTML(item.code)}</code>
+                                </div>
+                                <div class="data-card-body single-col" style="padding: 0;">
+                                    <div class="data-card-row" style="margin: 0; padding: 0; display: block;">
+                                        <span class="data-card-label" style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-light); margin-bottom: 0.25rem; display: block;">Dietary Restrictions</span>
+                                        <span class="data-card-value" style="font-size: 0.9rem; color: var(--text-dark);">${escapeHTML(item.restrictions)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
                 }
 
                 // Setup dietary copy listener
