@@ -449,7 +449,7 @@ app.post('/api/admin/update-rsvp-full',
         body('used').isInt({ min: 0, max: 1 }),
         body('notes').optional().isString().trim(),
         body('guestName').optional().isString().trim(),
-        body('attending').optional().isInt({ min: 0, max: 1 }),
+        body('attending').optional().isInt({ min: -1, max: 1 }),
         body('guestCount').optional().isInt({ min: 0, max: 20 }),
         body('guestMessage').optional().isString().trim()
     ],
@@ -474,7 +474,7 @@ app.post('/api/admin/update-rsvp-full',
                 await statements.updateGuestCompletely(
                     newCode,
                     sanitizeInput(guestName || guest.name),
-                    attending !== undefined ? attending : guest.attending,
+                    attending !== undefined ? (attending === -1 ? null : attending) : guest.attending,
                     guestCount !== undefined ? guestCount : guest.guest_count,
                     sanitizeInput(guestMessage || guest.message || '')
                 );
@@ -483,7 +483,7 @@ app.post('/api/admin/update-rsvp-full',
                 await statements.createGuest(
                     sanitizeInput(guestName),
                     newCode,
-                    attending || 1,
+                    attending !== undefined ? (attending === -1 ? null : attending) : 1,
                     guestCount || 1,
                     sanitizeInput(guestMessage || '')
                 );

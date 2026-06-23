@@ -125,6 +125,60 @@ describe('RSVP Flow Integration Tests', () => {
         expect(validateResponse.body.guest.guest_count).toBe(0); // Should be 0 when declined
     });
 
+    it('Admin RSVP Update - Change to Pending (-1)', async () => {
+        const response = await request(app)
+            .post('/api/admin/update-rsvp-full')
+            .send({
+                password: 'wedding2025',
+                oldCode: generatedCode,
+                newCode: generatedCode,
+                maxGuests: 4,
+                used: 1,
+                notes: 'Test notes',
+                guestName: 'Test Guest Updated',
+                attending: -1,
+                guestCount: 2,
+                guestMessage: 'Testing pending'
+            });
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+
+        const validateResponse = await request(app)
+            .post('/api/validate-code')
+            .send({ code: generatedCode });
+
+        expect(validateResponse.body.guest.attending).toBeNull();
+        expect(validateResponse.body.guest.guest_count).toBe(2);
+    });
+
+    it('Admin RSVP Update - Change to Attending (1)', async () => {
+        const response = await request(app)
+            .post('/api/admin/update-rsvp-full')
+            .send({
+                password: 'wedding2025',
+                oldCode: generatedCode,
+                newCode: generatedCode,
+                maxGuests: 4,
+                used: 1,
+                notes: 'Test notes',
+                guestName: 'Test Guest Updated',
+                attending: 1,
+                guestCount: 3,
+                guestMessage: 'Testing attending'
+            });
+
+        expect(response.status).toBe(200);
+        expect(response.body.success).toBe(true);
+
+        const validateResponse = await request(app)
+            .post('/api/validate-code')
+            .send({ code: generatedCode });
+
+        expect(validateResponse.body.guest.attending).toBe(1);
+        expect(validateResponse.body.guest.guest_count).toBe(3);
+    });
+
     it('Negative: Invalid Code format', async () => {
         const response = await request(app)
             .post('/api/validate-code')

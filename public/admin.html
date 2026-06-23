@@ -1807,6 +1807,7 @@
                             <select id="edit-guest-attending" class="form-select">
                                 <option value="1">Attending</option>
                                 <option value="0">Declined</option>
+                                <option value="-1">Pending</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -3157,7 +3158,7 @@
 
             if (guest) {
                 document.getElementById('edit-guest-name').value = guest.name || '';
-                document.getElementById('edit-guest-attending').value = guest.attending === 1 ? "1" : "0";
+                document.getElementById('edit-guest-attending').value = guest.attending === 1 ? "1" : guest.attending === 0 ? "0" : "-1";
                 document.getElementById('edit-guest-count').value = guest.guest_count || 0;
                 document.getElementById('edit-guest-message').value = guest.message || '';
                 document.getElementById('edit-guest-section').style.display = 'block';
