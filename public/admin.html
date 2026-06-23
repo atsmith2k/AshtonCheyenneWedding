@@ -1434,6 +1434,7 @@
         .card-table-container {
             max-height: 250px;
             overflow-y: auto;
+            overflow-x: auto;
             border: 1px solid rgba(44, 101, 156, 0.08);
             border-radius: var(--radius-sm);
         }
@@ -1461,6 +1462,20 @@
 
         .card-table tr:last-child td {
             border-bottom: none;
+        }
+
+        /* Mobile responsive adjustments for analytics */
+        @media (max-width: 768px) {
+            .analytics-container {
+                grid-template-columns: 1fr;
+            }
+            .analytics-card {
+                grid-column: span 1 !important;
+                padding: 1.5rem 1.25rem;
+            }
+            .legend-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
